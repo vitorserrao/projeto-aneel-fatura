@@ -1,0 +1,59 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+*.whl
+
+# Ambiente virtual
+.venv/
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Ambiente/configuração local
+.env
+
+# Dados brutos do dataset (não versionar arquivos grandes/sensíveis)
+data/raw/*
+!data/raw/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+
+# Documentos Excel de referência
+*.xlsm
+*.xlsx
+*.xls
+
+# Testes/pytest
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Python/uvicorn
+*.log
+
+# Streamlit
+.streamlit/secrets.toml
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Ferramentas de agente (Reasonix): versionar apenas a base de conhecimento.
+# `attachments/` são colagens temporárias (PDF/xlsm/imagens) e `tasks/` é
+# estado de execução da sessão; nenhum dos dois pertence ao histórico do projeto.
+.reasonix/attachments/
+.reasonix/tasks/
+reasonix.toml
+
+# Scratch/temporários locais
+_tmp_*
+.~lock*

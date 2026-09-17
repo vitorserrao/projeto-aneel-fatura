@@ -1,0 +1,16 @@
+# Normalizacao de fim de linha.
+# O repositorio guarda LF; sem isto um `core.autocrlf=true` global reescreveria
+# todos os arquivos de codigo na proxima clonagem, gerando ruido nos diffs.
+* text=auto eol=lf
+
+# Scripts do Windows precisam de CRLF para o cmd.exe.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Binarios (nunca normalizar)
+*.pdf binary
+*.png binary
+*.jpg binary
+*.docx binary
+*.xlsm binary
+*.xlsx binary

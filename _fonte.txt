@@ -1,0 +1,33 @@
+##### PAGINA 52 #####
+Cálculo da Tarifa com Tributos
+Exemplo:
+Calcular a fatura de um consumidor residencial cujo consumo no mês de Novembro/2020 foi 220 kWh.
+Dados:
+◦ Tarifa Homol. B1 (Residencial Normal): 0,50599 R$/kWh
+◦ ICMS: 12% (até 150 kWh)
+◦ ICMS: 25% (após 150 kWh)
+◦ PIS: 0,97% (10/2015)
+◦ COFINS: 4,46% (10/2015)
+81
+𝑇𝑎𝑟𝑖𝑓𝑎 𝐹𝑖𝑛𝑎𝑙 = 𝑇𝑎𝑟𝑖𝑓𝑎 𝐻𝑜𝑚𝑜𝑙𝑜𝑔𝑎𝑑𝑎
+1 − 𝑃𝐼𝑆 + 𝐶𝑂𝐹𝐼𝑁𝑆
+100 × 1 − 𝐼𝐶𝑀𝑆
+100
+##### PAGINA 53 #####
+Cálculo da Tarifa com Tributos
+Exemplo:
+𝑇𝑎𝑟𝑖𝑓𝑎 𝐹𝑖𝑛𝑎𝑙 =
+𝑇𝑎𝑟𝑖𝑓𝑎 𝐻𝑜𝑚𝑜𝑙𝑜𝑔𝑎𝑑𝑎
+1−𝑃𝐼𝑆+𝐶𝑂𝐹𝐼𝑁𝑆
+100 × 1−𝐼𝐶𝑀𝑆
+100
+𝐴𝑡é 150 𝑘𝑊ℎ:  𝑇𝑎𝑟𝑖𝑓𝑎 𝐹𝑖𝑛𝑎𝑙 =
+0,50599
+1− 0,97+4,46 /100 × 1− 12 /100 ≈ 0,608 𝑅$/𝑘𝑊ℎ
+𝐴𝑝ó𝑠 150 𝑘𝑊ℎ:  𝑇𝑎𝑟𝑖𝑓𝑎 𝐹𝑖𝑛𝑎𝑙 ≈
+0,50599
+1− 0,97+4,46 /100 × 1− 25 /100 = 0,713
+𝑅$
+𝑘𝑊ℎ
+Valor da Fatura: 0.608 × 150 + 0,713 × 70 = 𝑅$ 141,138
+82

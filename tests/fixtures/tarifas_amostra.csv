@@ -1,0 +1,7 @@
+_id,DatGeracaoConjuntoDados,DscREH,SigAgente,NumCNPJDistribuidora,DatInicioVigencia,DatFimVigencia,DscBaseTarifaria,DscSubGrupo,DscModalidadeTarifaria,DscClasse,DscSubClasse,DscDetalhe,NomPostoTarifario,DscUnidadeTerciaria,SigAgenteAcessante,VlrTUSD,VlrTE
+1,2026-08-31,REH A,CPFL TESTE,90000000000001,2020-01-01,2020-12-31,Tarifa de Aplicação,A2,Azul,Não se aplica,Não se aplica,APE,Fora ponta,kW,TESTE ACESSANTE 1,"1,85",",00"
+2,2026-08-31,REH A,CPFL TESTE,90000000000001,2020-01-01,2020-12-31,Base Econômica,A2,Azul,Não se aplica,Não se aplica,APE,Fora ponta,kW,TESTE ACESSANTE 1,"1,85",",00"
+3,2026-08-31,REH B,CPFL TESTE,90000000000001,2021-01-01,2021-12-31,Tarifa de Aplicação,A2,Azul,Não se aplica,Não se aplica,Não se aplica,Fora ponta,MWh,TESTE ACESSANTE 1,"31,48","10,50"
+4,2026-08-31,REH C,RGE,90000000000002,2022-01-01,2022-12-31,Tarifa de Aplicação,B1,Convencional,Residencial,Residencial,Não se aplica,Não se aplica,MWh,TESTE ACESSANTE 2,",00","20,00"
+5,2026-08-31,REH C,RGE,90000000000003,2022-01-01,2022-12-31,Tarifa de Aplicação,B1,Convencional,Rural,Não se aplica,Não se aplica,Não se aplica,kW,TESTE ACESSANTE 1,"-122,63",",00"
+6,2026-08-31,REH D,NEG TESTE,90000000000004,2023-01-01,2023-12-31,Tarifa de Aplicação,A4,Azul,Não se aplica,Não se aplica,Não se aplica,Ponta,MWh,TESTE ACESSANTE 2,"1,50","-20,75"
