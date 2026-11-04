@@ -72,6 +72,7 @@ def test_tributos_aditivos():
     com = calcular_fatura(
         _consumidor(), "Azul", _parcelas(),
         aplicar_tributos=True, pis=0.0065, cofins=0.03, icms=0.18,
+        tipo_icms="dentro",
     )
     # fator = 1 / (1 - 0.0065 - 0.03 - 0.18) = 1 / 0.7835
     fator_esperado = 1.0 / 0.7835
@@ -86,4 +87,17 @@ def test_tributos_invalidos():
         calcular_fatura(
             _consumidor(), "Azul", _parcelas(),
             aplicar_tributos=True, pis=0.3, cofins=0.4, icms=0.4,
+            tipo_icms="dentro",
         )
+
+
+def test_tributos_padrao_multiplicativo():
+    # Padrão = forma multiplicativa ("fora"), validada nas faturas reais
+    # (Copel, CEMIG, Equatorial): fator = 1 / ((1 - PIS - COFINS) × (1 - ICMS)).
+    sem = calcular_fatura(_consumidor(), "Azul", _parcelas())
+    com = calcular_fatura(
+        _consumidor(), "Azul", _parcelas(),
+        aplicar_tributos=True, pis=0.0065, cofins=0.03, icms=0.18,
+    )
+    fator_esperado = 1.0 / ((1 - 0.0065 - 0.03) * (1 - 0.18))
+    assert abs((com.custo_tarifas / sem.custo_tarifas) - fator_esperado) < 1e-9

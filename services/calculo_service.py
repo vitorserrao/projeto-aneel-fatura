@@ -75,7 +75,7 @@ class CalculoService:
         pis: float = 0.0,
         cofins: float = 0.0,
         icms: float = 0.0,
-        tipo_icms: str = "dentro",
+        tipo_icms: str = "fora",
     ) -> ResultadoFatura:
         """Calcula a fatura completa ACR do perfil na ``modalidade``.
 
@@ -106,7 +106,7 @@ class CalculoService:
         pis: float = 0.0,
         cofins: float = 0.0,
         icms: float = 0.0,
-        tipo_icms: str = "dentro",
+        tipo_icms: str = "fora",
         reativos_direto: bool = False,
         tarifa_reativo_energia_r_kvarh: float | None = None,
         tarifa_reativo_demanda_r_kvar: float | None = None,
@@ -317,7 +317,7 @@ class CalculoService:
         pis: float = 0.0,
         cofins: float = 0.0,
         icms: float = 0.0,
-        tipo_icms: str = "dentro",
+        tipo_icms: str = "fora",
         reativos_direto: bool = False,
         tarifa_reativo_energia_r_kvarh: float | None = None,
         tarifa_reativo_demanda_r_kvar: float | None = None,
