@@ -1,0 +1,20 @@
+{
+  "meta": {"fonte": "fwdfaturagrupoa/23-10 BH CI_934.pdf", "distribuidora": "CEMIG-D", "subgrupo": "A4", "modalidade": "Verde", "competencia": "10/2023", "total_fatura": 73043.50},
+  "perfil": {"data_referencia": "2023-10-15", "consumo_ponta_kwh": 11550, "consumo_fora_ponta_kwh": 62300, "demanda_medida_unica_kw": 329.0, "demanda_contratada_unica_kw": 420.0, "reativo_energia_fora_ponta_kvArh": 1750, "cip_cosip_rs": 40.45, "outros_rs": 0.0, "bandeira_adicional_r_kwh": 0.0},
+  "tributos": {"pis": 0.0073, "cofins": 0.0339, "icms": 0.18, "tipo_icms": "fora"},
+  "tarifas_liquidas": [
+    {"componente": "TUSD", "grandeza": "DEMANDA", "posto": "PONTA", "unidade": "R$/kW", "valor": 19.19},
+    {"componente": "TE", "grandeza": "ENERGIA", "posto": "PONTA", "unidade": "R$/MWh", "valor": 2001.85},
+    {"componente": "TUSD", "grandeza": "ENERGIA", "posto": "FORA PONTA", "unidade": "R$/MWh", "valor": 413.68},
+    {"componente": "REATIVO", "grandeza": "ENERGIA", "posto": "FORA PONTA", "unidade": "R$/kVArh", "valor": 0.31364}
+  ],
+  "linhas_esperadas": [
+    {"descricao": "Demanda Ativa HFP s/ ICMS", "quantidade": 91, "tarifa": 20.01460159, "valor": 1821.32},
+    {"descricao": "Demanda Ativa HFP", "quantidade": 329, "tarifa": 24.40805071, "valor": 8030.23},
+    {"descricao": "Energia Ativa HFP", "quantidade": 62300, "tarifa": 0.52616584, "valor": 32780.12},
+    {"descricao": "Energia Ativa HP", "quantidade": 11550, "tarifa": 2.54618324, "valor": 29408.39},
+    {"descricao": "Energia Reativa HFP", "quantidade": 1750, "tarifa": 0.39892345, "valor": 698.09},
+    {"descricao": "Contrib Ilum Publica Municipal", "quantidade": 1, "tarifa": 40.45, "valor": 40.45}
+  ],
+  "notas": ["Out/2023 tem COFINS 3,39%. Multa/serviços/retenções e GD fora do motor.", "Mesma unidade do caso de 09/2023 (série temporal)."]
+}

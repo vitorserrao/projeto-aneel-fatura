@@ -88,18 +88,24 @@ def test_bandeira_e_cip():
     assert total > 0
 
 
-def test_reativos_excedentes_quando_fp_baixo():
-    # fp = ativa / sqrt(ativa^2 + reativa^2). Para ativa=1.000.000, reativa
-    # precisa ser grande o bastante para fp < 0.92 (~reativa > 425.000).
-    fatura = calcular_fatura(
-        _consumidor(
-            reativo_energia_ponta_kvArh=600_000.0,
-            reativo_energia_fora_ponta_kvArh=0.0,
-        ),
+def test_reativos_excedentes_com_tarifas_de_referencia():
+    # Sem tarifa de referência o motor NÃO inventa linha de reativos; com
+    # vrere/vrdre e fp < 0,92 a linha é emitida (regra art. 304).
+    consumidor = _consumidor(
+        reativo_energia_ponta_kvArh=600_000.0,
+        reativo_energia_fora_ponta_kvArh=0.0,
+    )
+    sem = calcular_fatura(consumidor, "Azul", _parcelas_azul())
+    assert not [l for l in sem.linhas if l.categoria == "REATIVOS"]
+
+    com = calcular_fatura(
+        consumidor,
         "Azul",
         _parcelas_azul(),
+        vrere_r_mwh=350.0,
+        vrdre_r_kw=10.0,
     )
-    reat = [l for l in fatura.linhas if l.categoria == "REATIVOS"]
+    reat = [l for l in com.linhas if l.categoria == "REATIVOS"]
     assert reat, "fator de potência baixo deveria gerar linha de reativos"
 
 

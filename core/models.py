@@ -20,7 +20,8 @@ from datetime import date
 
 POSTO_PONTA = "PONTA"
 POSTO_FORA_PONTA = "FORA PONTA"
-POSTOS_SUPORTADOS = (POSTO_PONTA, POSTO_FORA_PONTA)
+POSTO_INTERMEDIARIO = "INTERMEDIARIO"
+POSTOS_SUPORTADOS = (POSTO_PONTA, POSTO_FORA_PONTA, POSTO_INTERMEDIARIO)
 
 GRANDEZA_ENERGIA = "ENERGIA"
 GRANDEZA_DEMANDA = "DEMANDA"
@@ -62,6 +63,7 @@ class Consumidor:
     detalhe: str = "Não se aplica"
     consumo_ponta_kwh: float = 0.0
     consumo_fora_ponta_kwh: float = 0.0
+    consumo_intermediario_kwh: float = 0.0
     demanda_ponta_kw: float = 0.0
     demanda_fora_ponta_kw: float = 0.0
     # Demanda CONTRATADA (kW). A demanda faturável é o MAIOR valor entre a
@@ -78,13 +80,29 @@ class Consumidor:
     bandeira_adicional_r_kwh: float = 0.0
     cip_cosip_rs: float = 0.0
     outros_rs: float = 0.0
+    # Reativos por posto (REN 1.000/2021, art. 304). Os campos abaixo são a
+    # parcela INDUTIVA (horas complementares à janela capacitiva, 6h–24h).
+    # A parcela CAPACITIVA (janela de 6h definida pela distribuidora entre
+    # 23h30 e 6h30, sempre fora ponta) é informada separadamente nos campos
+    # ``reativo_*_capacitiva_*`` (premissa A6 — aproximação por agregado mensal).
     reativo_energia_ponta_kvArh: float = 0.0
     reativo_energia_fora_ponta_kvArh: float = 0.0
     reativo_demanda_ponta_kvAr: float = 0.0
     reativo_demanda_fora_ponta_kvAr: float = 0.0
+    reativo_energia_capacitiva_kvArh: float = 0.0
+    reativo_demanda_capacitiva_kvAr: float = 0.0
     # Rateio de consumo entre leituras (Simulador: "% do consumo no mês
     # anterior", cols L13/M13). Fração ∈ [0,1]; 0 = tudo no mês atual.
     percentual_mes_anterior: float = 0.0
+    # Optante B (REN 1.000/2021, art. 292): Grupo A faturado como Grupo B.
+    atividade: str = "Comercial ou Industrial"
+    tipo_ligacao: str = "Trifásico"
+    pre_pagamento: bool = False
+    potencia_transformadores_kva: float = 0.0
+    cooperativa_eletrificacao_rural: bool = False
+    hotelaria_turismo: bool = False
+    carga_refletores_kw: float = 0.0
+    carga_instalada_total_kw: float = 0.0
 
     def __post_init__(self) -> None:
         _exigir_texto(self.distribuidora, "distribuidora")
@@ -121,6 +139,12 @@ class Consumidor:
         _exigir_nao_negativo(
             self.reativo_demanda_fora_ponta_kvAr, "reativo_demanda_fora_ponta_kvAr"
         )
+        _exigir_nao_negativo(
+            self.reativo_energia_capacitiva_kvArh, "reativo_energia_capacitiva_kvArh"
+        )
+        _exigir_nao_negativo(
+            self.reativo_demanda_capacitiva_kvAr, "reativo_demanda_capacitiva_kvAr"
+        )
         if not 0.0 <= self.percentual_mes_anterior <= 1.0:
             raise ValueError(
                 "percentual_mes_anterior deve estar entre 0 e 1 "
@@ -130,7 +154,11 @@ class Consumidor:
     @property
     def consumo_total_kwh(self) -> float:
         """Consumo total de energia (grandeza aditiva entre postos)."""
-        return self.consumo_ponta_kwh + self.consumo_fora_ponta_kwh
+        return (
+            self.consumo_ponta_kwh
+            + self.consumo_fora_ponta_kwh
+            + self.consumo_intermediario_kwh
+        )
 
     def demanda_faturavel_kw(self, posto: str) -> float:
         """Demanda faturável do posto = MAIOR entre contratada e medida.
@@ -270,8 +298,24 @@ class ResultadoOtimizacao:
 
 
 @dataclass(frozen=True)
-class ResultadoEPI:
-    """Resultado do EPI simplificado (contrato provisório; fórmula pendente P2)."""
+class ResultadoPI:
+    """Resultado do Preço de Indiferença (PI) — ver docs/epi.md.
 
-    epi: float
-    preco_referencia_acl: float
+    O ``pi`` (R$/MWh) é o preço da energia no ACL que iguala o custo de
+    energia entre ACR e ACL. Os demais campos são os componentes
+    intermediários da fórmula (adaptada de Lemos, 2025), para auditoria e
+    rastreabilidade do cálculo.
+    """
+
+    pi: float
+    e: float
+    c_te: float
+    c_e_acr: float
+    custos_acl: float
+    base_acl: float
+    aviso: str | None = None
+    meses: int = 1
+
+
+# Alias de compatibilidade: o contrato anterior chamava o resultado de EPI.
+ResultadoEPI = ResultadoPI

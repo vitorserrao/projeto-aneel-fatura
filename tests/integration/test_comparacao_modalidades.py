@@ -50,9 +50,11 @@ def test_comparar_a4_azul_verde_ranqueado(banco):
     mods = [d["modalidade"] for d in disponiveis]
     assert mods == ["Verde", "Azul"]  # ranqueado por menor custo no Caso 1
     assert comp["melhor"] == "Verde"
-    # Nenhuma modalidade deve aparecer como "indisponível" aqui (Verde é
-    # elegível em A4 e Azul é sempre elegível).
-    assert comp["indisponiveis"] == []
+    # Verde é elegível em A4 e Azul é sempre elegível; Optante B fica
+    # indisponível porque o perfil não informa potência dos transformadores.
+    indis = {i["modalidade"]: i["motivo"] for i in comp["indisponiveis"]}
+    assert "Optante B" in indis
+    assert "art. 292" in indis["Optante B"]
 
 
 def test_comparar_a2_somente_azul(banco):

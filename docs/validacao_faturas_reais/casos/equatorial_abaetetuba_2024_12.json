@@ -1,0 +1,44 @@
+{
+  "meta": {
+    "fonte": "fwdfaturagrupoa/ABAETETUBA_DEZEMBRO_2024.pdf",
+    "distribuidora": "EQUATORIAL PA",
+    "subgrupo": "A4",
+    "modalidade": "Verde",
+    "competencia": "12/2024",
+    "total_fatura": 39781.08
+  },
+  "perfil": {
+    "data_referencia": "2024-12-15",
+    "consumo_ponta_kwh": 3721.28,
+    "consumo_fora_ponta_kwh": 31818.40,
+    "demanda_medida_unica_kw": 147.92,
+    "demanda_contratada_unica_kw": 168.0,
+    "reativo_energia_ponta_kvArh": 124.42,
+    "reativo_energia_fora_ponta_kvArh": 1268.94,
+    "cip_cosip_rs": 79.18,
+    "outros_rs": 0.0,
+    "bandeira_adicional_r_kwh": 0.0
+  },
+  "tributos": { "pis": 0.010021, "cofins": 0.046184, "icms": 0.19, "tipo_icms": "fora" },
+  "tarifas_liquidas": [
+    { "componente": "TE", "grandeza": "ENERGIA", "posto": "PONTA", "unidade": "R$/MWh", "valor": 3138.00 },
+    { "componente": "TE", "grandeza": "ENERGIA", "posto": "FORA PONTA", "unidade": "R$/MWh", "valor": 397.53 },
+    { "componente": "TUSD", "grandeza": "DEMANDA", "posto": "PONTA", "unidade": "R$/kW", "valor": 47.53 },
+    { "componente": "REATIVO", "grandeza": "ENERGIA", "posto": "PONTA", "unidade": "R$/kVArh", "valor": 0.290980 },
+    { "componente": "REATIVO", "grandeza": "ENERGIA", "posto": "FORA PONTA", "unidade": "R$/kVArh", "valor": 0.290980 }
+  ],
+  "linhas_esperadas": [
+    { "descricao": "Consumo Ponta (kWh)", "quantidade": 3721.28, "tarifa": 4.104784, "valor": 15275.05 },
+    { "descricao": "Consumo Fora Ponta (kWh)", "quantidade": 31818.40, "tarifa": 0.520004, "valor": 16545.71 },
+    { "descricao": "Demanda Ativa Isenta de ICMS (kW)", "quantidade": 20.08, "tarifa": 50.350598, "valor": 1011.04 },
+    { "descricao": "Demanda Ativa (kW)", "quantidade": 147.92, "tarifa": 62.175095, "valor": 9196.94 },
+    { "descricao": "Consumo Reativo Excedente NP (kVAr)", "quantidade": 124.42, "tarifa": 0.380566, "valor": 47.35 },
+    { "descricao": "Consumo Reativo Excedente FP (kVAr)", "quantidade": 1268.94, "tarifa": 0.380625, "valor": 482.99 },
+    { "descricao": "Cip-Ilum Pub Pref Munic", "quantidade": 1, "tarifa": 79.18, "valor": 79.18 }
+  ],
+  "notas": [
+    "Demanda faturada = contratada (168 kW), dividida em isenta (20,08 kW) e normal (147,92 kW) — gap de isenção.",
+    "Reativo excedente faturado direto com tarifa líquida 0,290980 R$/kVArh impressa na fatura.",
+    "Fator de potência 0,8853 (< 0,92) — caso real de reativos."
+  ]
+}

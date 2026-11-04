@@ -1,0 +1,21 @@
+{
+  "meta": {"fonte": "fwdfaturagrupoa/CASTANHAL _DEZEMBRO_2024.pdf", "distribuidora": "EQUATORIAL PA", "subgrupo": "A4", "modalidade": "Verde", "competencia": "12/2024", "total_fatura": 87329.39},
+  "perfil": {"data_referencia": "2024-12-15", "consumo_ponta_kwh": 6806.24, "consumo_fora_ponta_kwh": 70482.72, "demanda_medida_unica_kw": 387.52, "demanda_contratada_unica_kw": 410.0, "reativo_energia_ponta_kvArh": 1315.16, "reativo_energia_fora_ponta_kvArh": 8944.60, "cip_cosip_rs": 0.0, "outros_rs": 0.0, "bandeira_adicional_r_kwh": 0.0},
+  "tributos": {"pis": 0.010021, "cofins": 0.046184, "icms": 0.19, "tipo_icms": "fora"},
+  "tarifas_liquidas": [
+    {"componente": "TE", "grandeza": "ENERGIA", "posto": "PONTA", "unidade": "R$/MWh", "valor": 3138.00},
+    {"componente": "TE", "grandeza": "ENERGIA", "posto": "FORA PONTA", "unidade": "R$/MWh", "valor": 397.53},
+    {"componente": "TUSD", "grandeza": "DEMANDA", "posto": "PONTA", "unidade": "R$/kW", "valor": 47.53},
+    {"componente": "REATIVO", "grandeza": "ENERGIA", "posto": "PONTA", "unidade": "R$/kVArh", "valor": 0.290980},
+    {"componente": "REATIVO", "grandeza": "ENERGIA", "posto": "FORA PONTA", "unidade": "R$/kVArh", "valor": 0.290980}
+  ],
+  "linhas_esperadas": [
+    {"descricao": "Consumo Ponta (kWh)", "quantidade": 6806.24, "tarifa": 4.104782, "valor": 27938.13},
+    {"descricao": "Consumo Fora Ponta (kWh)", "quantidade": 70482.72, "tarifa": 0.520005, "valor": 36651.34},
+    {"descricao": "Demanda Ativa Isenta de ICMS (kW)", "quantidade": 22.48, "tarifa": 50.360765, "valor": 1132.11},
+    {"descricao": "Demanda Ativa (kW)", "quantidade": 387.52, "tarifa": 62.173462, "valor": 24093.46},
+    {"descricao": "Consumo Reativo Excedente NP (kVAr)", "quantidade": 1315.16, "tarifa": 0.380623, "valor": 500.58},
+    {"descricao": "Consumo Reativo Excedente FP (kVAr)", "quantidade": 8944.60, "tarifa": 0.380625, "valor": 3404.54}
+  ],
+  "notas": ["Unidade com GD (compensação/injeção) — linhas de GD fora do motor.", "fp 0,8157 — reativos excedentes reais."]
+}

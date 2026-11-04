@@ -7,8 +7,9 @@ Regras rigorosas desta camada:
   APIs externas, arquivos).
 - Não consulta banco de dados.
 - Não contém valores/fórmulas tarifárias inventados: apenas contratos de
-  domínio e aplicação linear de parcelas normalizadas. Toda regra regulatória
-  pendente falha explicitamente e está documentada em docs/premissas.md.
+  domínio, aplicação linear de parcelas normalizadas e a fórmula do PI
+  (docs/epi.md). Toda regra regulatória pendente falha explicitamente e está
+  documentada em docs/premissas.md.
 """
 
 from .models import (
@@ -23,6 +24,7 @@ from .models import (
     ResultadoCalculo,
     ResultadoEPI,
     ResultadoOtimizacao,
+    ResultadoPI,
 )
 from .tarifas import (
     AmbiguidadeTarifaria,
@@ -49,6 +51,7 @@ __all__ = [
     "ResultadoCalculo",
     "ResultadoEPI",
     "ResultadoOtimizacao",
+    "ResultadoPI",
     "TarifaAcr",
     "TarifaNaoEncontrada",
     "buscar_tarifa",

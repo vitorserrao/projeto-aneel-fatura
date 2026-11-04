@@ -57,3 +57,10 @@ reasonix.toml
 # Scratch/temporários locais
 _tmp_*
 .~lock*
+
+# Frontend: dependências e build não versionados
+node_modules/
+frontend/dist/
+
+# Dump do banco do lab: artefato grande e regenerável (pg_dump)
+infra_lab/*.dump

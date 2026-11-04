@@ -1,0 +1,50 @@
+name: aneel-lab
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: aneel-lab-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-projeto_aneel}
+    ports:
+      - "${POSTGRES_PORT:-5433}:5432"
+    volumes:
+      - pgdata_lab:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-projeto_aneel}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  restore:
+    image: postgres:16-alpine
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PGPASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    volumes:
+      - ./infra_lab:/dados:ro
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - "pg_restore -U ${POSTGRES_USER:-postgres} -h db -d ${POSTGRES_DB:-projeto_aneel} --no-owner --clean --if-exists /dados/projeto_aneel.dump || true"
+    restart: "no"
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: aneel-lab-api
+    restart: unless-stopped
+    depends_on:
+      restore:
+        condition: service_completed_successfully
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-projeto_aneel}
+    ports:
+      - "${API_PORT:-8000}:8000"
+
+volumes:
+  pgdata_lab:

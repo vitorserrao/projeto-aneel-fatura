@@ -15,9 +15,10 @@ resolvidas com base em dados/documentos antes de qualquer implementação.
   (componentização, reajuste, tributação)? A ser definida a partir do dataset e
   documentos.
 
-### P2 — EPI simplificado
-- Quais componentes entram no cálculo (só TUSD? TE? energia?) e qual a fórmula
-  fechada? A "simplificação" precisa de equação explícita.
+### P2 — EPI simplificado ✅ resolvido (ver docs/epi.md)
+- Fórmula fechada implementada em `core.epi.calcular_pi` / `calcular_pi_meses`
+  (adaptada de Lemos, 2025): energia TE ponta/fora ponta + bandeira, tributos
+  multiplicativos, perdas `k`, OPEX/CAPEX do ACL com horizonte de amortização.
 
 ### P3 — Demanda tarifável
 - Regra de faturamento de demanda por modalidade (única vs ponta/fora de ponta).
@@ -76,9 +77,40 @@ Quando mais de uma tarifa atende aos critérios, o core lança
 `AmbiguidadeTarifaria` em vez de escolher por suposição. A regra de
 precedência real é P6 (pendente).
 
+### A6 — Reativos excedentes (art. 304) por agregado mensal por posto
+Implementação de 17/09/2026. A fórmula oficial exige medições horárias
+(`fT` por intervalo `T` de 1 hora e `max_T`), que o perfil atual não possui.
+O motor usa **aproximação por agregado mensal**:
+- `fp = EA / √(EA² + ER²)` com os totais do ciclo por posto/natureza;
+- energia: `EEAM(p) × (0,92/fp − 1) × VRERE` (MWh);
+- demanda: `[D_medida × 0,92/fp − DAF] × VRDRE` (kW).
+A janela capacitiva (0h–6h) é alocada proporcionalmente às horas do fora
+ponta (6h/21h) e é sempre fora ponta. Os campos `reativo_*_ponta/fora_ponta`
+representam a parcela **indutiva**; `reativo_*_capacitiva_*` a **capacitiva**.
+É uma aproximação documentada — não substitui a fórmula horária oficial se
+vierem a existir dados de memória de massa.
+
+**Modo `reativos_direto` (faturas antigas, 18/09/2026):** para replicar o
+Simulador/XLSM e o artigo XX ERIAC 2025, os mesmos campos podem ser tratados
+como **excedente pronto** (kVArh/kVAr) e cobrados com tarifas diretas
+(R$/kVArh e R$/kVAr) informadas por quem chama — sem passar pelo art. 304.
+
+**Tributação da ultrapassagem (18/09/2026):** validado contra o artigo XX
+ERIAC 2025 (CPFL Piratininga A4 2018) — `aplicar_tributos=True` tributa as
+linhas TARIFA **e ULTRAPASSAGEM** (as demais linhas permanecem sem tributos).
+
+## Decisões das faturas reais (18/09/2026)
+
+- Referência de validação passa a ser **faturas reais** (não a planilha do
+  projeto anterior, que pode conter erros). A planilha/artigo ficam como
+  comparação secundária documental.
+- `demanda_isenta_icms` e `tributar_reativos` adicionados ao motor e à API,
+  conforme evidenciado nas faturas Copel/CEMIG/Equatorial.
+- Tolerância de aceite: **≤ R$ 0,05 por linha e ≤ R$ 1,00 no total**.
+
 ## O que o Sprint 1 NÃO implementa (permanece pendente)
 
-- Fórmula do EPI (P2) — `core/epi.py` falha explicitamente.
+- ~~Fórmula do EPI (P2)~~ — ✅ implementada em `core/epi.py` (ver docs/epi.md).
 - Regra de elegibilidade de modalidades (P4).
 - Tratamento/estruturação de TE e TUSD (P1).
 - Regra de faturamento de demanda (P3).

@@ -1,0 +1,21 @@
+{
+  "meta": {"fonte": "fwdfaturagrupoa/TUCURUI_DEZEMBRO_2024.pdf", "distribuidora": "EQUATORIAL PA", "subgrupo": "A4", "modalidade": "Verde", "competencia": "12/2024", "total_fatura": 40672.93},
+  "perfil": {"data_referencia": "2024-12-15", "consumo_ponta_kwh": 2699.49, "consumo_fora_ponta_kwh": 32353.75, "demanda_medida_unica_kw": 195.79, "demanda_contratada_unica_kw": 227.0, "reativo_energia_ponta_kvArh": 605.32, "reativo_energia_fora_ponta_kvArh": 4849.06, "cip_cosip_rs": 0.0, "outros_rs": 0.0, "bandeira_adicional_r_kwh": 0.0},
+  "tributos": {"pis": 0.010021, "cofins": 0.046184, "icms": 0.19, "tipo_icms": "fora"},
+  "tarifas_liquidas": [
+    {"componente": "TE", "grandeza": "ENERGIA", "posto": "PONTA", "unidade": "R$/MWh", "valor": 3138.00},
+    {"componente": "TE", "grandeza": "ENERGIA", "posto": "FORA PONTA", "unidade": "R$/MWh", "valor": 397.53},
+    {"componente": "TUSD", "grandeza": "DEMANDA", "posto": "PONTA", "unidade": "R$/kW", "valor": 47.53},
+    {"componente": "REATIVO", "grandeza": "ENERGIA", "posto": "PONTA", "unidade": "R$/kVArh", "valor": 0.290980},
+    {"componente": "REATIVO", "grandeza": "ENERGIA", "posto": "FORA PONTA", "unidade": "R$/kVArh", "valor": 0.290980}
+  ],
+  "linhas_esperadas": [
+    {"descricao": "Consumo Ponta (kWh)", "quantidade": 2699.49, "tarifa": 4.104783, "valor": 11080.82},
+    {"descricao": "Consumo Fora Ponta (kWh)", "quantidade": 32353.75, "tarifa": 0.520004, "valor": 16824.09},
+    {"descricao": "Demanda Ativa Isenta de ICMS (kW)", "quantidade": 31.21, "tarifa": 50.358539, "valor": 1571.69},
+    {"descricao": "Demanda Ativa (kW)", "quantidade": 195.79, "tarifa": 62.173860, "valor": 12173.02},
+    {"descricao": "Consumo Reativo Excedente NP (kVAr)", "quantidade": 605.32, "tarifa": 0.380609, "valor": 230.39},
+    {"descricao": "Consumo Reativo Excedente FP (kVAr)", "quantidade": 4849.06, "tarifa": 0.380628, "valor": 1845.69}
+  ],
+  "notas": ["Faturamento por média; sem CIP nesta unidade; retenções financeiras fora do motor.", "fp 0,7961 — reativos excedentes reais."]
+}

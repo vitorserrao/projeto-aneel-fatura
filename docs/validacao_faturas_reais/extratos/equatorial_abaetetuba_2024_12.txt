@@ -1,0 +1,168 @@
+Incidirão sobre a conta paga após o vencimento multa de 2%, juros de mora de
+0,0333% ao dia (conf. Lei 10.438/02) e atualização monetária com base no
+IPCA a serem incluídos na proxima fatura.
+DANF3E - DOCUMENTO AUXILIAR DA NOTA FISCAL DE ENERGIA ELÉTRICA ELETRÔNICA
+Equatorial Pará Distribuidora de Energia S.A.
+CNPJ: 04.895.728/0001-80 | Insc. Estadual: 150.744.80-3
+Rodovia Augusto Montenegro, km 8,5
+Coqueiro - Belém - PA CEP: 66.823-010
+INSTITUTO FEDERAL DE E. C. TECNOLOGIA
+INSTALAÇÃO: 14115269 
+CNPJ: **.***.998/000*-**
+AV ESPIRITO SANTO , 3322 , ESC TRAB PRODUCAO
+ABAETE CEP: 68440-000 FRANCILANDIA - ABAETETUBA
+- PA
+FATOR DE POTÊNCIA: 0,88529122
+Tensão Nominal Disp: 13.800      Lim Min: 12.834 V      Lim Max: 14.490 V      Tipo de Tarifa: A4_VD
+Data das Leitura Anterior Leitura Atual Nº de Dias Próxima Leitura
+Leituras 30/11/2024 31/12/2024 31 31/01/2025
+Medidor Grandeza Posto Horário Leitura Leitura Const. Consumo
+Anterior Atual Medidor
+14141902 Consumo Fora Ponta Consumo Ativo FP Reg 55.154.309 55.659.363 0,0630 31.818,40 kWh
+14141902 Consumo Ponta Consumo Ativo NP Reg 6.988.829 7.047.897 0,0630 3.721,28 kWh
+14141902 Demanda Fora Ponta Demanda Ativa FP Reg 0 587 0,2520 147,92 kW
+14141902 Demanda Ponta Demanda Ativa NP Reg 0 395 0,2520 99,54 kW
+14141902 Dem. Reat. Exced. FP. Demanda DMCR FP Reg 0 0 0,0630 0,00 kVAr
+14141902 Dem. Reat. Exced. Pta Demanda DMCR NP Reg 0 0 0,0630 0,00 kVAr
+14141902 Reat. Exced. F. Ponta Consumo Reativo Exced FP Reg 4.198.573 4.218.715 0,0630 1.268,94 kVAr
+14141902 Reat. Exced. Ponta Consumo Reativo Exced NP Reg 422.726 424.701 0,0630 124,42 kVAr
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+Tributo Base(R$) Aliquota(%) Valor(R$)
+ICMS 41.548,04 19,0000 7.894,14
+PIS 34.664,94 1,0021 347,37
+COFINS 34.664,94 4,6184 1.600,96
+Informações sobre Consumo
+Consumo Médio Diário (kWh): 1.146,44
+Média dos 12 meses (kWh): 36.222,49
+Dem. Máx. F. Ponta (kW): 147,92
+Dem. Máx. Ponta (kW): 99,54
+Grandezas Contratadas
+Demanda Contratada Única (kW): 168,00
+Demanda Contratada Ponta (kW): 
+Demanda Contratada Fora Ponta (kW): 
+Dem. Reserva Cap. Única (kW): 
+Dem. Reserva Cap. Fora Ponta (kW): 
+Dem. Reserva Cap. Ponta (kW): 
+Dem. de Geração (kW): 
+Dem. de Dist. Única (kW): 
+Dem. de Dist. De Ponta (kW): 
+Dem. de Dist. Fora Ponta (kW): 
+INFORMAÇÕES PARA O CLIENTE
+ Períodos: Band. Tarif.: Verde : 01/12 - 31/12
+  Faturamento por média       
+Tipo de Fornecimento: TRIFÁSICOClassificação: Poder Público Federal - ADMINISTRACAO
+PUBLICA FEDERAL DIRETA
+Itens de Fatura Quant. Preço Unit.(R$) Tarifa PIS/ ICMS Valor(R$)
+com Tributos Unit.(R$) COFINS(R$) (R$)
+Consumo Ponta (kWh) 3.721,28 4,104784 3,138000 695,41 2.902,26 15.275,05
+Consumo Fora Ponta (kWh) 31.818,40 0,520004 0,397530 753,26 3.143,69 16.545,71
+Demanda Ativa Isenta de ICMS (kW) 20,08 50,350598 47,530000 56,82 0,00 1.011,04
+Demanda Ativa (kW) 147,92 62,175095 47,530000 418,70 1.747,42 9.196,94
+Consumo Reativo Excedente NP (kVAr) 124,42 0,380566 0,290980 2,15 9,00 47,35
+Consumo Reativo Excedente FP (kVAr) 1.268,94 0,380625 0,290980 21,99 91,77 482,99
+ITENS FINANCEIROS
+Cip-Ilum Pub Pref Munic 79,18
+Tributo a Reter IRPJ 878,19-
+Tributo a Reter CSLL 425,59-
+Tributo a Reter PIS 276,63-
+Tributo a Reter COFINS 1.276,77-
+Apresentação
+08/01/2025
+REAVISO DE VENCIMENTO
+Resolução ANEEL
+3371/24
+Nome do Cliente: C.C: Unidade de Leitura: Competência: Vencimento: Valor cobrado (R$):
+INSTITUTO FEDERAL DE E. C. TECNOLOGIA 3016148970 AB00A020 12/2024 39.781,08
+AG / FATURA AGRUPADA - NÃO RECEBER
+............................................................................................................................................................................
+Reservado ao Fisco
+7594.AB91.965D.8E36.61DE.E0CF.48F5.7C3B
+2ª Via
+Página 1/2
+Total a Pagar
+R$ 39.781,08
+Vencimento
+22/01/2025
+Conta Contrato
+3016148970
+Conta Mês
+12/2024
+NOTA FISCAL Nº 109686808 - SÉRIE 000 /
+DATA DE EMISSÃO: 10/12/2024
+Consulte pela Chave de Acesso em:
+https://dfe-portal.svrs.rs.gov.br/NFE/Consulta
+chave de acesso:
+15241204895728000180660001096868081008223785
+Protocolo de autorização: 3152400031403596 -
+10/12/2024 às 16:23:03
+Parceiro de Negócio
+88699750
+Ouvidoria Equatorial Pará: 0800 091 8500. As informações sobre as condições de fornecimento, tarifas, produtos, serviços prestados, ARCON-PA: 0800 727 0167 Agência Nacional de
+ Ligação Gratuita de telefones fixos e móveis tributos e informações complementares encontram-se disponíveis para consulta nas Ligação gratuita de telefones fixos. Energia Elétrica (ANEEL) 167.
+de segunda a sexta, das 08h às 18h Agências de Atendimento e na área reservada ao consumidor no site da Equatorial Pará. Ligação Gratuita de telefones fixos e móveis.
+Informações ao cliente
+1. Energia elétrica oferece perigo. Para mexer nas instalações, procure sempre um eletricista. 2. É de
+inteira responsabilidade do cliente, a qualquer tempo, a atualização cadastral da Conta Contrato e
+adequação técnica e de segurança das instalações elétricas, conforme normas expedidas pelos órgãos
+oficiais competentes, pela Associação Brasileira de Normas  Técnicas (ABNT) ou outra entidade
+credenciada pelo Conselho Nacional de Metrologia Normatização e Qualidade Industrial (Conmetro) e
+das normas e padrões do concessionário postos à disposição do interessado. 3. As informações sobre as
+condições de fornecimento, tarifa, produtos, serviços prestados e tributos, encontram-se à disposição em
+nossas agências ou no site da Aneel, www.aneel.gov.br. 4. Teleatendimento: das 8h às 18h para
+solicitações de serviços comerciais e 24h para informações sobre falha no sistema elétrico.
+O pagamento da conta de luz:
+# Esta conta pode ser paga em qualquer local credenciado.
+ Procure o mais próximo de você.
+# Esta fatura não pode ser paga com cheque.
+# Autorize o débito automático em conta corrente de sua
+conta de luz. É muito mais cômodo, fácil e seguro.
+# Caso não efetue o pagamento de sua conta de luz, após
+o 15º dia do vencimento, você estará sujeito à suspensão
+do fornecimento de energia e inclusão nos órgãos de
+proteção ao crédito.
+É direito do consumidor ou da central geradora de solicitar à distribuidora o detalhamento da apuração dos indicadores DIC, FIC, DMIC E DICRI a qualquer tempo.
+É direito do consumidor ou da central geradora de receber uma compensação, caso sejam violados os limites de continuidade individuais relativos à unidade consumidora ou central geradora.
+Histórico dos últimos meses
+DEMANDA MEDIDA  CONSUMO FATURADO  HORÁRIO RESERVADO
+MÊS PONTA FORA PONTA REATIVO EXCEDENTE PONTA/TOT FORA PONTA REATIVO EXCEDENTE CONSUMO REATIVO EXCEDENTE
+DEZ 99,54 147,92 0,00 3.721,28 31.818,40 1.393,37 0,00 0,00
+NOV 127,76 177,16 0,00 4.622,44 39.664,30 769,23 0,00 0,00
+OUT 128,77 180,68 0,00 5.067,22 40.828,41 983,43 0,00 0,00
+SET 139,61 186,48 0,00 5.988,78 44.764,27 775,47 0,00 0,00
+AGO 125,75 189,25 0,00 5.577,26 43.178,12 707,68 0,00 0,00
+JUL 40,82 128,77 0,00 2.125,87 22.058,38 1.695,77 0,00 0,00
+JUN 43,34 101,81 0,00 1.723,05 20.205,99 2.026,46 0,00 0,00
+MAI 42,84 82,66 0,00 2.001,38 21.357,50 2.154,41 0,00 0,00
+ABR 111,64 150,44 0,00 2.403,20 22.425,61 1.997,35 0,00 0,00
+MAR 111,13 146,16 0,00 4.555,28 35.362,03 1.208,28 0,00 0,00
+FEV 108,61 143,64 0,00 3.854,09 31.011,25 1.471,11 0,00 0,00
+JAN 99,54 132,05 0,00 2.445,16 26.721,07 1.512,13 0,00 0,00
+DEZ 115,42 157,25 0,00 4.291,81 34.243,59 1.419,39 0,00 0,00
+Gráfico de Consumo
+150000
+120000
+ 90000
+ 60000
+ 30000
+0
+JUN JUL JUL AGO AGO SET SET OUT OUT NOV NOV DEZ DEZ
+Ponta Fora Ponta
+Tarifa sem tributos
+RESOLUÇÃO ANEEL   3371/24
+Consumo Fora Ponta: 0,397530
+Consumo Ponta: 3,138000
+Demanda Ativa: 47,530000
+Conforme Resolução Normativa Aneel 581/2013 Arts 7º e 8º é seu direito solicitar a
+qualquer tempo à Equatorial Pará o cancelamento de cobrança  relativa de outros
+serviços cobrados na fatura, bem como a emissão da nova fatura sem a cobrança
+dos serviços cancelados. Ressalta-se que o fornecimento poderá ser suspenso
+caso os valores referentes aos serviços de distribuição de energia não sejam
+devidamente pagos.
+2ª Via
+Página 2/2

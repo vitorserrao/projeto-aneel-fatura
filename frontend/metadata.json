@@ -1,0 +1,6 @@
+{
+  "name": "Lumina Energy - Simulador e Auditoria Tarifária",
+  "description": "Simulador e auditoria regulatória de energia elétrica conforme normas ANEEL (REN 1.000/2021). Diagnóstico de economia tarifária entre Convencional, Horária Verde, Azul e Mercado Livre ACL.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

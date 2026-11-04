@@ -21,7 +21,10 @@ Regras usadas aqui (fonte: base de conhecimento PRORET 7.1):
 
 O que esta fatura NÃO inclui (limitações explícitas, sem silêncio):
 
-- reativos usam proxy de tarifa de energia TUSD (refinamento pendente);
+- reativos excedentes seguem o art. 304 com as tarifas de referência
+  ``VRERE`` (TE do B1, bandeira verde) e ``VRDRE`` (TUSD demanda fora ponta
+  da Azul) buscadas no banco; se a tarifa de referência não existir ou for
+  ambígua, as linhas de reativos são omitidas e um aviso é devolvido;
 - as tarifas são da base escolhida (padrão: ``Tarifa de Aplicação`` — a base
   que chega ao consumidor, regra explícita do Guia ANEEL).
 
@@ -30,11 +33,19 @@ Portanto o resultado é uma ESTIMATIVA LINEAR da fatura, determinística.
 
 from __future__ import annotations
 
-from core.motor_calculo import calcular_fatura
+from dataclasses import replace
+
+from core.motor_calculo import (
+    _classe_b_por_atividade,
+    _subclasse_b_por_atividade,
+    _subgrupo_b_por_atividade,
+    calcular_fatura,
+)
 from core.models import (
     GRANDEZA_DEMANDA,
     GRANDEZA_ENERGIA,
     POSTO_FORA_PONTA,
+    POSTO_INTERMEDIARIO,
     POSTO_PONTA,
     Consumidor,
     ModalidadeIndisponivel,
@@ -79,7 +90,7 @@ class CalculoService:
             ValueError: perfil sem data de referência, ou nenhuma tarifa
                 aplicável encontrada/vigente.
         """
-        resultado, _nao_mapeadas = self.calcular_detalhado(
+        resultado, _nao_mapeadas, _avisos = self.calcular_detalhado(
             consumidor, modalidade, base_tarifaria,
             aplicar_tributos=aplicar_tributos, pis=pis, cofins=cofins,
             icms=icms, tipo_icms=tipo_icms,
@@ -96,6 +107,9 @@ class CalculoService:
         cofins: float = 0.0,
         icms: float = 0.0,
         tipo_icms: str = "dentro",
+        reativos_direto: bool = False,
+        tarifa_reativo_energia_r_kvarh: float | None = None,
+        tarifa_reativo_demanda_r_kvar: float | None = None,
     ) -> ResultadoComparacao:
         """Compara Azul × Verde (Grupo A) e devolve ranking + indisponíveis.
 
@@ -124,13 +138,16 @@ class CalculoService:
                 # O dataset grafa "Azul", "Verde" (inicial maiúscula).
                 modalidade_real = modalidade.strip().title()
                 try:
-                    fatura, _ = self.calcular_detalhado(
+                    fatura, _, _avisos = self.calcular_detalhado(
                         consumidor, modalidade_real, base_tarifaria,
                         aplicar_tributos=aplicar_tributos,
                         pis=pis,
                         cofins=cofins,
                         icms=icms,
                         tipo_icms=tipo_icms,
+                        reativos_direto=reativos_direto,
+                        tarifa_reativo_energia_r_kvarh=tarifa_reativo_energia_r_kvarh,
+                        tarifa_reativo_demanda_r_kvar=tarifa_reativo_demanda_r_kvar,
                     )
                 except ValueError:
                     # Sem tarifa vigente para a modalidade nesta distribuidora.
@@ -157,6 +174,140 @@ class CalculoService:
             indisponiveis=tuple(indisponiveis),
         )
 
+    def parcelas_vigentes(
+        self,
+        consumidor: Consumidor,
+        modalidade: str,
+        base_tarifaria: str = BASE_PADRAO,
+    ) -> tuple[list, list, list, bool]:
+        """Busca as tarifas vigentes e monta as parcelas (sem calcular a fatura).
+
+        Espelha a etapa de busca/mapeamento de ``calcular_detalhado`` para o
+        planejamento anual reutilizar as MESMAS regras (filtros, ambiguidade,
+        sazonalidade) sem refazer a consulta para cada candidato de demanda.
+        Retorna ``(parcelas, nao_mapeadas, avisos, demanda_unica)``.
+        """
+        if consumidor.data_referencia is None:
+            raise ValueError(
+                "data_referencia do consumidor é obrigatória para calcular a fatura"
+            )
+
+        m = modalidade.strip().title()
+        caminho_b = m in ("Optante B", "Convencional Monômia", "Branca")
+        classe_filtro = _filtro_b_ou_none(consumidor.classe) if caminho_b else None
+        subclasse_filtro = (
+            _filtro_b_ou_none(consumidor.subclasse) if caminho_b else None
+        )
+        if m == "Optante B":
+            subgrupo_busca = _subgrupo_b_por_atividade(consumidor.atividade)
+            modalidade_busca = "Convencional"
+            if classe_filtro is None:
+                classe_filtro = _classe_b_por_atividade(consumidor.atividade)
+                subclasse_filtro = _subclasse_b_por_atividade(consumidor.atividade)
+        elif m == "Convencional Monômia":
+            subgrupo_busca = consumidor.subgrupo
+            modalidade_busca = "Convencional"
+        elif m == "Branca":
+            subgrupo_busca = consumidor.subgrupo
+            modalidade_busca = "Branca"
+        else:
+            subgrupo_busca = consumidor.subgrupo
+            modalidade_busca = modalidade
+
+        tarifas = self._repo.buscar_tarifas(
+            data=consumidor.data_referencia,
+            sig_agente=consumidor.distribuidora,
+            subgrupo=subgrupo_busca,
+            modalidade=modalidade_busca,
+            detalhe=consumidor.detalhe or None,
+            base_tarifaria=base_tarifaria,
+            classe=classe_filtro,
+            subclasse=subclasse_filtro,
+        )
+
+        avisos: list[tuple[str, str]] = []
+        chaves_ambiguas: set[tuple] = set()
+        chaves_processadas: set[tuple] = set()
+        if caminho_b:
+            valor_por_chave: dict[tuple, object] = {}
+            for t in tarifas:
+                grandeza = _grandeza_de(t)
+                if grandeza is None:
+                    continue
+                chave = (t.componente, grandeza, t.posto.strip().casefold())
+                if chave in valor_por_chave:
+                    if valor_por_chave[chave] != t.valor:
+                        chaves_ambiguas.add(chave)
+                else:
+                    valor_por_chave[chave] = t.valor
+            for componente, grandeza, posto in sorted(chaves_ambiguas):
+                avisos.append(
+                    (
+                        "tarifa_ambigua",
+                        f"Tarifa ambígua ({componente} {grandeza} {posto}): "
+                        "múltiplos valores vigentes simultâneos (P6) — "
+                        "parcelas omitidas da fatura. Informe classe/subclasse "
+                        "para desambiguar.",
+                    )
+                )
+
+        chaves_sazonais = {
+            (t.componente, _grandeza_de(t))
+            for t in tarifas
+            if "seca" in t.posto.casefold() or "úmida" in t.posto.casefold()
+        }
+
+        parcelas = []
+        nao_mapeadas = []
+        for t in tarifas:
+            grandeza = _grandeza_de(t)
+            if grandeza is None:
+                nao_mapeadas.append(t)
+                continue
+            chave = (t.componente, grandeza, t.posto.strip().casefold())
+            if chave in chaves_ambiguas or chave in chaves_processadas:
+                continue
+            chaves_processadas.add(chave)
+            if m in ("Optante B", "Convencional Monômia"):
+                if grandeza == GRANDEZA_DEMANDA:
+                    continue
+                if t.posto.strip().casefold() == "não se aplica":
+                    parcelas.append(
+                        tarifa_vigente_para_parcela(
+                            t, grandeza=grandeza, posto=POSTO_PONTA
+                        )
+                    )
+                    parcelas.append(
+                        tarifa_vigente_para_parcela(
+                            t, grandeza=grandeza, posto=POSTO_FORA_PONTA
+                        )
+                    )
+                    continue
+            posto = _posto_de(t)
+            if posto is None and (
+                t.posto.strip().casefold() == "não se aplica"
+                and grandeza == GRANDEZA_DEMANDA
+                and modalidade.strip().title() == "Verde"
+            ):
+                posto = POSTO_PONTA
+            if posto is None:
+                posto = _posto_sazonal_de(t, consumidor.data_referencia)
+                if posto is None:
+                    if "seca" in t.posto.casefold() or "úmida" in t.posto.casefold():
+                        continue
+                    nao_mapeadas.append(t)
+                    continue
+            if (t.componente, grandeza) in chaves_sazonais and not any(
+                kw in t.posto.casefold() for kw in ("seca", "úmida")
+            ):
+                continue
+            parcelas.append(
+                tarifa_vigente_para_parcela(t, grandeza=grandeza, posto=posto)
+            )
+
+        demanda_unica = m == "Verde"
+        return parcelas, nao_mapeadas, avisos, demanda_unica
+
     def calcular_detalhado(
         self,
         consumidor: Consumidor,
@@ -167,7 +318,14 @@ class CalculoService:
         cofins: float = 0.0,
         icms: float = 0.0,
         tipo_icms: str = "dentro",
-    ) -> tuple[ResultadoFatura, list[TarifaVigente]]:
+        reativos_direto: bool = False,
+        tarifa_reativo_energia_r_kvarh: float | None = None,
+        tarifa_reativo_demanda_r_kvar: float | None = None,
+        arredondar_centavos: bool = False,
+        demanda_isenta_icms: bool = False,
+        demanda_isenta_icms_kw: float | None = None,
+        tributar_reativos: bool = False,
+    ) -> tuple[ResultadoFatura, list[TarifaVigente], list[tuple[str, str]]]:
         """Igual a ``calcular``, devolvendo também as tarifas não mapeadas.
 
         ``aplicar_tributos``/``pis``/``cofins``/``icms``/``tipo_icms`` são
@@ -175,33 +333,104 @@ class CalculoService:
         "fora").
 
         Observação de filtro: a busca filtra por distribuidora, subgrupo,
-        modalidade e base, mas **não** por classe/subclasse — para o Grupo A
-        (foco do MVP) a classe é "Não se aplica" e a distinção de classe não
-        altera o subconjunto de tarifas; o filtro por classe/subclasse pode
-        ser reintroduzido quando o domínio do Grupo B for tratado.
+        modalidade e base. Para o Grupo A a classe é "Não se aplica" e o
+        filtro é inócuo; para o **Grupo B** (Optante B, Convencional Monômia
+        e Branca) a **classe/subclasse** do perfil filtram a tarifa (ex.: B1
+        Residencial × Residencial Baixa Renda). Sem classe informada e com
+        valores ambíguos vigentes na mesma chave, as parcelas são omitidas
+        com aviso ``tarifa_ambigua`` (premissa A5/P6) — nunca somadas.
 
         Returns:
-            Tupla ``(resultado, nao_mapeadas)`` — ``nao_mapeadas`` são as
-            tarifas vigentes cujo posto o core ainda não suporta (ex.:
+            Tupla ``(resultado, nao_mapeadas, avisos)`` — ``nao_mapeadas`` são
+            as tarifas vigentes cujo posto o core ainda não suporta (ex.:
             Intermediário); ficam explicitamente fora da fatura até a regra
-            de posto ser fechada (docs/premissas.md, P5).
+            de posto ser fechada (docs/premissas.md, P5). ``avisos`` são pares
+            ``(tipo, mensagem)`` (ex.: tarifa de referência de reativos
+            indisponível/ambígua → reativos omitidos).
         """
         if consumidor.data_referencia is None:
             raise ValueError(
                 "data_referencia do consumidor é obrigatória para calcular a fatura"
             )
 
+        m = modalidade.strip().title()
+        caminho_b = m in ("Optante B", "Convencional Monômia", "Branca")
+        classe_filtro = _filtro_b_ou_none(consumidor.classe) if caminho_b else None
+        subclasse_filtro = (
+            _filtro_b_ou_none(consumidor.subclasse) if caminho_b else None
+        )
+        if m == "Optante B":
+            # Grupo A faturado como Grupo B (art. 292): usa a tarifa
+            # Convencional do subgrupo B derivado da atividade econômica.
+            subgrupo_busca = _subgrupo_b_por_atividade(consumidor.atividade)
+            modalidade_busca = "Convencional"
+            if classe_filtro is None:
+                # Decisão do usuário: o optante NÃO precisa informar a
+                # categoria — classe e subclasse são derivadas da atividade
+                # (residencial → Residencial/Residencial; rural →
+                # Rural/Não se aplica). O dataset publica B1/B2 em várias
+                # subclasses com valores distintos, então a subclasse também
+                # é derivada. Atividades ambíguas (B3) caem na guarda de
+                # ambiguidade (A5) se houver valores distintos.
+                classe_filtro = _classe_b_por_atividade(consumidor.atividade)
+                subclasse_filtro = _subclasse_b_por_atividade(consumidor.atividade)
+        elif m == "Convencional Monômia":
+            subgrupo_busca = consumidor.subgrupo
+            modalidade_busca = "Convencional"
+        elif m == "Branca":
+            subgrupo_busca = consumidor.subgrupo
+            modalidade_busca = "Branca"
+        else:
+            subgrupo_busca = consumidor.subgrupo
+            modalidade_busca = modalidade
+
         tarifas = self._repo.buscar_tarifas(
             data=consumidor.data_referencia,
             sig_agente=consumidor.distribuidora,
-            subgrupo=consumidor.subgrupo,
-            modalidade=modalidade,
+            subgrupo=subgrupo_busca,
+            modalidade=modalidade_busca,
             # Filtro por detalhe (padrão 'Não se aplica' no schema): evita somar
             # linhas sobrepostas do mesmo contexto (ex.: APE vs Não se aplica),
             # que dobravam a parcela (pendência P6).
             detalhe=consumidor.detalhe or None,
             base_tarifaria=base_tarifaria,
+            # No Grupo B a classe/subclasse discriminam a tarifa (ex.: B1
+            # Residencial × Residencial Baixa Renda); no Grupo A o dataset
+            # grafa "Não se aplica" e o filtro é inócuo (mantido sem filtro).
+            classe=classe_filtro,
+            subclasse=subclasse_filtro,
         )
+
+        # Guarda de ambiguidade do caminho B (premissa A5, pendência P6):
+        # quando a MESMA chave (componente+grandeza+posto) tem mais de um valor
+        # vigente distinto (ex.: B1 Residencial × Baixa Renda sem classe
+        # informada), as parcelas são OMITIDAS com aviso — nunca somadas
+        # silenciosamente. Repetições com o MESMO valor são deduplicadas.
+        avisos: list[tuple[str, str]] = []
+        chaves_ambiguas: set[tuple] = set()
+        chaves_processadas: set[tuple] = set()
+        if caminho_b:
+            valor_por_chave: dict[tuple, object] = {}
+            for t in tarifas:
+                grandeza = _grandeza_de(t)
+                if grandeza is None:
+                    continue
+                chave = (t.componente, grandeza, t.posto.strip().casefold())
+                if chave in valor_por_chave:
+                    if valor_por_chave[chave] != t.valor:
+                        chaves_ambiguas.add(chave)
+                else:
+                    valor_por_chave[chave] = t.valor
+            for componente, grandeza, posto in sorted(chaves_ambiguas):
+                avisos.append(
+                    (
+                        "tarifa_ambigua",
+                        f"Tarifa ambígua ({componente} {grandeza} {posto}): "
+                        "múltiplos valores vigentes simultâneos (P6) — "
+                        "parcelas omitidas da fatura. Informe classe/subclasse "
+                        "para desambiguar.",
+                    )
+                )
 
         # Detecção de vigência horo-sazonal POR CHAVE (componente+grandeza):
         # quando a MESMA chave aparece em posto simples E sazonal, o formato
@@ -220,6 +449,29 @@ class CalculoService:
             if grandeza is None:
                 nao_mapeadas.append(t)
                 continue
+            chave = (t.componente, grandeza, t.posto.strip().casefold())
+            if chave in chaves_ambiguas or chave in chaves_processadas:
+                # Ambíguo (omitido com aviso — A5) ou repetição do mesmo valor.
+                continue
+            chaves_processadas.add(chave)
+            if m in ("Optante B", "Convencional Monômia"):
+                if grandeza == GRANDEZA_DEMANDA:
+                    # Monômia (Grupo B) não fatura demanda.
+                    continue
+                if t.posto.strip().casefold() == "não se aplica":
+                    # Tarifa única do B aplicada sobre o consumo total:
+                    # uma parcela PONTA e uma FORA PONTA com o mesmo valor.
+                    parcelas.append(
+                        tarifa_vigente_para_parcela(
+                            t, grandeza=grandeza, posto=POSTO_PONTA
+                        )
+                    )
+                    parcelas.append(
+                        tarifa_vigente_para_parcela(
+                            t, grandeza=grandeza, posto=POSTO_FORA_PONTA
+                        )
+                    )
+                    continue
             posto = _posto_de(t)
             if posto is None and (
                 t.posto.strip().casefold() == "não se aplica"
@@ -253,7 +505,7 @@ class CalculoService:
 
         # Demanda ÚNICA da Verde (máx(medida, contratada) nos campos únicos)
         # — sinalizada ao motor via demanda_unica=True.
-        demanda_unica = modalidade.strip().title() == "Verde"
+        demanda_unica = m == "Verde"
 
         # Bandeira tarifária por competência: quando o consumidor não informou
         # adicional manual (0), busca no banco; competência < jan/2015 → sem
@@ -268,6 +520,89 @@ class CalculoService:
         if bandeira_r_kwh != consumidor.bandeira_adicional_r_kwh:
             consumidor_efetivo = _com_bandeira(consumidor, bandeira_r_kwh)
 
+        # Custo de disponibilidade do Grupo B (REN 1.000/2021, arts. 290 e
+        # 291): se o consumo for menor que o mínimo da ligação (30/50/100
+        # kWh), o mínimo é faturado proporcionalmente aos postos faturados.
+        # Vale também para o Optante B, faturado como Grupo B (art. 292).
+        if m in ("Optante B", "Convencional Monômia", "Branca"):
+            minimo = _consumo_minimo_kwh(consumidor_efetivo.tipo_ligacao)
+            # Postos efetivamente faturados: a monômia (Optante B e
+            # Convencional) fatura ponta + fora ponta; a Branca também fatura
+            # o intermediário.
+            inclui_intermediario = m == "Branca"
+            total = (
+                consumidor_efetivo.consumo_ponta_kwh
+                + consumidor_efetivo.consumo_fora_ponta_kwh
+                + (
+                    consumidor_efetivo.consumo_intermediario_kwh
+                    if inclui_intermediario
+                    else 0.0
+                )
+            )
+            if 0 < total < minimo:
+                fator = minimo / total
+                consumidor_efetivo = replace(
+                    consumidor_efetivo,
+                    consumo_ponta_kwh=consumidor_efetivo.consumo_ponta_kwh * fator,
+                    consumo_fora_ponta_kwh=consumidor_efetivo.consumo_fora_ponta_kwh * fator,
+                    consumo_intermediario_kwh=(
+                        consumidor_efetivo.consumo_intermediario_kwh * fator
+                        if inclui_intermediario
+                        else consumidor_efetivo.consumo_intermediario_kwh
+                    ),
+                )
+
+        # Reativos excedentes. Modo direto (faturas antigas): usa as tarifas
+        # informadas (R$/kVArh e R$/kVAr) sem buscar referências. Modo art. 304:
+        # busca VRERE/VRDRE no banco; se a referência faltar ou for ambígua, as
+        # linhas são omitidas e um aviso é devolvido (premissa A5).
+        vrere_r_mwh = None
+        vrdre_r_kw = None
+        if reativos_direto and _tem_reativos(consumidor_efetivo):
+            # Faturas antigas cobram o excedente direto com tarifas de
+            # referência do art. 304: energia = VRERE/1000 (R$/kVArh) e
+            # demanda = VRDRE (R$/kVAr). Se o chamador informar tarifa
+            # manual, ela tem prioridade (override).
+            if tarifa_reativo_energia_r_kvarh is None:
+                vrere, aviso = self._buscar_vrere(
+                    consumidor_efetivo, base_tarifaria
+                )
+                if vrere is not None:
+                    tarifa_reativo_energia_r_kvarh = vrere / 1000.0
+                elif aviso:
+                    avisos.append(aviso)
+            if tarifa_reativo_demanda_r_kvar is None:
+                vrdre, aviso = self._buscar_vrdre(
+                    consumidor_efetivo, base_tarifaria
+                )
+                if vrdre is not None:
+                    tarifa_reativo_demanda_r_kvar = vrdre
+                elif aviso:
+                    avisos.append(aviso)
+            if (
+                tarifa_reativo_energia_r_kvarh is None
+                and tarifa_reativo_demanda_r_kvar is None
+            ):
+                avisos.append(
+                    (
+                        "reativos_direto_sem_tarifa",
+                        "Modo reativos direto sem tarifa (R$/kVArh ou R$/kVAr) "
+                        "informada e sem referência no banco — linhas de "
+                        "reativos omitidas.",
+                    )
+                )
+        elif _tem_reativos(consumidor_efetivo):
+            vrere_r_mwh, aviso_vrere = self._buscar_vrere(
+                consumidor_efetivo, base_tarifaria
+            )
+            if aviso_vrere:
+                avisos.append(aviso_vrere)
+            vrdre_r_kw, aviso_vrdre = self._buscar_vrdre(
+                consumidor_efetivo, base_tarifaria
+            )
+            if aviso_vrdre:
+                avisos.append(aviso_vrdre)
+
         return (
             calcular_fatura(
                 consumidor_efetivo, modalidade, parcelas,
@@ -277,9 +612,126 @@ class CalculoService:
                 cofins=cofins,
                 icms=icms,
                 tipo_icms=tipo_icms,
+                vrere_r_mwh=vrere_r_mwh,
+                vrdre_r_kw=vrdre_r_kw,
+                reativos_direto=reativos_direto,
+                tarifa_reativo_energia_r_kvarh=tarifa_reativo_energia_r_kvarh,
+                tarifa_reativo_demanda_r_kvar=tarifa_reativo_demanda_r_kvar,
+                arredondar_centavos=arredondar_centavos,
+                demanda_isenta_icms=demanda_isenta_icms,
+                demanda_isenta_icms_kw=demanda_isenta_icms_kw,
+                tributar_reativos=tributar_reativos,
             ),
             nao_mapeadas,
+            avisos,
         )
+
+    # Art. 304, §3º: quando VRDRE for nulo, usar o nível de tensão
+    # imediatamente inferior. Ordem decrescente de tensão dos subgrupos.
+    _SUBGRUPOS_POR_TENSAO = ("A1", "A2", "A3", "A3a", "A4", "AS")
+
+    def _buscar_vrere(
+        self, consumidor: Consumidor, base_tarifaria: str
+    ) -> tuple[float | None, tuple[str, str] | None]:
+        """VRERE do art. 304: TE do subgrupo B1 (bandeira verde), em R$/MWh.
+
+        Filtra classe/subclasse "Residencial"/"Residencial" (como a planilha)
+        para evitar a ambiguidade B1 Baixa Renda × Residencial (P6).
+        """
+        tarifas = self._repo.buscar_tarifas(
+            data=consumidor.data_referencia,
+            sig_agente=consumidor.distribuidora,
+            subgrupo="B1",
+            modalidade="Convencional",
+            componente="TE",
+            classe="Residencial",
+            subclasse="Residencial",
+            detalhe=consumidor.detalhe or None,
+            base_tarifaria=base_tarifaria,
+        )
+        if not tarifas:
+            return None, (
+                "reativos_sem_tarifa_referencia",
+                "VRERE (TE B1 bandeira verde) indisponível no banco — "
+                "reativos excedentes omitidos da fatura.",
+            )
+        if len(tarifas) > 1:
+            return None, (
+                "reativos_tarifa_referencia_ambigua",
+                "VRERE (TE B1) com múltiplas tarifas vigentes (P6) — "
+                "reativos excedentes omitidos da fatura.",
+            )
+        return _valor_em_r_mwh(tarifas[0]), None
+
+    def _buscar_vrdre(
+        self, consumidor: Consumidor, base_tarifaria: str
+    ) -> tuple[float | None, tuple[str, str] | None]:
+        """VRDRE do art. 304: TUSD demanda fora ponta da Azul, em R$/kW.
+
+        Se o subgrupo do consumidor não tiver a tarifa publicada, aplica o
+        §3º do art. 304: usa o nível de tensão imediatamente inferior.
+        """
+        sub = consumidor.subgrupo.strip().upper()
+        ordem = self._SUBGRUPOS_POR_TENSAO
+        try:
+            idx = ordem.index(sub)
+        except ValueError:
+            idx = None
+        candidatos = ordem[idx:] if idx is not None else (sub,)
+        for sg in candidatos:
+            tarifas = self._repo.buscar_tarifas(
+                data=consumidor.data_referencia,
+                sig_agente=consumidor.distribuidora,
+                subgrupo=sg,
+                modalidade="Azul",
+                componente="TUSD",
+                unidade="kW",
+                posto="Fora ponta",
+                detalhe=consumidor.detalhe or None,
+                base_tarifaria=base_tarifaria,
+            )
+            if len(tarifas) == 1:
+                return float(tarifas[0].valor), None
+            if len(tarifas) > 1:
+                return None, (
+                    "reativos_tarifa_referencia_ambigua",
+                    f"VRDRE (TUSD demanda fora ponta da Azul, subgrupo {sg}) "
+                    "com múltiplas tarifas vigentes (P6) — reativos "
+                    "excedentes omitidos da fatura.",
+                )
+        return None, (
+            "reativos_sem_tarifa_referencia",
+            "VRDRE (TUSD demanda fora ponta da Azul) indisponível no banco "
+            "para o subgrupo e níveis inferiores — reativos excedentes "
+            "omitidos da fatura.",
+        )
+
+
+def _filtro_b_ou_none(valor: str | None) -> str | None:
+    """Valor de classe/subclasse para o filtro da tarifa B, ou None.
+
+    "Não se aplica" (com ou sem acento) e vazio significam "sem informação":
+    nesse caso não se filtra — a guarda de ambiguidade (A5) cuida do restante.
+    """
+    v = (valor or "").strip()
+    if v.casefold() in ("", "não se aplica", "nao se aplica"):
+        return None
+    return v
+
+
+def _consumo_minimo_kwh(tipo_ligacao: str) -> float:
+    """Consumo mínimo do custo de disponibilidade do Grupo B (kWh).
+
+    Art. 291: 30 kWh (monofásico/bifásico a 2 condutores), 50 kWh (bifásico
+    a 3 condutores), 100 kWh (trifásico). Sem o nº de condutores no perfil,
+    aproxima bifásico → 50 kWh (pendência registrada em docs/regras_tarifarias.md).
+    """
+    t = (tipo_ligacao or "").strip().lower()
+    if "monof" in t:
+        return 30.0
+    if "bif" in t:
+        return 50.0
+    return 100.0  # trifásico (padrão)
 
 
 def _com_bandeira(consumidor: Consumidor, valor_r_kwh: float) -> Consumidor:
@@ -287,6 +739,26 @@ def _com_bandeira(consumidor: Consumidor, valor_r_kwh: float) -> Consumidor:
     from dataclasses import replace
 
     return replace(consumidor, bandeira_adicional_r_kwh=valor_r_kwh)
+
+
+def _tem_reativos(consumidor: Consumidor) -> bool:
+    """True quando o perfil informa qualquer grandeza reativa."""
+    return (
+        consumidor.reativo_energia_ponta_kvArh
+        + consumidor.reativo_energia_fora_ponta_kvArh
+        + consumidor.reativo_demanda_ponta_kvAr
+        + consumidor.reativo_demanda_fora_ponta_kvAr
+        + consumidor.reativo_energia_capacitiva_kvArh
+        + consumidor.reativo_demanda_capacitiva_kvAr
+    ) > 0
+
+
+def _valor_em_r_mwh(tarifa: TarifaVigente) -> float:
+    """Valor em R$/MWh (converte R$/kWh quando necessário)."""
+    valor = float(tarifa.valor)
+    if tarifa.unidade.strip().upper() == "KWH":
+        return valor * 1000.0
+    return valor
 
 
 def _grandeza_de(tarifa: TarifaVigente) -> str | None:
@@ -312,7 +784,9 @@ def _posto_de(tarifa: TarifaVigente) -> str | None:
         return POSTO_PONTA
     if p in ("fora ponta", "fora de ponta"):
         return POSTO_FORA_PONTA
-    return None  # Intermediário / seca / úmida / Não se aplica: pendente (P5)
+    if p == "intermediário":
+        return POSTO_INTERMEDIARIO
+    return None  # seca / úmida / Não se aplica: pendente (P5)
 
 
 # ---------------------------------------------------------------------------

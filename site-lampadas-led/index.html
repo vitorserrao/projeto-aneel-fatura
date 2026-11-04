@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Recuperação de Lâmpadas LED — Projeto de Extensão II · IFSC</title>
+  <meta name="description" content="Projeto de extensão do curso de Tecnologia em Sistemas de Energia do IFSC Florianópolis dedicado à recuperação de lâmpadas LED: coleta, diagnóstico, reparo, reutilização e impacto ambiental.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+
+  <!-- ═══════════════════ CABEÇALHO ═══════════════════ -->
+  <header class="header" id="topo">
+    <div class="container header-inner">
+      <a class="brand" href="#inicio" aria-label="Recuperação de Lâmpadas LED — voltar ao início">
+        <span class="brand-dot" aria-hidden="true">💡</span>
+        <span class="brand-text">
+          <strong>Recuperação de Lâmpadas LED</strong>
+          <small>Projeto de Extensão II · Sistemas de Energia · IFSC</small>
+        </span>
+      </a>
+
+      <nav class="nav" id="menu" aria-label="Navegação principal">
+        <a href="#sobre">Sobre</a>
+        <a href="#impacto">Impacto</a>
+        <a href="#como-funciona">Como funciona</a>
+        <a href="#tutorial">Tutorial</a>
+        <a href="#aprenda">Aprenda</a>
+        <a href="#participar">Participar</a>
+        <a href="#painel">Painel</a>
+        <a class="btn btn-amber btn-sm nav-cta" href="#coleta">📍 Onde entregar</a>
+      </nav>
+
+      <button class="menu-toggle" id="menu-toggle" aria-expanded="false" aria-controls="menu" aria-label="Abrir menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </header>
+
+  <main id="conteudo">
+
+    <!-- ═══════════════════ HERO ═══════════════════ -->
+    <section class="hero" id="inicio">
+      <div class="hero-circuit" aria-hidden="true">
+        <svg viewBox="0 0 1400 600" preserveAspectRatio="none">
+          <path class="trace t1" d="M-20 420 C 300 380, 420 480, 720 430 S 1150 330, 1420 380"/>
+          <path class="trace t2" d="M-20 120 C 260 160, 420 80, 680 140 S 1120 220, 1420 160"/>
+          <path class="trace t3" d="M 300 -20 C 320 120, 260 260, 330 620"/>
+          <path class="trace t4" d="M 1080 -20 C 1060 130, 1120 300, 1060 620"/>
+        </svg>
+      </div>
+
+      <div class="container hero-grid">
+        <div class="hero-copy">
+          <p class="kicker">
+            <span class="badge badge-blue">Projeto de Extensão II</span>
+            <span class="badge badge-green">Tecnologia em Sistemas de Energia</span>
+            <span class="badge badge-outline">IFSC Florianópolis</span>
+          </p>
+          <h1>Uma lâmpada queimada pode ter uma <span class="text-accent">segunda vida</span>.</h1>
+          <p class="lead">
+            Projeto de extensão dedicado à recuperação de lâmpadas LED: eficiência energética,
+            menos resíduos e conhecimento transformado em impacto para a comunidade.
+          </p>
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="#sobre">Conheça o projeto</a>
+            <a class="btn btn-amber" href="#participar">Como participar</a>
+            <a class="btn btn-ghost" href="#tutorial">Aprenda a reparar</a>
+          </div>
+          <ul class="hero-specs" aria-label="Características técnicas típicas">
+            <li>⚡ <span>127 / 220 V</span></li>
+            <li>🔆 <span>3000 – 6500 K</span></li>
+            <li>💡 <span>4 – 15 W</span></li>
+            <li>🎓 <span>Extensão universitária</span></li>
+          </ul>
+        </div>
+
+        <div class="hero-visual" aria-hidden="true">
+          <svg class="hero-bulb" viewBox="0 0 240 340" role="img" aria-label="Ilustração de uma lâmpada LED com os LEDs acendendo um a um, representando a recuperação.">
+            <defs>
+              <radialGradient id="glowGrad" cx="50%" cy="45%" r="60%">
+                <stop offset="0%" stop-color="#F2B32B" stop-opacity="0.55"/>
+                <stop offset="60%" stop-color="#F2B32B" stop-opacity="0.12"/>
+                <stop offset="100%" stop-color="#F2B32B" stop-opacity="0"/>
+              </radialGradient>
+              <linearGradient id="domeGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#FFFFFF"/>
+                <stop offset="100%" stop-color="#E2EAE4"/>
+              </linearGradient>
+            </defs>
+            <circle class="bulb-glow" cx="120" cy="125" r="110" fill="url(#glowGrad)"/>
+            <path class="bulb-dome" d="M 52 168 C 52 104 84 66 120 66 C 156 66 188 104 188 168 Z" fill="url(#domeGrad)"/>
+            <ellipse class="bulb-plate" cx="120" cy="158" rx="58" ry="9"/>
+            <g class="leds">
+              <circle class="led led-1" cx="120" cy="134" r="6"/>
+              <circle class="led led-2" cx="96"  cy="142" r="6"/>
+              <circle class="led led-3" cx="144" cy="142" r="6"/>
+              <circle class="led led-4" cx="83"  cy="154" r="6"/>
+              <circle class="led led-5" cx="157" cy="154" r="6"/>
+              <circle class="led led-6" cx="104" cy="158" r="5"/>
+              <circle class="led led-7" cx="136" cy="158" r="5"/>
+            </g>
+            <rect class="bulb-neck" x="103" y="168" width="34" height="14" rx="4"/>
+            <rect class="bulb-base" x="94" y="182" width="52" height="58" rx="6"/>
+            <g class="bulb-threads" stroke="#8FA39B" stroke-width="2.5">
+              <line x1="94" y1="193" x2="146" y2="193"/>
+              <line x1="94" y1="204" x2="146" y2="204"/>
+              <line x1="94" y1="215" x2="146" y2="215"/>
+              <line x1="94" y1="226" x2="146" y2="226"/>
+            </g>
+            <rect class="bulb-contact" x="112" y="240" width="16" height="9" rx="3"/>
+          </svg>
+          <p class="hero-visual-caption">Cada LED que volta a acender é uma lâmpada que não virou resíduo.</p>
+        </div>
+      </div>
+      <a class="scroll-hint" href="#sobre" aria-label="Rolar para a seção sobre o projeto">↓</a>
+    </section>
+
+    <!-- ═══════════════════ SOBRE ═══════════════════ -->
+    <section class="section" id="sobre">
+      <div class="container">
+        <div class="section-head">
+          <p class="kicker">Sobre o projeto</p>
+          <h2>O que é o projeto?</h2>
+          <p class="lead">
+            O projeto <strong>“Recuperação de Lâmpadas LED”</strong> — Projeto de Extensão II do curso de
+            Tecnologia em Sistemas de Energia do IFSC — tem como objetivo reaproveitar lâmpadas descartadas
+            que ainda possuem potencial de funcionamento, reduzindo o impacto ambiental e promovendo
+            aprendizado prático para os alunos.
+          </p>
+        </div>
+
+        <div class="grid-3">
+          <article class="card">
+            <h3>🌱 Por que reutilizar lâmpadas?</h3>
+            <ul class="check-list">
+              <li>Muitas lâmpadas descartadas ainda podem ser recuperadas e utilizadas com segurança;</li>
+              <li>O descarte incorreto contribui para o aumento do lixo eletrônico e a contaminação do meio ambiente;</li>
+              <li>Produzir novas lâmpadas consome energia e gera emissões de gases poluentes.</li>
+            </ul>
+          </article>
+
+          <article class="card">
+            <h3>🔧 Como é feita a recuperação</h3>
+            <ol class="flow-mini">
+              <li>Coleta de lâmpadas usadas (doações ou descarte consciente);</li>
+              <li>Avaliação técnica da viabilidade de reparo;</li>
+              <li>Substituição do componente danificado (LEDs);</li>
+              <li>Testes elétricos e de segurança;</li>
+              <li>Identificação e embalo para entrega ao usuário final.</li>
+            </ol>
+          </article>
+
+          <article class="card">
+            <h3>📐 Características técnicas típicas</h3>
+            <dl class="spec-list">
+              <div><dt>Tensão</dt><dd>127 V · 220 V</dd></div>
+              <div><dt>Temperatura de cor</dt><dd>3000 K · 4000 K · 6500 K</dd></div>
+              <div><dt>Potência</dt><dd>4 W · 5 W · 7 W · 9 W · 12 W · 15 W</dd></div>
+            </dl>
+          </article>
+        </div>
+
+        <div class="grid-2 about-bottom">
+          <figure class="card art-card">
+            <img src="assets/img/arte-projeto.webp" alt="Arte oficial do projeto Recuperação de Lâmpadas LED — Projeto de Extensão II, Sistemas de Energia." loading="lazy">
+            <figcaption>Arte do projeto — material oficial (Folder do projeto).</figcaption>
+          </figure>
+
+          <div class="card alert-card">
+            <h3>⚠️ Atenção</h3>
+            <p><strong>As lâmpadas recuperadas não possuem garantia e não devem ser comercializadas.</strong></p>
+            <p>O objetivo deste projeto é <strong>exclusivamente educativo e ambiental</strong>.</p>
+            <a class="btn btn-outline-dark" href="https://padlet.com/rafaelg09/painel-interativo-do-curso-de-tecnologia-em-sistemas-de-ener-i8drrg0xxs3nr8mk" target="_blank" rel="noopener">Conheça o painel interativo do curso ↗</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════ IMPACTO ═══════════════════ -->
+    <section class="section section-tint" id="impacto">
+      <div class="container">
+        <div class="section-head">
+          <p class="kicker">Nosso impacto</p>
+          <h2>Números que contam uma história</h2>
+          <p class="lead">
+            Os contadores abaixo são preenchidos com os registros reais do projeto.
+            Enquanto a equipe não publica os números, eles aparecem com o selo
+            <span class="badge badge-note">Dado a inserir</span> — nenhum número foi inventado.
+          </p>
+        </div>
+
+        <div class="counter-grid" id="contadores-grid"></div>
+
+        <div class="flow-conversion" id="fluxo-conversao">
+          <h3>O que isso significa na prática?</h3>
+          <ol class="conv-chain">
+            <li class="conv-node conv-node-highlight">
+              <span class="conv-num" id="fluxo-valor">0</span>
+              <span class="conv-text">lâmpadas recuperadas</span>
+            </li>
+            <li class="conv-arrow" aria-hidden="true">↓</li>
+            <li class="conv-node"><span class="conv-text">produtos com a vida útil prolongada</span></li>
+            <li class="conv-arrow" aria-hidden="true">↓</li>
+            <li class="conv-node"><span class="conv-text">menos descarte</span></li>
+            <li class="conv-arrow" aria-hidden="true">↓</li>
+            <li class="conv-node"><span class="conv-text">menos necessidade de fabricar novas lâmpadas</span></li>
+            <li class="conv-arrow" aria-hidden="true">↓</li>
+            <li class="conv-node conv-node-final"><span class="conv-text">economia de materiais e recursos</span></li>
+          </ol>
+          <p class="note">Fluxo conceitual ilustrativo — os valores reais serão inseridos pela equipe do projeto.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════ POR QUE RECUPERAR ═══════════════════ -->
+    <section class="section" id="por-que">
+      <div class="container">
+        <div class="section-head">
+          <p class="kicker">O problema</p>
+          <h2>Por que recuperar uma lâmpada?</h2>
+          <p class="lead">
+            Quando uma lâmpada apresenta defeito, o caminho mais comum é o descarte.
+            O projeto atua justamente nesse ponto — antes que o produto vire resíduo.
+          </p>
+        </div>
+
+        <div class="grid-2 compare">
+          <article class="panel panel-problem">
+            <h3>🕳️ O caminho do descarte</h3>
+            <ol class="flow-mini">
+              <li>A lâmpada apresenta defeito;</li>
+              <li>O produto é descartado;</li>
+              <li>Componentes e materiais que ainda possuem valor são perdidos;</li>
+              <li>Mais resíduos são gerados;</li>
+              <li>Outro produto precisa ser fabricado.</li>
+            </ol>
+          </article>
+
+          <article class="panel panel-solution">
+            <h3>💡 A alternativa do projeto</h3>
+            <ol class="flow-mini">
+              <li>Diagnóstico;</li>
+              <li>Reparo;</li>
+              <li>Teste;</li>
+              <li>Recuperação;</li>
+              <li>Nova utilização.</li>
+            </ol>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════ COMO FUNCIONA ═══════════════════ -->
+    <section class="section section-tint" id="como-funciona">
+      <div class="container">
+        <div class="section-head">
+          <p class="kicker">Etapa a etapa</p>
+          <h2>Como funciona o projeto</h2>
+          <p class="lead">Da lâmpada entregue pela comunidade até a destinação correta — o ciclo completo.</p>
+        </div>
+        <ol class="timeline" id="timeline"></ol>
+      </div>
+    </section>
+
+    <!-- ═══════════════════ TUTORIAL ═══════════════════ -->
+    <section class="section" id="tutorial">
+      <div class="container">
+        <div class="section-head">
+          <p class="kicker">Tutorial prático</p>
+          <h2>Como uma lâmpada LED pode ser recuperada?</h2>
+          <p class="lead">
+            Guia passo a passo baseado no material oficial do projeto
+            (<em>“Reparo de Lâmpadas LED — Guia Prático Completo”</em>).
+          </p>
+        </div>
+
+        <aside class="safety-banner" role="note">
+          <h3>🦺 Segurança em primeiro lugar</h3>
+          <ul>
+            <li><strong>Use EPI:</strong> óculos de proteção e luvas isolantes.</li>
+            <li><strong>Desligue a energia</strong> antes de qualquer manuseio — nunca trabalhe com a rede elétrica ligada e aguarde alguns minutos para a descarga residual.</li>
+            <li>Trabalhe em <strong>área ventilada</strong> e mantenha crianças e animais afastados.</li>
+            <li>⚠️ <strong>Cuidado!</strong> O ferro de solda pode causar queimaduras.</li>
+          </ul>
+        </aside>
+
+        <ol class="steps">
+          <li class="step reveal">
+            <span class="step-num">Etapa 1</span>
+            <h3>Identificação da lâmpada</h3>
+            <p>Conheça a lâmpada antes de abrir: tensão (127/220 V), temperatura de cor (3000–6500 K) e potência (4–15 W). Observe a anatomia: lente, placa LED, dissipador de calor, driver, base e soquete E27.</p>
+          </li>
+          <li class="step reveal">
+            <span class="step-num">Etapa 2</span>
+            <h3>Diagnóstico visual</h3>
+            <p>Procure sinais de falha: pontos pretos nos LEDs (queima localizada), marcas de carbonização na placa, componentes derretidos, descoloração amarelada no dissipador ou capacitores estufados.</p>
+          </li>
+          <li class="step reveal">
+            <span class="step-num">Etapa 3</span>
+            <h3>Identificação da falha</h3>
+            <p>Teste os LEDs individualmente: com duas pilhas AA (3 V) ou um rabicho com bateria de 9 V, encoste os cabos nos terminais do LED. O LED só conduz eletricidade em um sentido — inverta os cabos. Se não acender, está queimado.</p>
+          </li>
+          <li class="step reveal">
+            <span class="step-num">Etapa 4</span>
+            <h3>Reparo</h3>
+            <p>Separe a carcaça com a própria mão ou com espátula plástica (evite ferramentas metálicas). Retire o LED queimado com um alicate e, com ferro de solda e estanho, solde o ponto onde o LED foi retirado.</p>
+          </li>
+          <li class="step reveal">
+            <span class="step-num">Etapa 5</span>
+            <h3>Montagem</h3>
+            <p>Remonte a lâmpada com cuidado. Se possível, use pasta de solda para um ponto de contato firme.</p>
+          </li>
+          <li class="step reveal">
+            <span class="step-num">Etapa 6</span>
+            <h3>Teste</h3>
+            <p>Ligue a lâmpada e verifique o funcionamento. No projeto, toda lâmpada recuperada passa por testes elétricos e de segurança.</p>
+          </li>
+          <li class="step reveal">
+            <span class="step-num">Etapa 7</span>
+            <h3>Lâmpada recuperada</h3>
+            <p>A lâmpada volta a ter utilidade, é identificada e embalada para entrega ao usuário final. ⚠️ Lembre-se: lâmpadas recuperadas <strong>não possuem garantia</strong> e <strong>não devem ser comercializadas</strong>.</p>
+          </li>
+        </ol>
+
+        <h3 class="sub-title">📷 Fotografias reais do processo</h3>
+        <p class="lead-sm">Imagens do material oficial do projeto (apresentação “Manutenção de lâmpadas”).</p>
+        <div class="photo-grid">
+          <figure class="photo">
+            <img src="assets/img/reparo-etapa-1.webp" alt="Fotografia do processo de manutenção: abertura da lâmpada com uma espátula." loading="lazy">
+            <figcaption>Utilizando uma espátula, realize a abertura da lâmpada.</figcaption>
+          </figure>
+          <figure class="photo">
+            <img src="assets/img/reparo-etapa-2.webp" alt="Fotografia do processo de manutenção: teste individual dos LEDs com duas pilhas AA de 3 volts." loading="lazy">
+            <figcaption>Com duas pilhas AA (3 V), teste os LEDs individualmente até identificar o LED queimado.</figcaption>
+          </figure>
+          <figure class="photo">
+            <img src="assets/img/reparo-etapa-3.webp" alt="Fotografia do processo de manutenção: retirada do LED queimado com um alicate." loading="lazy">
+            <figcaption>Retire o LED queimado com um alicate.</figcaption>
+          </figure>
+          <figure class="photo">
+            <img src="assets/img/reparo-etapa-4.webp" alt="Fotografia do processo de manutenção: soldagem do local onde o LED foi retirado, com ferro de solda e estanho." loading="lazy">
+            <figcaption>Com o ferro de solda e estanho, solde o local onde o LED foi retirado.</figcaption>
+          </figure>
+          <figure class="photo">
+            <img src="assets/img/reparo-etapa-5.webp" alt="Fotografia de alerta do processo de manutenção: cuidado com o ferro de solda, que pode causar queimaduras." loading="lazy">
+            <figcaption>Cuidado! O ferro de solda pode causar queimaduras.</figcaption>
+          </figure>
+        </div>
+
+        <div class="decision-flow">
+          <h3>🧭 Fluxograma de decisão: vale a pena reparar?</h3>
+          <ol class="decision-grid">
+            <li><span class="step-num">01</span><strong>Avaliar o dano</strong><p>Pontos pretos indicam danos leves; circuito queimado ou carcaça derretida indicam danos graves.</p></li>
+            <li><span class="step-num">02</span><strong>Custo do reparo</strong><p>Se o dano for apenas em um ou dois LEDs, siga com o reparo simples; caso contrário, o custo pode não compensar.</p></li>
+            <li><span class="step-num">03</span><strong>Disponibilidade de recursos</strong><p>Verifique se ferro de solda, estanho e os EPIs necessários estão disponíveis.</p></li>
+            <li><span class="step-num">04</span><strong>Vale reparar?</strong><p><span class="tag-yes">SIM</span> siga para o reparo com segurança · <span class="tag-no">NÃO</span> prossiga para o descarte correto.</p></li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════ APRENDA ═══════════════════ -->
+    <section class="section section-tint" id="aprenda">
+      <div class="container">
+        <div class="section-head">
+          <p class="kicker">Área educativa</p>
+          <h2>Aprenda mais sobre lâmpadas LED</h2>
+          <p class="lead">Conceitos básicos explicados em linguagem simples — clique em cada pergunta.</p>
+        </div>
+
+        <div class="grid-2 learn-grid">
+          <div class="accordion" id="aprenda-accordion">
+            <details open>
+              <summary>💡 Como funciona uma lâmpada LED?</summary>
+              <p>O <strong>driver</strong> converte a energia da rede elétrica para o que os LEDs precisam. Os <strong>LEDs</strong> emitem luz quando a corrente passa por eles, com muito menos perda de energia que as lâmpadas antigas. Por isso a lâmpada LED é mais eficiente e dura mais.</p>
+            </details>
+            <details>
+              <summary>🔩 Quais são os principais componentes?</summary>
+              <p>Veja a anatomia da lâmpada LED ao lado. Em resumo: <strong>base e soquete E27</strong> (conexão com o bocal), <strong>dissipador de calor</strong> (controla a temperatura), <strong>driver</strong> (alimenta os LEDs), <strong>placa LED</strong> (emite a luz) e <strong>lente</strong> (distribui a luz).</p>
+            </details>
+            <details>
+              <summary>🔧 Por que uma lâmpada LED pode falhar?</summary>
+              <ul class="check-list">
+                <li><strong>Não liga:</strong> driver queimado, fusível interno rompido ou conexão solta;</li>
+                <li><strong>Pisca intermitente:</strong> capacitor do driver, mau contato ou incompatibilidade com dimmer;</li>
+                <li><strong>Luz fraca:</strong> LEDs danificados ou capacitor enfraquecido;</li>
+                <li><strong>Desliga sozinha:</strong> superaquecimento ou proteção térmica ativada.</li>
+              </ul>
+            </details>
+            <details>
+              <summary>⚡ O que é eficiência energética?</summary>
+              <p>É fazer o mesmo trabalho consumindo menos energia. Não significa apenas “usar menos”: envolve usar recursos de forma racional, evitar desperdícios e <strong>aproveitar melhor os equipamentos que já existem</strong> — como recuperar uma lâmpada em vez de fabricar outra.</p>
+            </details>
+            <details>
+              <summary>⏳ O que significa prolongar a vida útil?</summary>
+              <p>Duração média típica: lâmpada <strong>incandescente ~1.000 h</strong>, <strong>fluorescente ~8.000 h</strong> e <strong>LED ~25.000 h</strong>. Recuperar uma lâmpada LED estende ainda mais esse tempo de uso — cada hora a mais é menos resíduo e menos fabricação.</p>
+            </details>
+            <details>
+              <summary>🗑️ O que acontece quando uma lâmpada é descartada?</summary>
+              <p>Ela se torna <strong>lixo eletrônico</strong>. O descarte incorreto contribui para o aumento do lixo eletrônico e a contaminação do meio ambiente — e componentes e materiais que ainda possuem valor são perdidos.</p>
+            </details>
+            <details>
+              <summary>♻️ Por que a reciclagem e a destinação correta importam?</summary>
+              <p>Porque materiais podem ser reaproveitados, a contaminação é evitada e o ciclo se completa. No projeto, as lâmpadas que não podem ser recuperadas recebem a <strong>destinação adequada</strong> — nunca o lixo comum.</p>
+            </details>
+          </div>
+
+          <figure class="anatomy" aria-label="Diagrama da anatomia de uma lâmpada LED, de cima para baixo: lente, placa LED, dissipador de calor, driver, base e soquete E27.">
+            <figcaption class="anatomy-title">Anatomia da lâmpada LED</figcaption>
+            <div class="anatomy-part part-lens">Lente <small>distribui a luz</small></div>
+            <span class="anatomy-arrow" aria-hidden="true">↓</span>
+            <div class="anatomy-part part-led">Placa LED <small>emite a luz</small></div>
+            <span class="anatomy-arrow" aria-hidden="true">↓</span>
+            <div class="anatomy-part part-heat">Dissipador de calor <small>controla a temperatura</small></div>
+            <span class="anatomy-arrow" aria-hidden="true">↓</span>
+            <div class="anatomy-part part-driver">Driver <small>alimenta os LEDs</small></div>
+            <span class="anatomy-arrow" aria-hidden="true">↓</span>
+            <div class="anatomy-part part-base">Base · Soquete E27 <small>conexão com o bocal</small></div>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════ PONTOS DE COLETA ═══════════════════ -->
+    <section class="section" id="coleta">
+      <div class="container">
+        <div class="section-head">
+          <p class="kicker">Pontos de coleta</p>
+          <h2>Onde entregar sua lâmpada?</h2>
+          <p class="lead">
+            Os pontos de coleta oficiais ainda não foram cadastrados nos materiais do projeto.
+            A estrutura abaixo está pronta: quando os locais forem definidos, eles aparecem aqui automaticamente.
+          </p>
+        </div>
+        <div class="points-grid" id="pontos-grid"></div>
+        <p class="note center">
+          💡 Enquanto isso: guarde sua lâmpada queimada em local seco e seguro, fora do lixo comum.
+        </p>
+      </div>
+    </section>
+
+    <!-- ═══════════════════ PARTICIPAR ═══════════════════ -->
+    <section class="section section-tint" id="participar">
+      <div class="container">
+        <div class="section-head">
+          <p class="kicker">Comunidade</p>
+          <h2>Você também pode fazer parte</h2>
+          <p class="lead">Existem várias formas de contribuir — escolha a sua.</p>
+        </div>
+
+        <div class="grid-5">
+          <article class="card card-center">
+            <span class="card-icon" aria-hidden="true">💡</span>
+            <h3>Doe</h3>
+            <p>Entregue lâmpadas que não estão mais funcionando.</p>
+          </article>
+          <article class="card card-center">
+            <span class="card-icon" aria-hidden="true">♻️</span>
+            <h3>Destine corretamente</h3>
+            <p>Evite descartar lâmpadas de maneira inadequada.</p>
+          </article>
+          <article class="card card-center">
+            <span class="card-icon" aria-hidden="true">🔧</span>
+            <h3>Aprenda</h3>
+            <p>Conheça o processo de diagnóstico e recuperação.</p>
+          </article>
+          <article class="card card-center">
+            <span class="card-icon" aria-hidden="true">📢</span>
+            <h3>Compartilhe</h3>
+            <p>Ajude a divulgar o projeto para sua comunidade.</p>
+          </article>
+          <article class="card card-center">
+            <span class="card-icon" aria-hidden="true">🤝</span>
+            <h3>Seja parceiro</h3>
+            <p>Instituições e empresas podem apoiar as ações.</p>
+          </article>
+        </div>
+
+        <div class="center actions">
+          <a class="btn btn-primary btn-lg" href="#coleta">Quero participar</a>
+          <a class="btn btn-ghost" href="#contato">Fale com a equipe</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════ COMUNIDADE / EXTENSÃO ═══════════════════ -->
+    <section class="section section-dark" id="comunidade">
+      <div class="container">
+        <div class="section-head light">
+          <p class="kicker">Extensão universitária</p>
+          <h2>O projeto é sobre muito mais do que lâmpadas</h2>
+          <p class="lead">
+            Extensão universitária é a ponte entre a universidade e a sociedade:
+            o conhecimento técnico do curso de Tecnologia em Sistemas de Energia aplicado
+            a um problema real, em benefício da comunidade e do meio ambiente.
+          </p>
+        </div>
+
+        <ol class="community-chain">
+          <li><span aria-hidden="true">🎓</span> Universidade</li>
+          <li class="chain-arrow" aria-hidden="true">↓</li>
+          <li><span aria-hidden="true">👨‍🔧</span> Conhecimento técnico</li>
+          <li class="chain-arrow" aria-hidden="true">↓</li>
+          <li><span aria-hidden="true">🏘️</span> Comunidade</li>
+          <li class="chain-arrow" aria-hidden="true">↓</li>
+          <li><span aria-hidden="true">💡</span> Recuperação</li>
+          <li class="chain-arrow" aria-hidden="true">↓</li>
+          <li><span aria-hidden="true">♻️</span> Sustentabilidade</li>
+          <li class="chain-arrow" aria-hidden="true">↓</li>
+          <li><span aria-hidden="true">🌱</span> Impacto positivo</li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- ═══════════════════ IMPACTO AMBIENTAL ═══════════════════ -->
+    <section class="section" id="impacto-ambiental">
+      <div class="container">
+        <div class="section-head">
+          <p class="kicker">Impacto ambiental</p>
+          <h2>O que cada lâmpada recuperada representa</h2>
+          <p class="lead">
+            O site diferencia claramente o que é <span class="badge badge-measured">Dado medido pelo projeto</span>
+            do que é <span class="badge badge-estimated">Estimativa calculada</span>.
+            Estimativas só serão publicadas quando houver metodologia definida e aprovada pelo projeto.
+          </p>
+        </div>
+
+        <div class="grid-3 env-grid">
+          <article class="env-card env-measured">
+            <span class="badge badge-measured">Dado medido</span>
+            <h3>💡 Lâmpadas coletadas</h3>
+            <p class="env-value">0</p>
+            <p class="env-desc">Registro do recebimento de cada lâmpada pelo projeto.</p>
+          </article>
+          <article class="env-card env-measured">
+            <span class="badge badge-measured">Dado medido</span>
+            <h3>🔧 Lâmpadas recuperadas</h3>
+            <p class="env-value">0</p>
+            <p class="env-desc">Lâmpadas reparadas e aprovadas nos testes.</p>
+          </article>
+          <article class="env-card env-measured">
+            <span class="badge badge-measured">Dado medido</span>
+            <h3>🗑️ Lâmpadas destinadas corretamente</h3>
+            <p class="env-value">0</p>
+            <p class="env-desc">Lâmpadas sem viabilidade de reparo com destinação adequada.</p>
+          </article>
+          <article class="env-card env-estimated">
+            <span class="badge badge-estimated">Estimativa calculada</span>
+            <h3>⚖️ Massa de resíduos evitados</h3>
+            <p class="env-value">[DADO A INSERIR]</p>
+            <p class="env-desc">Cálculo baseado na massa média das lâmpadas recuperadas.</p>
+          </article>
+          <article class="env-card env-estimated">
+            <span class="badge badge-estimated">Estimativa calculada</span>
+            <h3>⏳ Vida útil prolongada</h3>
+            <p class="env-value">[DADO A INSERIR]</p>
+            <p class="env-desc">Horas de uso estendidas pelas lâmpadas recuperadas.</p>
+          </article>
+          <article class="env-card env-estimated">
+            <span class="badge badge-estimated">Estimativa calculada</span>
+            <h3>🧱 Materiais potencialmente preservados</h3>
+            <p class="env-value">[DADO A INSERIR]</p>
+            <p class="env-desc">Materiais que deixaram de ser descartados.</p>
+          </article>
+        </div>
+
+        <div class="center actions">
+          <button class="btn btn-primary" type="button" data-open-dialog="dialog-metodologia">Ver metodologia</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════ EFICIÊNCIA ENERGÉTICA ═══════════════════ -->
+    <section class="section section-tint" id="eficiencia">
+      <div class="container">
+        <div class="section-head">
+          <p class="kicker">Eficiência energética</p>
+          <h2>Recuperar também é eficiência energética</h2>
+          <p class="lead">
+            Eficiência energética não significa somente consumir menos energia.
+            Também envolve usar recursos de forma racional, evitar desperdícios e
+            aproveitar melhor os equipamentos que já existem.
+          </p>
+        </div>
+
+        <ul class="chip-row">
+          <li>✅ Usar recursos de forma racional</li>
+          <li>✅ Evitar desperdícios</li>
+          <li>✅ Aumentar a vida útil dos equipamentos</li>
+          <li>✅ Reduzir a necessidade de substituição</li>
+          <li>✅ Aproveitar melhor materiais e componentes</li>
+        </ul>
+
+        <div class="grid-2 compare-bars">
+          <figure class="bars">
+            <figcaption>Duração média das tecnologias de lâmpadas</figcaption>
+            <div class="bar-row">
+              <span class="bar-label">Incandescente</span>
+              <div class="bar-track"><div class="bar bar-low" style="--w:4%"></div></div>
+              <span class="bar-value">~1.000 h</span>
+            </div>
+            <div class="bar-row">
+              <span class="bar-label">Fluorescente</span>
+              <div class="bar-track"><div class="bar bar-mid" style="--w:32%"></div></div>
+              <span class="bar-value">~8.000 h</span>
+            </div>
+            <div class="bar-row">
+              <span class="bar-label">LED</span>
+              <div class="bar-track"><div class="bar bar-high" style="--w:100%"></div></div>
+              <span class="bar-value">~25.000 h</span>
+            </div>
+            <p class="note">Valores do guia “Reparo de Lâmpadas LED — Guia Prático Completo”.</p>
+          </figure>
+
+          <div class="card circular-card">
+            <h3>♻️ Economia circular</h3>
+            <ol class="circular-flow">
+              <li><strong>Coleta</strong> — a lâmpada não vira resíduo</li>
+              <li><strong>Diagnóstico</strong> — avaliação da viabilidade</li>
+              <li><strong>Reparo</strong> — substituição do componente</li>
+              <li><strong>Reutilização</strong> — a lâmpada volta a funcionar</li>
+              <li><strong>Menos resíduo</strong> — e menos necessidade de fabricar uma nova</li>
+            </ol>
+            <p class="note">O ciclo recomeça: cada lâmpada recuperada prolonga o ciclo de vida do produto.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════ PAINEL ═══════════════════ -->
+    <section class="section" id="painel">
+      <div class="container">
+        <div class="section-head">
+          <p class="kicker">Painel do projeto</p>
+          <h2>Painel do projeto</h2>
+          <p class="lead">
+            Gráficos e indicadores do projeto.
+            <span class="badge badge-demo">Dados de exemplo</span>
+            — demonstrativo da interface até o registro dos dados reais pela equipe.
+          </p>
+        </div>
+
+        <div class="filters" role="group" aria-label="Filtros do painel">
+          <label>Ano
+            <select id="filtro-ano"></select>
+          </label>
+          <label>Mês
+            <select id="filtro-mes"></select>
+          </label>
+          <label>Local de coleta
+            <select id="filtro-local"></select>
+          </label>
+          <label>Situação da lâmpada
+            <select id="filtro-situacao"></select>
+          </label>
+        </div>
+
+        <div class="grid-3 panel-summary">
+          <div class="stat-box"><span class="stat-label">Total de lâmpadas (exemplo)</span><strong id="painel-total">0</strong></div>
+          <div class="stat-box"><span class="stat-label">Taxa de recuperação (exemplo)</span><strong id="painel-taxa">0%</strong></div>
+          <div class="stat-box"><span class="stat-label">Impacto acumulado (exemplo)</span><strong id="painel-acumulado">0</strong></div>
+        </div>
+
+        <div class="chart-grid">
+          <figure class="chart-card">
+            <figcaption>Evolução mensal — coletadas × recuperadas</figcaption>
+            <div class="chart" id="chart-linha" role="img" aria-label="Gráfico de linhas com a evolução mensal de lâmpadas coletadas e recuperadas."></div>
+          </figure>
+          <figure class="chart-card">
+            <figcaption>Quantidade por local de coleta</figcaption>
+            <div class="chart" id="chart-barras" role="img" aria-label="Gráfico de barras com a quantidade de lâmpadas por local de coleta."></div>
+          </figure>
+          <figure class="chart-card">
+            <figcaption>Situação das lâmpadas</figcaption>
+            <div class="chart chart-donut-wrap" id="chart-donut" role="img" aria-label="Gráfico circular com a situação das lâmpadas: recuperadas, em análise e sem recuperação.">
+              <ul class="chart-legend" id="donut-legend"></ul>
+            </div>
+          </figure>
+        </div>
+        <p class="note center" id="painel-demo-label"></p>
+      </div>
+    </section>
+
+    <!-- ═══════════════════ METODOLOGIA ═══════════════════ -->
+    <section class="section section-tint" id="metodologia">
+      <div class="container">
+        <div class="section-head">
+          <p class="kicker">Transparência</p>
+          <h2>Como calculamos nosso impacto?</h2>
+          <p class="lead">Cada número tem uma origem declarada — isso mantém a credibilidade acadêmica do projeto.</p>
+        </div>
+
+        <div class="grid-3">
+          <article class="card">
+            <h3>💡 Lâmpadas coletadas</h3>
+            <p>= quantidade registrada pelo projeto no recebimento de cada lâmpada.</p>
+          </article>
+          <article class="card">
+            <h3>🔧 Lâmpadas recuperadas</h3>
+            <p>= quantidade efetivamente reparada e aprovada nos testes elétricos e de segurança.</p>
+          </article>
+          <article class="card">
+            <h3>🗑️ Resíduos evitados</h3>
+            <p>= cálculo baseado na metodologia definida pelo projeto — apresentado sempre como estimativa.</p>
+          </article>
+        </div>
+
+        <div class="center actions">
+          <button class="btn btn-amber" type="button" data-open-dialog="dialog-metodologia">Ver metodologia</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ═══════════════════ RODAPÉ ═══════════════════ -->
+  <footer class="footer" id="contato">
+    <div class="container footer-grid">
+      <div class="footer-col footer-brand">
+        <p class="footer-logo"><span aria-hidden="true">💡</span> Recuperação de Lâmpadas LED</p>
+        <p class="footer-tagline">Uma lâmpada que pode ser recuperada não precisa virar resíduo.</p>
+        <p class="footer-warning">⚠️ As lâmpadas recuperadas não possuem garantia e não devem ser comercializadas. Objetivo exclusivamente educativo e ambiental.</p>
+      </div>
+
+      <div class="footer-col">
+        <h3>Instituição</h3>
+        <ul class="footer-list">
+          <li id="footer-instituicao"></li>
+          <li id="footer-curso"></li>
+        </ul>
+        <h3>Equipe</h3>
+        <ul class="footer-list" id="footer-equipe"></ul>
+      </div>
+
+      <div class="footer-col">
+        <h3>Navegação</h3>
+        <ul class="footer-list">
+          <li><a href="#sobre">Sobre o projeto</a></li>
+          <li><a href="#tutorial">Tutorial de reparo</a></li>
+          <li><a href="#coleta">Pontos de coleta</a></li>
+          <li><a href="#painel">Painel do projeto</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h3>Links e contato</h3>
+        <ul class="footer-list">
+          <li><a id="link-padlet" href="#" target="_blank" rel="noopener">Painel interativo do curso (Padlet) ↗</a></li>
+          <li id="footer-email"></li>
+          <li id="footer-telefone"></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© <span id="ano-atual"></span> Recuperação de Lâmpadas LED — Projeto de Extensão II · Tecnologia em Sistemas de Energia · IFSC Florianópolis</p>
+    </div>
+  </footer>
+
+  <!-- ═══════════════════ MODAL METODOLOGIA ═══════════════════ -->
+  <dialog class="dialog" id="dialog-metodologia" aria-labelledby="metodologia-titulo">
+    <div class="dialog-head">
+      <h3 id="metodologia-titulo"></h3>
+      <button class="dialog-close" type="button" data-close-dialog="dialog-metodologia" aria-label="Fechar metodologia">✕</button>
+    </div>
+    <p class="dialog-intro" id="metodologia-intro"></p>
+    <dl class="method-list" id="metodologia-conteudo"></dl>
+    <p class="note" id="metodologia-disclaimer"></p>
+  </dialog>
+
+  <script src="js/data.js"></script>
+  <script src="js/app.js" defer></script>
+</body>
+</html>

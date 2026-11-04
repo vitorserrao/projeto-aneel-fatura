@@ -11,6 +11,8 @@ import os
 import requests
 import streamlit as st
 
+from app.components.ui import injetar_css
+
 API_BASE = os.environ.get("ANEEL_API_BASE", "http://127.0.0.1:8000/api")
 
 
@@ -21,6 +23,7 @@ def _get(path: str, params: dict | None = None):
         return None, f"Falha ao contactar a API em `{API_BASE}`. O servidor está rodando? Detalhe: {exc}"
 
 
+injetar_css()
 st.set_page_config(page_title="Consulta Tarifas", layout="wide")
 st.title("📄 Consulta de tarifas (leitura)")
 st.caption(f"API de consulta: `{API_BASE}`")
@@ -49,15 +52,17 @@ if st.button("Carregar distribuidoras", type="primary"):
 st.divider()
 st.subheader("Buscar tarifas vigentes")
 
-col_sig, col_data, col_sub, col_mod, col_base, col_comp = st.columns(6)
-sig = col_sig.text_input("Sigla distribuidora", "CPFL JAGUARI")
-data = col_data.text_input("Data (AAAA-MM-DD)", "2010-06-01")
-sub = col_sub.text_input("Subgrupo", "")
-mod = col_mod.text_input("Modalidade", "")
-base = col_base.text_input("Base tarifária", "")
-comp = col_comp.selectbox("Componente", ["", "TE", "TUSD"], index=0)
+with st.form("busca_tarifas"):
+    col_sig, col_data, col_sub, col_mod, col_base, col_comp = st.columns(6)
+    sig = col_sig.text_input("Sigla distribuidora", "CPFL JAGUARI")
+    data = col_data.text_input("Data (AAAA-MM-DD)", "2010-06-01")
+    sub = col_sub.text_input("Subgrupo", "")
+    mod = col_mod.text_input("Modalidade", "")
+    base = col_base.text_input("Base tarifária", "")
+    comp = col_comp.selectbox("Componente", ["", "TE", "TUSD"], index=0)
+    buscar = st.form_submit_button("Consultar tarifas", type="primary")
 
-if st.button("Consultar tarifas"):
+if buscar:
     params = {}
     if sig:
         params["sig_agente"] = sig
@@ -80,7 +85,8 @@ if st.button("Consultar tarifas"):
         rows = resp.json()
         st.info(f"{len(rows)} registro(s) retornado(s).")
         if rows:
-            st.dataframe(
+            import pandas as pd
+            df = pd.DataFrame(
                 [
                     {
                         "Sigla": t["sig_agente"],
@@ -94,4 +100,11 @@ if st.button("Consultar tarifas"):
                     }
                     for t in rows
                 ]
+            )
+            st.dataframe(df, use_container_width=True, hide_index=True)
+            st.download_button(
+                "Baixar CSV",
+                df.to_csv(index=False).encode("utf-8"),
+                file_name="tarifas.csv",
+                mime="text/csv",
             )

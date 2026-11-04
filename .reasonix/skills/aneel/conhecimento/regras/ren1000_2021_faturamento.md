@@ -2,8 +2,11 @@
 
 > **Origem:** pesquisa em fontes oficiais (ANEEL / Governo Federal) realizada para fechar
 > pendências do motor ACR. Fontes citadas ao final.
-> **Status:** *encontrado em fonte oficial* — **confirmar no texto integral** da
-> REN 1.000/2021 nos artigos indicados antes de implementar (ver "Itens de verificação").
+> **Status:** **confirmado no texto integral do DOU** (edição de 20/12/2021) em
+> 17/09/2026 — texto extraído do HTML e fórmulas transcritas das imagens do DOU.
+> Detalhes completos em **`ren1000_2021_formulas_dou.md`** (fórmulas + arts. 281–326).
+> Antes de implementar, conferir a **redação consolidada vigente** (REN 1.000/2021 já
+> foi alterada por REN posteriores, ex.: REN 1.059/2023 no art. 301).
 > **Hierarquia de confiança:** esta fonte está no nível **1 (legislação/regulação oficial)** —
 > prevalece sobre o projeto anterior e sobre inferências.
 
@@ -16,19 +19,46 @@
   - **5%** — consumidores em geral;
   - **1%** — geradores/importadores/exportadores;
   - **10%** — outra distribuidora.
-- **Fórmula da ultrapassagem** (art. 301):
+- **Fórmula da ultrapassagem** (art. 301 §1º, imagem 008 do DOU):
   ```
-  D_ultrapassagem(p) = [ PAM(p) − PAC(p) ] × 2 × VD_ult(p)
+  CULTRAPASSAGEM(p) = [ DAM(p) − DAC(p) ] × 2 × VRDULT(p)
   ```
-  onde `PAM` = potência ativa medida, `PAC` = potência ativa contratada e
-  `VD_ult` = valor da tarifa de demanda do posto `p` (a cobrança incide sobre o
-  excedente **acima do limite de tolerância**, ao **dobro** da tarifa).
+  onde `DAM(p)` = demanda ativa medida, `DAC(p)` = demanda ativa contratada e
+  `VRDULT(p)` = valor de referência de ultrapassagem (tarifa de demanda do posto `p`
+  aplicável aos subgrupos A ou TUSD-Consumidores-Livres). A cobrança incide sobre a
+  **diferença total** `DAM − DAC`, ao **dobro** da tarifa, quando a demanda medida
+  exceder a contratada além da tolerância (5% consumidor; 1% gerador/importador/
+  exportador; 10% outra distribuidora). ⚠️ REN 1.059/2023 alterou os incisos do caput
+  (demanda de injeção × demanda de consumo).
 - **Demanda proporcional** (período de faturamento < 27 ou > 33 dias): aplicar fator
   de proporcionalidade `FD_pr` (fórmula específica no art. 301).
 - **Fator de potência:** limite mínimo **0,92** (indutivo ou capacitivo).
   Abaixo disso, cobra-se **energia/demanda reativa excedente**.
 - **Reativos excedentes:** valor = quantidade de reativo excedente (kVArh na energia,
   kVAr na demanda) × tarifa correspondente.
+
+### 1.1 Fórmulas oficiais confirmadas no DOU (transcrição das imagens)
+
+- **Energia ativa do Grupo A — art. 293, caput (imagem 006):**
+  ```
+  FEA(p) = EEAM(p) × TECOMP(p)
+  ```
+- **Energia ativa com excedente — art. 293 §1º (imagem 007):** quando
+  `EEAMCICLO > MWmédioCONTRATADO × HORASCICLO`:
+  ```
+  FEA(p) = MWmédioCONTRATADO × HORASCICLO × TECOMP(p) × EEAM(p) / EEAMCICLO
+  ```
+  (faturamento limitado ao montante contratado, rateado por posto pela medição).
+- **Reativos excedentes — art. 304 (imagem 009):**
+  ```
+  ERE    = Σ_T [ EEAMT × ( fR/fT − 1 ) ] × VRERE
+  DRE(p) = [ max_T ( DAMT × fR/fT ) − DAF(p) ] × VRDRE
+  ```
+  somente nos intervalos `T` com `fT < 0,92` — **capacitivo** na janela de 6h entre
+  23h30 e 6h30; **indutivo** no período complementar. `fR = 0,92`;
+  `VRERE` = TE bandeira verde do B1; `VRDRE` = tarifa de demanda fora de ponta da Azul.
+- **Demais fórmulas** (ERD, K, FRC, n, tarifa proporcional, compensações arts. 440/441,
+  iluminação pública art. 472) → ver **`ren1000_2021_formulas_dou.md`**.
 
 ## 2. Elegibilidade de modalidades *(REN 1.000/2021, arts. 219, 220)*
 
@@ -81,27 +111,37 @@
 
 ## 6. O que esta fonte AINDA NÃO resolve
 
-- **Precedência entre vigências sobrepostas** (P6) — não localizado em busca;
-  requer leitura do texto integral (regras de vigência/publicação das REH).
-- **Arredondamento monetário** (P7) — não localizado; requer texto integral.
+- **Precedência entre vigências sobrepostas** (P6) — não localizado nem no texto
+  integral extraído do DOU (ver `pontos_pendentes_pesquisa.md`).
+- **Arredondamento monetário** (P7) — não localizado no texto extraído do DOU.
 - **EPI / ACR × ACL** — nenhuma fórmula oficial encontrada em fonte ANEEL/Governo;
   tratar como metodologia (ver `pontos_pendentes_pesquisa.md`).
+- **Consolidação com REN posteriores** — a redação original de 20/12/2021 já foi
+  alterada (ex.: REN 1.059/2023 no art. 301). Usar a versão consolidada vigente.
 
 ## Fontes
 
 - ANEEL — "Modalidades Tarifárias" (gov.br/aneel).
-- REN ANEEL nº 1.000/2021 (Regras de Prestação do Serviço Público de Distribuição
-  de Energia Elétrica) — arts. 213, 214, 219, 220, 292, 301.
+- REN ANEEL nº 1.000/2021 — **texto integral do DOU** (20/12/2021, Edição 238,
+  Seção 1, Página 206), extraído em 17/09/2026 de
+  https://www.in.gov.br/en/web/dou/-/resolucao-normativa-aneel-n-1.000-de-7-de-dezembro-de-2021-368359651
+  — arts. 213, 214, 219, 220, 281–326 (faturamento), 109, 173, 440, 441, 472.
+  Fórmulas (imagens do DOU) transcritas em `ren1000_2021_formulas_dou.md`.
 - MME/ANEEL — composição da conta de luz (tributos e fórmula).
 - REN ANEEL nº 414/2010 (consolidada/alterada pela REN 1.000/2021).
 
 ## Itens de verificação (antes de implementar)
 
-1. Confirmar no **texto integral da REN 1.000/2021** os arts. 292 e 301 (demanda
-   faturável, tolerâncias e fórmula da ultrapassagem).
-2. Confirmar a lista de subgrupos elegíveis por modalidade (arts. 219/220).
-3. Confirmar **consequências para ACR × ACL**: incluir tributos ou usar base líquida.
-4. Confirmar se `Intermediário` permanece exclusivo da Branca na revisão vigente.
+1. ✅ Fórmula da ultrapassagem (art. 301 §1º) — confirmada no DOU e em cópias
+   oficiais (imagem 008).
+2. ✅ Faturamento de energia ativa do Grupo A (art. 293 caput e §1º) — confirmado
+   (imagens 006/007).
+3. ✅ Reativos excedentes (art. 304) — fórmula e condições confirmadas (imagem 009).
+4. ⚠️ Conferir a **redação consolidada vigente** (REN 1.059/2023 e posteriores) para
+   os artigos alterados (especialmente art. 301).
+5. ⚠️ Revisar as transcrições das imagens 010, 011 e 012 (compensações e iluminação
+   pública) — ver notas em `ren1000_2021_formulas_dou.md`.
+6. Confirmar **consequências para ACR × ACL**: incluir tributos ou usar base líquida.
 
 ## Uso futuro
 

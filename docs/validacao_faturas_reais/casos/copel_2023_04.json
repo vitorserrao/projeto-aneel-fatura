@@ -1,0 +1,44 @@
+{
+  "meta": {
+    "fonte": "Kevin Wu/Exemplos de Faturas de Energia/grupo A/COPEL - grupo A.pdf",
+    "distribuidora": "COPEL-DIS",
+    "subgrupo": "A4",
+    "modalidade": "Verde",
+    "competencia": "04/2023",
+    "total_fatura": 9854.93
+  },
+  "perfil": {
+    "data_referencia": "2023-03-15",
+    "consumo_ponta_kwh": 55,
+    "consumo_fora_ponta_kwh": 9094,
+    "demanda_medida_unica_kw": 150.65,
+    "demanda_contratada_unica_kw": 260.0,
+    "reativo_energia_fora_ponta_kvArh": 9,
+    "cip_cosip_rs": 0.0,
+    "outros_rs": 115.01,
+    "bandeira_adicional_r_kwh": 0.0
+  },
+  "tributos": { "pis": 0.0095, "cofins": 0.0438, "icms": 0.18, "tipo_icms": "fora" },
+  "tarifas_liquidas": [
+    { "componente": "TE", "grandeza": "ENERGIA", "posto": "PONTA", "unidade": "R$/MWh", "valor": 388.08 },
+    { "componente": "TE", "grandeza": "ENERGIA", "posto": "FORA PONTA", "unidade": "R$/MWh", "valor": 247.20 },
+    { "componente": "TUSD", "grandeza": "ENERGIA", "posto": "PONTA", "unidade": "R$/MWh", "valor": 1027.46 },
+    { "componente": "TUSD", "grandeza": "ENERGIA", "posto": "FORA PONTA", "unidade": "R$/MWh", "valor": 110.85 },
+    { "componente": "TUSD", "grandeza": "DEMANDA", "posto": "PONTA", "unidade": "R$/kW", "valor": 17.58 },
+    { "componente": "REATIVO", "grandeza": "ENERGIA", "posto": "FORA PONTA", "unidade": "R$/kVArh", "valor": 0.333333 }
+  ],
+  "linhas_esperadas": [
+    { "descricao": "ENERGIA ELETRICA TE PONTA", "quantidade": 55, "tarifa": 0.499818, "valor": 27.49 },
+    { "descricao": "ENERGIA ELETRICA USD PONTA", "quantidade": 55, "tarifa": 1.323455, "valor": 72.79 },
+    { "descricao": "ENERGIA ELETRICA TE F PONTA", "quantidade": 9094, "tarifa": 0.318435, "valor": 2895.85 },
+    { "descricao": "ENERGIA ELETRICA USD F PONTA", "quantidade": 9094, "tarifa": 0.142793, "valor": 1298.56 },
+    { "descricao": "ENERGIA REAT EXCED TE F PONTA", "quantidade": 9, "tarifa": 0.333333, "valor": 3.00 },
+    { "descricao": "DEMANDA USD", "quantidade": 150.65, "tarifa": 22.645868, "valor": 3411.60 },
+    { "descricao": "DEMANDA USD ISENTA ICMS", "quantidade": 109.35, "tarifa": 18.570005, "valor": 2030.63 },
+    { "descricao": "CONT ILUMIN PUBLICA MUNICIPIO", "quantidade": 1, "tarifa": 115.01, "valor": 115.01 }
+  ],
+  "notas": [
+    "Demanda dividida em parcela COM ICMS (150,65 kW) e ISENTA de ICMS (109,35 kW) — gap conhecido.",
+    "Reativo excedente já faturado (9 kWh x 0,333333) — modo direto."
+  ]
+}

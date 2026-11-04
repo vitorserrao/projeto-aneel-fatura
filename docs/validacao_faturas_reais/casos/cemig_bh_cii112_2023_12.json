@@ -1,0 +1,40 @@
+{
+  "meta": {
+    "fonte": "fwdfaturagrupoa/23-12 BH-CII_112.pdf",
+    "distribuidora": "CEMIG-D",
+    "subgrupo": "A4",
+    "modalidade": "Verde",
+    "competencia": "12/2023",
+    "total_fatura": 52234.40
+  },
+  "perfil": {
+    "data_referencia": "2023-12-15",
+    "consumo_ponta_kwh": 7000,
+    "consumo_fora_ponta_kwh": 54950,
+    "demanda_medida_unica_kw": 200,
+    "demanda_contratada_unica_kw": 400,
+    "reativo_energia_fora_ponta_kvArh": 0,
+    "cip_cosip_rs": 40.45,
+    "outros_rs": 0.0,
+    "bandeira_adicional_r_kwh": 0.0,
+    "demanda_isenta_icms_kw": 200
+  },
+  "tributos": {"pis": 0.0078, "cofins": 0.0361, "icms": 0.18, "tipo_icms": "fora"},
+  "tarifas_liquidas": [
+    {"componente": "TUSD", "grandeza": "DEMANDA", "posto": "PONTA", "unidade": "R$/kW", "valor": 19.19},
+    {"componente": "TE", "grandeza": "ENERGIA", "posto": "PONTA", "unidade": "R$/MWh", "valor": 2001.85},
+    {"componente": "TUSD", "grandeza": "ENERGIA", "posto": "FORA PONTA", "unidade": "R$/MWh", "valor": 413.68}
+  ],
+  "linhas_esperadas": [
+    {"descricao": "Demanda Ativa HFP s/ ICMS", "quantidade": 200, "tarifa": 20.07112227, "valor": 4014.22},
+    {"descricao": "Demanda Ativa HFP", "quantidade": 200, "tarifa": 24.47697838, "valor": 4895.39},
+    {"descricao": "Energia Ativa HFP", "quantidade": 54950, "tarifa": 0.52765172, "valor": 28994.44},
+    {"descricao": "Energia Ativa HP", "quantidade": 7000, "tarifa": 2.55337359, "valor": 17873.59},
+    {"descricao": "Contrib Ilum Publica Municipal", "quantidade": 1, "tarifa": 40.45, "valor": 40.45}
+  ],
+  "notas": [
+    "Multa/serviços/retenções e GD fora do motor (comparar por linha).",
+    "Parcela isenta de ICMS: contratada (400) − medida (200) = 200 kW.",
+    "PASEP 0,78% e COFINS 3,61% na competência DEZ/2023."
+  ]
+}

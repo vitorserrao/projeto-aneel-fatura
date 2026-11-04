@@ -1,0 +1,45 @@
+Valores Faturados
+Itens da Fatura Unid. Quant. Preço Unit. (R$)  Valor (R$) PIS/COFINS Base Calc. Aliq. ICMS Tarifa Unit. ICMS ICMS
+Demanda Ativa HFP s/ ICMS kW 200 20,07112227 4.014,22 176,22 0,00 0,00 0,00 19,19000000
+Demanda Ativa HFP kW 200 24,47697838 4.895,39 176,22 4.895,39 18,00 881,17 19,19000000
+Energia Ativa HFP kWh 54.950 0,52765172 28.994,44 1.043,73 28.994,44 18,00 5.219,00 0,41368000
+Energia Ativa HP kWh 7.000 2,55337359 17.873,59 643,40 17.873,59 18,00 3.217,24 2,00185000
+Contrib Ilum Publica Municipal 40,45
+Imposto Retido - CSLL -557,77
+Imposto Retido - COFINS -1.673,32
+Imposto Retido - PIS/PASEP -362,54
+Imposto Retido - IRPJ -990,06
+TOTAL 52.234,40 2.039,57 51.763,42 9.317,41
+
+Histórico de Consumo
+Mês/Ano Demanda(kW) Energia(kWh)
+HP HFP HP HFP HR
+DEZ/23 193 200 7.000 54.950 0
+NOV/23 210 231 9.800 68.250 0
+OUT/23 203 214 10.150 64.750 0
+SET/23 217 238 9.800 64.400 0
+AGO/23 189 179 9.800 63.000 0
+JUL/23 154 140 7.000 51.100 0
+JUN/23 168 151 9.100 57.050 0
+MAI/23 179 168 9.800 59.850 0
+ABR/23 189 189 8.750 59.500 0
+MAR/23 203 207 11.200 68.950 0
+FEV/23 151 165 6.300 46.550 0
+JAN/23 95 98 5.250 44.100 0
+DEZ/22 154 151 6.300 48.650 0
+
+Reservado ao Fisco
+Base de cálculo (R$) Alíquota (%) Valor (R$)
+ICMS 51.763,42 18,00 9.317,41
+PASEP 46.460,23 0,78 362,37
+COFINS 46.460,23 3,61 1.677,20
+
+Grandezas Contratadas
+Demanda Fora Ponta 400
+Demanda Geração 0
+
+CEFET NOVA SUÍÇA — AV AMAZONAS 5253 EL — NOVA SUISSA — 30421-169 BELO HORIZONTE, MG
+Nº DO CLIENTE 7000081824 — Nº DA INSTALAÇÃO 3009014934
+Referente a DEZ/2023 — Vencimento 11/02/2024 — Valor a pagar R$ 52.234,40
+Classe: Poder Público — Subclasse: Poder Público Federal — Modalidade Tarifária: THS Verde A4
+Datas de Leitura: Anterior 30/11 — Atual 31/12 — Nº de dias 31 — Próxima 31/01

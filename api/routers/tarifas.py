@@ -216,3 +216,34 @@ def listar_bandeiras(
             for nome, valor in valores.items()
         ],
     }
+
+
+@router.get("/modalidades", response_model=list[str], tags=["consulta"])
+def listar_modalidades(repo: _Repo) -> list[str]:
+    """Modalidades tarifárias presentes no banco."""
+    return repo.listar_modalidades()
+
+
+@router.get("/classes", response_model=list[str], tags=["consulta"])
+def listar_classes(repo: _Repo) -> list[str]:
+    """Classes tarifárias presentes no banco."""
+    return repo.listar_classes()
+
+
+@router.get("/componentes", response_model=list[str], tags=["consulta"])
+def listar_componentes(repo: _Repo) -> list[str]:
+    """Componentes tarifários presentes no banco (TE/TUSD)."""
+    return repo.listar_componentes()
+
+
+@router.get("/bases-tarifarias", response_model=list[str], tags=["consulta"])
+def listar_bases_tarifarias(repo: _Repo) -> list[str]:
+    """Bases tarifárias presentes no banco."""
+    return repo.listar_bases_tarifarias()
+
+
+@router.get("/acessantes", response_model=list[str], tags=["consulta"])
+def listar_acessantes(repo: _Repo) -> list[str]:
+    """Acessantes presentes no banco (útil p/ estudos de geração/GD)."""
+    return repo.listar_acessantes()
+

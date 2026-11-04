@@ -34,6 +34,11 @@ class FaturaOut(BaseModel):
         description="Número de tarifas vigentes cujo posto/grandeza não foi "
         "mapeado (regra P5 pendente).",
     )
+    pi: float | None = Field(
+        default=None,
+        description="Preço de Indiferença (R$/MWh) desta modalidade, quando "
+        "calculado (docs/epi.md).",
+    )
 
 
 class Nota(BaseModel):

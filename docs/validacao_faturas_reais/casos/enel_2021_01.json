@@ -1,0 +1,44 @@
+{
+  "meta": {
+    "fonte": "Kevin Wu/Exemplos de Faturas de Energia/grupo A/ENEL - grupo A.pdf",
+    "distribuidora": "ENEL SP",
+    "subgrupo": "A4",
+    "modalidade": "Verde",
+    "competencia": "01/2021",
+    "total_fatura": 3254.04
+  },
+  "perfil": {
+    "data_referencia": "2021-01-15",
+    "consumo_ponta_kwh": 221.5,
+    "consumo_fora_ponta_kwh": 2565.4,
+    "demanda_medida_unica_kw": 34.5,
+    "demanda_contratada_unica_kw": 100.0,
+    "reativo_energia_fora_ponta_kvArh": 0.0,
+    "cip_cosip_rs": 30.47,
+    "outros_rs": 0.0,
+    "bandeira_adicional_r_kwh": 0.0762
+  },
+  "tributos": { "pis": 0.0044, "cofins": 0.0202, "icms": 0.18, "tipo_icms": "fora" },
+  "tarifas_liquidas": [
+    { "componente": "TE", "grandeza": "ENERGIA", "posto": "PONTA", "unidade": "R$/MWh", "valor": 382.17 },
+    { "componente": "TE", "grandeza": "ENERGIA", "posto": "FORA PONTA", "unidade": "R$/MWh", "valor": 236.55 },
+    { "componente": "TUSD", "grandeza": "ENERGIA", "posto": "PONTA", "unidade": "R$/MWh", "valor": 642.12 },
+    { "componente": "TUSD", "grandeza": "ENERGIA", "posto": "FORA PONTA", "unidade": "R$/MWh", "valor": 79.97 },
+    { "componente": "TUSD", "grandeza": "DEMANDA", "posto": "PONTA", "unidade": "R$/kW", "valor": 15.48 }
+  ],
+  "linhas_esperadas": [
+    { "descricao": "DEMANDA", "quantidade": 34.5, "tarifa": 18.87905, "valor": 651.82 },
+    { "descricao": "CONSUMO ATIVO PONTA TUSD", "quantidade": 221.5, "tarifa": 0.78308, "valor": 173.43 },
+    { "descricao": "CONSUMO ATIVO PONTA TE", "quantidade": 221.5, "tarifa": 0.46602, "valor": 103.21 },
+    { "descricao": "CONSUMO ATIVO F. PONTA TUSD", "quantidade": 2565.4, "tarifa": 0.09752, "valor": 250.18 },
+    { "descricao": "CONSUMO ATIVO F. PONTA TE", "quantidade": 2565.4, "tarifa": 0.28848, "valor": 740.07 },
+    { "descricao": "ADICIONAL BANDEIRA VERMELHA FP", "quantidade": 2565.4, "tarifa": 0.07613, "valor": 195.32 },
+    { "descricao": "ADICIONAL BANDEIRA VERMELHA PT", "quantidade": 221.5, "tarifa": 0.07607, "valor": 16.85 },
+    { "descricao": "COSIP - SAO PAULO - MUNICIPAL", "quantidade": 1, "tarifa": 30.47, "valor": 30.47 }
+  ],
+  "notas": [
+    "ENEL embute só o ICMS na tarifa (fator ~1/(1-ICMS)); PIS/COFINS vêm em linhas separadas 0699 — o motor atual não tem esse modo.",
+    "Demanda 'Lei Estadual 16.886/18' (65,5 kW) é parcela isenta — gap.",
+    "Bandeira Vermelha Patamar II cobrada separada por posto."
+  ]
+}

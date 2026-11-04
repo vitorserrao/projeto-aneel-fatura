@@ -1,0 +1,41 @@
+{
+  "meta": {
+    "fonte": "fwdfaturagrupoa/23-09 BH CI_934.pdf",
+    "distribuidora": "CEMIG-D",
+    "subgrupo": "A4",
+    "modalidade": "Verde",
+    "competencia": "09/2023",
+    "total_fatura": 56184.86
+  },
+  "perfil": {
+    "data_referencia": "2023-09-15",
+    "consumo_ponta_kwh": 8750,
+    "consumo_fora_ponta_kwh": 49000,
+    "demanda_medida_unica_kw": 228.0,
+    "demanda_contratada_unica_kw": 420.0,
+    "reativo_energia_fora_ponta_kvArh": 2450,
+    "cip_cosip_rs": 40.45,
+    "outros_rs": 0.0,
+    "bandeira_adicional_r_kwh": 0.0
+  },
+  "tributos": { "pis": 0.0073, "cofins": 0.0337, "icms": 0.18, "tipo_icms": "fora" },
+  "tarifas_liquidas": [
+    { "componente": "TUSD", "grandeza": "DEMANDA", "posto": "PONTA", "unidade": "R$/kW", "valor": 19.19 },
+    { "componente": "TE", "grandeza": "ENERGIA", "posto": "PONTA", "unidade": "R$/MWh", "valor": 2001.85 },
+    { "componente": "TUSD", "grandeza": "ENERGIA", "posto": "FORA PONTA", "unidade": "R$/MWh", "valor": 413.68 },
+    { "componente": "REATIVO", "grandeza": "ENERGIA", "posto": "FORA PONTA", "unidade": "R$/kVArh", "valor": 0.31364 }
+  ],
+  "linhas_esperadas": [
+    { "descricao": "Demanda Ativa HFP s/ ICMS", "quantidade": 192, "tarifa": 20.01042753, "valor": 3841.99 },
+    { "descricao": "Demanda Ativa HFP", "quantidade": 228, "tarifa": 24.40296040, "valor": 5563.86 },
+    { "descricao": "Energia Ativa HFP", "quantidade": 49000, "tarifa": 0.52605611, "valor": 25776.73 },
+    { "descricao": "Energia Ativa HP", "quantidade": 8750, "tarifa": 2.54565223, "valor": 22274.43 },
+    { "descricao": "Energia Reativa HFP", "quantidade": 2450, "tarifa": 0.39884026, "valor": 977.13 },
+    { "descricao": "Contrib Ilum Publica Municipal", "quantidade": 1, "tarifa": 40.45, "valor": 40.45 }
+  ],
+  "notas": [
+    "Total da fatura inclui multa/juros/retenções — comparar apenas as linhas técnicas.",
+    "Demanda com parcela s/ ICMS (192 kW) e com ICMS (228 kW) — gap de isenção.",
+    "Ultrapassagem de Geração (GD) fora do escopo do motor."
+  ]
+}

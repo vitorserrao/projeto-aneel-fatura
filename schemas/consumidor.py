@@ -15,7 +15,13 @@ from pydantic import BaseModel, Field, field_validator
 
 # Modalidades reconhecidas pelo MVP. Aplicabilidade ao subgrupo/perfil é
 # validada na camada de serviço/regras (docs/premissas.md), não aqui.
-MODALIDADES_MVP = ("AZUL", "VERDE")
+MODALIDADES_MVP = (
+    "AZUL",
+    "VERDE",
+    "OPTANTE B",
+    "CONVENCIONAL MONÔMIA",
+    "BRANCA",
+)
 
 
 class Consumidor(BaseModel):
@@ -53,6 +59,7 @@ class Consumidor(BaseModel):
 
     consumo_ponta_kwh: float = Field(default=0.0, ge=0)
     consumo_fora_ponta_kwh: float = Field(default=0.0, ge=0)
+    consumo_intermediario_kwh: float = Field(default=0.0, ge=0)
     demanda_ponta_kw: float = Field(default=0.0, ge=0)
     demanda_fora_ponta_kw: float = Field(default=0.0, ge=0)
     # Demanda contratada: a faturável é o MAIOR entre contratada e medida.
@@ -71,10 +78,24 @@ class Consumidor(BaseModel):
     bandeira_adicional_r_kwh: float = Field(default=0.0, ge=0)
     cip_cosip_rs: float = Field(default=0.0, ge=0)
     outros_rs: float = Field(default=0.0, ge=0)
+    # Reativos por posto (REN 1.000/2021, art. 304): campos *_ponta/fora_ponta
+    # são a parcela INDUTIVA (horas complementares, 6h–24h); os campos
+    # *_capacitiva_* são a parcela CAPACITIVA (janela 0h–6h, sempre fora ponta).
     reativo_energia_ponta_kvArh: float = Field(default=0.0, ge=0)
     reativo_energia_fora_ponta_kvArh: float = Field(default=0.0, ge=0)
     reativo_demanda_ponta_kvAr: float = Field(default=0.0, ge=0)
     reativo_demanda_fora_ponta_kvAr: float = Field(default=0.0, ge=0)
+    reativo_energia_capacitiva_kvArh: float = Field(default=0.0, ge=0)
+    # Optante B (REN 1.000/2021, art. 292).
+    atividade: str = Field(default="Comercial ou Industrial")
+    tipo_ligacao: str = Field(default="Trifásico")
+    pre_pagamento: bool = Field(default=False)
+    potencia_transformadores_kva: float = Field(default=0.0, ge=0)
+    cooperativa_eletrificacao_rural: bool = Field(default=False)
+    hotelaria_turismo: bool = Field(default=False)
+    carga_refletores_kw: float = Field(default=0.0, ge=0)
+    carga_instalada_total_kw: float = Field(default=0.0, ge=0)
+    reativo_demanda_capacitiva_kvAr: float = Field(default=0.0, ge=0)
 
     @field_validator("data_referencia")
     @classmethod

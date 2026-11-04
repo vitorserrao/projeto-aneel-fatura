@@ -21,6 +21,7 @@ def test_core_importa_sem_infra_dependencias():
         "import core.motor_calculo;"
         "import core.otimizador;"
         "import core.epi;"
+        "import core.planejamento;"
         "loaded=set(sys.modules);"
         "blocked=set(%r);"
         "deps=sorted(loaded & blocked);"

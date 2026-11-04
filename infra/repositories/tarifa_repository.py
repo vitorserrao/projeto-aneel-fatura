@@ -22,7 +22,7 @@ from decimal import Decimal
 from sqlmodel import select
 from sqlalchemy import text
 
-from ..models import BandeiraTarifaria, Distribuidora, TarifaAplicacaoComponente
+from ..models import Acessante, BandeiraTarifaria, Distribuidora, TarifaAplicacaoComponente
 
 
 @dataclass(frozen=True)
@@ -286,3 +286,8 @@ class TarifaRepository:
 
     def listar_bases_tarifarias(self) -> list[str]:
         return self._valores_distintos(TarifaAplicacaoComponente.dsc_base_tarifaria)
+
+    def listar_acessantes(self) -> list[str]:
+        stmt = select(Acessante.sig_acessante).distinct().order_by(Acessante.sig_acessante)
+        with self._session_factory() as session:
+            return list(session.execute(stmt).scalars().all())

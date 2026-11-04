@@ -22,6 +22,7 @@ from .models import (
     GRANDEZA_DEMANDA,
     GRANDEZA_ENERGIA,
     POSTO_FORA_PONTA,
+    POSTO_INTERMEDIARIO,
     POSTO_PONTA,
     UNIDADE_R_KW,
     UNIDADE_R_KWH,
@@ -42,9 +43,10 @@ class UnidadeTarifariaNaoSuportada(ValueError):
 
 
 def _consumo_kwh(consumidor: Consumidor, posto: str) -> float:
-    # ``posto`` já foi validado em ParcelaTarifaria: só PONTA ou FORA PONTA.
     if posto == POSTO_PONTA:
         return consumidor.consumo_ponta_kwh
+    if posto == POSTO_INTERMEDIARIO:
+        return consumidor.consumo_intermediario_kwh
     return consumidor.consumo_fora_ponta_kwh
 
 
@@ -166,7 +168,91 @@ _FATOR_POTENCIA_REF = 0.92  # REN 1.000/2021
 _SUBGRUPOS_VERDE = {"A3A", "A4", "AS"}
 
 # Modalidades do Grupo A suportadas pelo sistema.
-MODALIDADES_GRUPO_A = ("AZUL", "VERDE")
+MODALIDADES_GRUPO_A = ("AZUL", "VERDE", "OPTANTE B")
+MODALIDADES_GRUPO_B = ("CONVENCIONAL MONÔMIA", "BRANCA")
+
+_LIMITE_OPTANTE_B_KVA = 112.5
+_LIMITE_OPTANTE_B_COOPERATIVA_KVA = 1125.0
+
+
+def _subgrupo_b_por_atividade(atividade: str) -> str:
+    """Mapeia a atividade econômica para o subgrupo B (B1/B2/B3)."""
+    a = (atividade or "").strip().lower()
+    if "residencial" in a:
+        return "B1"
+    if "rural" in a or "agropecu" in a:
+        return "B2"
+    return "B3"
+
+
+def _classe_b_por_atividade(atividade: str) -> str | None:
+    """Classe do Grupo B derivada da atividade, ou None (ambígua).
+
+    Usada no Optante B (art. 292) para o usuário NÃO precisar informar a
+    classe: residencial → Residencial; rural/agropecuária → Rural. Demais
+    atividades (comercial/industrial/esportiva — B3) ficam sem classe
+    derivada: o perfil informa a classe ou a guarda de ambiguidade (A5)
+    recusa em vez de somar tarifas distintas.
+    """
+    a = (atividade or "").strip().lower()
+    if "residencial" in a:
+        return "Residencial"
+    if "rural" in a or "agropecu" in a:
+        return "Rural"
+    return None
+
+
+def _subclasse_b_por_atividade(atividade: str) -> str | None:
+    """Subclasse do Grupo B derivada da atividade, ou None.
+
+    O dataset ANEEL publica B1 em subclasses "Residencial" e "Baixa Renda"
+    (valores distintos) e B2 em várias subclasses rurais — derivar só a
+    classe ainda deixaria chaves ambíguas. Derivamos a subclasse neutra:
+    residencial → "Residencial"; rural/agropecuária → "Não se aplica".
+    """
+    a = (atividade or "").strip().lower()
+    if "residencial" in a:
+        return "Residencial"
+    if "rural" in a or "agropecu" in a:
+        return "Não se aplica"
+    return None
+
+
+# Palavras-chave do critério de iluminação esportiva do art. 292: o benefício
+# dos refletores ≥ 2/3 da carga vale para ATIVIDADES ESPORTIVAS ou PARQUES
+# AGROPECUÁRIOS (fonte: REN 1.000/2021, art. 292 — ren1000_2021_formulas_dou.md).
+_PALAVRAS_CHAVE_ATIVIDADE_ESPORTIVA = ("esportiv", "parque", "agropecu")
+
+
+def _atividade_esportiva_parque(atividade: str | None) -> bool:
+    """Atividade com iluminação esportiva/parque agropecuário (art. 292)."""
+    a = (atividade or "").strip().casefold()
+    return any(kw in a for kw in _PALAVRAS_CHAVE_ATIVIDADE_ESPORTIVA)
+
+
+def elegivel_optante_b(consumidor) -> bool:
+    """Art. 292: Grupo A pode ser faturado como Grupo B? (4 critérios).
+
+    O critério de refletores exige atividade esportiva/parque agropecuário;
+    sem essa atividade, vale apenas o limite de transformadores (ou
+    hotelaria/turismo).
+    """
+    if consumidor.hotelaria_turismo:
+        return True
+    if (
+        _atividade_esportiva_parque(consumidor.atividade)
+        and consumidor.carga_refletores_kw > 0
+        and consumidor.carga_instalada_total_kw > 0
+        and consumidor.carga_refletores_kw
+        >= (2.0 / 3.0) * consumidor.carga_instalada_total_kw
+    ):
+        return True
+    limite = (
+        _LIMITE_OPTANTE_B_COOPERATIVA_KVA
+        if consumidor.cooperativa_eletrificacao_rural
+        else _LIMITE_OPTANTE_B_KVA
+    )
+    return 0 < consumidor.potencia_transformadores_kva <= limite
 
 
 def modalidades_elegiveis(consumidor) -> list[str]:
@@ -179,6 +265,8 @@ def modalidades_elegiveis(consumidor) -> list[str]:
     elegiveis = ["AZUL"]
     if consumidor.subgrupo.strip().upper() in _SUBGRUPOS_VERDE:
         elegiveis.append("VERDE")
+    if elegivel_optante_b(consumidor):
+        elegiveis.append("OPTANTE B")
     return elegiveis
 
 
@@ -197,7 +285,16 @@ def motivo_indisponibilidade(modalidade: str, consumidor) -> str | None:
             "Verde é aplicável apenas aos subgrupos A3a, A4 e AS "
             f"(perfil: {consumidor.subgrupo.strip().upper()})"
         )
-    return f"Modalidade {modalidade!r} fora do escopo do Grupo A (Azul/Verde)"
+    if m == "OPTANTE B":
+        if elegivel_optante_b(consumidor):
+            return None
+        return (
+            "Optante B (art. 292): exige transformadores ≤ 112,5 kVA "
+            "(ou ≤ 1.125 kVA se cooperativa de eletrificação rural), "
+            "hotelaria/turismo ou iluminação esportiva ≥ 2/3 da carga "
+            "(atividades esportivas/parques agropecuários)."
+        )
+    return f"Modalidade {modalidade!r} fora do escopo do Grupo A (Azul/Verde/Optante B)"
 
 
 def _tarifa_demanda_posto(parcelas, componente, posto):
@@ -346,9 +443,17 @@ def calcular_fatura(
     aplicar_tributos=False,
     piso_demanda_kw=0.0,
     ratear_mes=True,
-    tarifa_reativos=None,
+    vrere_r_mwh=None,
+    vrdre_r_kw=None,
+    reativos_direto=False,
+    tarifa_reativo_energia_r_kvarh=None,
+    tarifa_reativo_demanda_r_kvar=None,
     demanda_unica=False,
     tipo_icms="dentro",
+    arredondar_centavos=False,
+    demanda_isenta_icms=False,
+    demanda_isenta_icms_kw: float | None = None,
+    tributar_reativos=False,
 ):
     """Monta a fatura completa de uma modalidade (linhas + totais).
 
@@ -364,10 +469,17 @@ def calcular_fatura(
       `IF(faturado=0, 30, valor)`) — por padrão 0 (regra oficial pura).
 
     Quando ``aplicar_tributos=True``, aplica a tributação conforme
-    ``tipo_icms``:
+    ``tipo_icms`` às linhas **tarifárias e de ultrapassagem**:
     - ``"dentro"`` (aditiva, padrão): ``tarifa / (1 − pis − cofins − icms)``
     - ``"fora"`` (multiplicativa, XLSM Fatura-1): 
       ``tarifa / ((1 − pis − cofins) × (1 − icms))``
+
+    ``arredondar_centavos=True`` arredonda o ``custo`` de cada linha a centavos.
+    ``demanda_isenta_icms=True`` divide a demanda faturável em parcela medida
+    (com ICMS) e parcela ``faturada − medida`` **isenta de ICMS** (só
+    PIS/COFINS), conforme faturas reais Copel/CEMIG/Equatorial.
+    ``tributar_reativos=True`` aplica PIS/COFINS/ICMS também às linhas de
+    reativos (CEMIG/Equatorial tributam; Copel/artigo não).
     """
     if tipo_icms not in ("dentro", "fora"):
         raise ValueError("tipo_icms deve ser 'dentro' ou 'fora'")
@@ -429,37 +541,31 @@ def calcular_fatura(
             )
         )
 
-    # Reativos excedentes (fp < 0,92): registra a linha informativa quando há
-    # reativos informados, usando tarifa de energia TUSD por posto.
-    fp = _fator_potencia(consumidor)
-    if fp is not None and fp < _FATOR_POTENCIA_REF:
-        reat_ener = (
-            consumidor.reativo_energia_ponta_kvArh
-            + consumidor.reativo_energia_fora_ponta_kvArh
-        )
-        tarifa_tusd_e = (
-            tarifa_reativos
-            if tarifa_reativos is not None
-            else next(
-                (
-                    p.valor
-                    for p in parcelas
-                    if p.componente == COMPONENTE_TUSD
-                    and p.grandeza == GRANDEZA_ENERGIA
-                ),
-                0.0,
+    # Reativos excedentes. Modo direto (faturas antigas): excedente pronto em
+    # kVArh/kVAr cobrado com tarifas diretas. Modo art. 304: aproximação A6
+    # com VRERE/VRDRE de referência.
+    if reativos_direto:
+        linhas.extend(
+            _linhas_reativos_diretos(
+                consumidor,
+                tarifa_energia_r_kvarh=tarifa_reativo_energia_r_kvarh,
+                tarifa_demanda_r_kvar=tarifa_reativo_demanda_r_kvar,
             )
         )
-        if reat_ener > 0 and tarifa_tusd_e > 0:
-            linhas.append(
-                LinhaFatura(
-                    descricao="Reativos excedentes (fp < 0,92)",
-                    categoria="REATIVOS",
-                    quantidade=reat_ener,
-                    tarifa=tarifa_tusd_e,
-                    custo=reat_ener * tarifa_tusd_e,
-                )
+    else:
+        linhas.extend(
+            _linhas_reativos_excedentes(
+                consumidor,
+                vrere_r_mwh=vrere_r_mwh,
+                vrdre_r_kw=vrdre_r_kw,
+                demanda_unica=demanda_unica,
             )
+        )
+
+    if demanda_isenta_icms:
+        linhas = _dividir_demanda_isenta(
+            consumidor, linhas, demanda_unica, demanda_isenta_icms_kw
+        )
 
     # Tributos opcionais (base líquida por padrão). Duas formas de ICMS:
     # "dentro" = aditiva; "fora" = multiplicativa (como no XLSM Fatura-1).
@@ -480,13 +586,41 @@ def calcular_fatura(
                     "que 1"
                 )
             fator = 1.0 / denominador
+        denominador_isento = 1.0 - pis - cofins
+        if denominador_isento <= 0:
+            raise ValueError(
+                "tributos inválidos: PIS + COFINS deve ser menor que 1"
+            )
+        fator_isento = 1.0 / denominador_isento
+
+        def _fator_linha(l):
+            if "ISENTA ICMS" in l.descricao:
+                return fator_isento
+            if l.categoria in ("TARIFA", "ULTRAPASSAGEM"):
+                return fator
+            if tributar_reativos and l.categoria == "REATIVOS":
+                return fator
+            return 1.0
+
         linhas = [
             LinhaFatura(
                 descricao=l.descricao + " (com tributos)",
                 categoria=l.categoria,
                 quantidade=l.quantidade,
-                tarifa=l.tarifa * fator if l.categoria == "TARIFA" else l.tarifa,
-                custo=l.custo * fator if l.categoria == "TARIFA" else l.custo,
+                tarifa=l.tarifa * _fator_linha(l),
+                custo=l.custo * _fator_linha(l),
+            )
+            for l in linhas
+        ]
+
+    if arredondar_centavos:
+        linhas = [
+            LinhaFatura(
+                descricao=l.descricao,
+                categoria=l.categoria,
+                quantidade=l.quantidade,
+                tarifa=l.tarifa,
+                custo=round(l.custo, 2),
             )
             for l in linhas
         ]
@@ -498,15 +632,228 @@ def calcular_fatura(
     )
 
 
-def _fator_potencia(consumidor):
-    """Fator de potência aproximado a partir do consumo (kWh) e reativos
-    (kVArh), ou None quando não há dados para calcular."""
-    ativa = consumidor.consumo_total_kwh
-    reativa = (
-        consumidor.reativo_energia_ponta_kvArh
-        + consumidor.reativo_energia_fora_ponta_kvArh
-    )
+def _dividir_demanda_isenta(consumidor, linhas, demanda_unica, isenta_kw=None):
+    """Divide a demanda faturável em parcela normal e parcela isenta de ICMS.
+
+    Se ``isenta_kw`` for informado (> 0), usa esse valor como parcela isenta;
+    caso contrário calcula ``faturada − medida`` (regra das faturas reais).
+    """
+    novas = []
+    for l in linhas:
+        if l.categoria == "TARIFA" and "TUSD DEMANDA" in l.descricao:
+            if demanda_unica:
+                medida = consumidor.demanda_medida_unica_kw
+            else:
+                medida = (
+                    consumidor.demanda_ponta_kw
+                    if POSTO_PONTA in l.descricao
+                    else consumidor.demanda_fora_ponta_kw
+                )
+            faturada = l.quantidade
+            parcela_isenta = (
+                isenta_kw if isenta_kw is not None else (faturada - medida)
+            )
+            if 0 < parcela_isenta < faturada:
+                parcela_normal = faturada - parcela_isenta
+                novas.append(
+                    LinhaFatura(
+                        descricao=l.descricao,
+                        categoria=l.categoria,
+                        quantidade=parcela_normal,
+                        tarifa=l.tarifa,
+                        custo=parcela_normal * l.tarifa,
+                    )
+                )
+                novas.append(
+                    LinhaFatura(
+                        descricao=l.descricao + " ISENTA ICMS",
+                        categoria=l.categoria,
+                        quantidade=parcela_isenta,
+                        tarifa=l.tarifa,
+                        custo=parcela_isenta * l.tarifa,
+                    )
+                )
+                continue
+        novas.append(l)
+    return novas
+
+
+def _fp(ativa: float, reativa: float) -> float | None:
+    """Fator de potência aproximado (premissa A6) ou None sem dados."""
     if ativa <= 0:
         return None
-    fp = ativa / ((ativa**2 + reativa**2) ** 0.5)
-    return fp
+    return ativa / ((ativa**2 + reativa**2) ** 0.5)
+
+
+def _excedente_energia_mwh(ativa_kwh: float, fp: float | None) -> float | None:
+    """Quantidade de energia reativa excedente (em MWh, unidade do VRERE)."""
+    if fp is None or fp >= _FATOR_POTENCIA_REF:
+        return None
+    return ativa_kwh * (_FATOR_POTENCIA_REF / fp - 1.0) * _FATOR_KWH_PARA_MWH
+
+
+def _excedente_demanda_kw(medida_kw: float, daf_kw: float, fp: float | None) -> float | None:
+    """Quantidade de demanda reativa excedente (kW) ou None."""
+    if fp is None or fp >= _FATOR_POTENCIA_REF or medida_kw <= 0:
+        return None
+    excedente = medida_kw * (_FATOR_POTENCIA_REF / fp) - daf_kw
+    if excedente <= 0:
+        return None
+    return excedente
+
+
+_HORAS_CAPACITIVA = 6.0
+_HORAS_FORA_PONTA_TOTAL = 21.0
+_HORAS_INDUTIVA_FORA_PONTA = _HORAS_FORA_PONTA_TOTAL - _HORAS_CAPACITIVA
+
+def _linhas_reativos_excedentes(consumidor, *, vrere_r_mwh, vrdre_r_kw, demanda_unica):
+    """Linhas de reativos excedentes do art. 304 (categoria ``REATIVOS``)."""
+    linhas: list[LinhaFatura] = []
+
+    if vrere_r_mwh is not None and vrere_r_mwh > 0:
+        fp_ponta = _fp(
+            consumidor.consumo_ponta_kwh,
+            consumidor.reativo_energia_ponta_kvArh,
+        )
+        if consumidor.reativo_energia_ponta_kvArh > 0:
+            qtd = _excedente_energia_mwh(consumidor.consumo_ponta_kwh, fp_ponta)
+            if qtd is not None:
+                linhas.append(
+                    LinhaFatura(
+                        descricao="Energia Reativa Excedente Indutiva (Ponta)",
+                        categoria="REATIVOS",
+                        quantidade=qtd,
+                        tarifa=vrere_r_mwh,
+                        custo=qtd * vrere_r_mwh,
+                    )
+                )
+
+        ativa_ind_fp = (
+            consumidor.consumo_fora_ponta_kwh
+            * (_HORAS_INDUTIVA_FORA_PONTA / _HORAS_FORA_PONTA_TOTAL)
+        )
+        if consumidor.reativo_energia_fora_ponta_kvArh > 0:
+            fp_ind_fp = _fp(ativa_ind_fp, consumidor.reativo_energia_fora_ponta_kvArh)
+            qtd = _excedente_energia_mwh(ativa_ind_fp, fp_ind_fp)
+            if qtd is not None:
+                linhas.append(
+                    LinhaFatura(
+                        descricao="Energia Reativa Excedente Indutiva (Fora Ponta)",
+                        categoria="REATIVOS",
+                        quantidade=qtd,
+                        tarifa=vrere_r_mwh,
+                        custo=qtd * vrere_r_mwh,
+                    )
+                )
+
+        ativa_cap_fp = (
+            consumidor.consumo_fora_ponta_kwh
+            * (_HORAS_CAPACITIVA / _HORAS_FORA_PONTA_TOTAL)
+        )
+        if consumidor.reativo_energia_capacitiva_kvArh > 0:
+            fp_cap = _fp(ativa_cap_fp, consumidor.reativo_energia_capacitiva_kvArh)
+            qtd = _excedente_energia_mwh(ativa_cap_fp, fp_cap)
+            if qtd is not None:
+                linhas.append(
+                    LinhaFatura(
+                        descricao="Energia Reativa Excedente Capacitiva (Fora Ponta)",
+                        categoria="REATIVOS",
+                        quantidade=qtd,
+                        tarifa=vrere_r_mwh,
+                        custo=qtd * vrere_r_mwh,
+                    )
+                )
+
+    if vrdre_r_kw is not None and vrdre_r_kw > 0:
+        if demanda_unica:
+            ativa_total = consumidor.consumo_total_kwh
+            reativa_total = (
+                consumidor.reativo_energia_ponta_kvArh
+                + consumidor.reativo_energia_fora_ponta_kvArh
+                + consumidor.reativo_energia_capacitiva_kvArh
+            )
+            fp_total = _fp(ativa_total, reativa_total)
+            qtd = _excedente_demanda_kw(
+                consumidor.demanda_medida_unica_kw,
+                consumidor.demanda_faturavel_unica_kw,
+                fp_total,
+            )
+            if qtd is not None:
+                linhas.append(
+                    LinhaFatura(
+                        descricao="Demanda Reativa Excedente",
+                        categoria="REATIVOS",
+                        quantidade=qtd,
+                        tarifa=vrdre_r_kw,
+                        custo=qtd * vrdre_r_kw,
+                    )
+                )
+        else:
+            for posto, medida_kw, daf_kw, reativa_kvArh, ativa_kwh in (
+                (
+                    POSTO_PONTA,
+                    consumidor.demanda_ponta_kw,
+                    consumidor.demanda_faturavel_kw(POSTO_PONTA),
+                    consumidor.reativo_energia_ponta_kvArh,
+                    consumidor.consumo_ponta_kwh,
+                ),
+                (
+                    POSTO_FORA_PONTA,
+                    consumidor.demanda_fora_ponta_kw,
+                    consumidor.demanda_faturavel_kw(POSTO_FORA_PONTA),
+                    consumidor.reativo_energia_fora_ponta_kvArh
+                    + consumidor.reativo_energia_capacitiva_kvArh,
+                    consumidor.consumo_fora_ponta_kwh,
+                ),
+            ):
+                fp_posto = _fp(ativa_kwh, reativa_kvArh)
+                qtd = _excedente_demanda_kw(medida_kw, daf_kw, fp_posto)
+                if qtd is not None:
+                    linhas.append(
+                        LinhaFatura(
+                            descricao=f"Demanda Reativa Excedente ({posto.title()})",
+                            categoria="REATIVOS",
+                            quantidade=qtd,
+                            tarifa=vrdre_r_kw,
+                            custo=qtd * vrdre_r_kw,
+                        )
+                    )
+
+    return linhas
+
+
+def _linhas_reativos_diretos(consumidor, *, tarifa_energia_r_kvarh, tarifa_demanda_r_kvar):
+    """Linhas de reativos no modo "excedente direto" (faturas antigas)."""
+    linhas: list[LinhaFatura] = []
+    if tarifa_energia_r_kvarh is not None and tarifa_energia_r_kvarh > 0:
+        for posto, qtd in (
+            (POSTO_PONTA, consumidor.reativo_energia_ponta_kvArh),
+            (POSTO_FORA_PONTA, consumidor.reativo_energia_fora_ponta_kvArh),
+        ):
+            if qtd > 0:
+                linhas.append(
+                    LinhaFatura(
+                        descricao=f"Consumo Excessivo de Energia Reativa ({posto.title()})",
+                        categoria="REATIVOS",
+                        quantidade=qtd,
+                        tarifa=tarifa_energia_r_kvarh,
+                        custo=qtd * tarifa_energia_r_kvarh,
+                    )
+                )
+    if tarifa_demanda_r_kvar is not None and tarifa_demanda_r_kvar > 0:
+        for posto, qtd in (
+            (POSTO_PONTA, consumidor.reativo_demanda_ponta_kvAr),
+            (POSTO_FORA_PONTA, consumidor.reativo_demanda_fora_ponta_kvAr),
+        ):
+            if qtd > 0:
+                linhas.append(
+                    LinhaFatura(
+                        descricao=f"Demanda Excessiva de Potência Reativa ({posto.title()})",
+                        categoria="REATIVOS",
+                        quantidade=qtd,
+                        tarifa=tarifa_demanda_r_kvar,
+                        custo=qtd * tarifa_demanda_r_kvar,
+                    )
+                )
+    return linhas
+

@@ -1,0 +1,154 @@
+Valores Faturados
+Itens da Fatura Unid. Quant. Preço Unit. (R$)  Valor (R$) PIS/COFINS Base Calc. Aliq. ICMS Tarifa Unit.
+ICMS ICMS
+Demanda Ativa HFP s/ ICMS kW              91 20,01460159       1.821,32          75,03           0,00           0,00           0,00 19,19000000 
+Demanda Ativa HFP kW             329 24,40805071       8.030,23         271,28       8.030,23          18,00       1.445,44 19,19000000 
+Ultrapassagem Geração kW              91 29,15229403       2.652,84          89,61       2.652,84          18,00         477,51 22,92000000 
+Energia Ativa HFP kWh          62.300  0,52616584      32.780,12      1.107,44      32.780,12          18,00       5.900,42  0,41368000 
+Energia Ativa HP kWh          11.550  2,54618324      29.408,39         993,52      29.408,39          18,00       5.293,51  2,00185000 
+Energia SCEE HFP ISENTA kWh           1.050  0,16605000         174,35           0,00           0,00           0,00           0,00  0,16605000 
+Energia compensada HFP GD I kWh           1.050  0,16605000        -174,35           0,00           0,00           0,00           0,00  0,16605000 
+Energia Reativa HFP kWh           1.750  0,39892345         698,09          23,57         698,09          18,00         125,65  0,31364000 
+Desligamento programado         536,09
+Religação Programada         536,09
+Forn. pulso potência/sincron.          80,39
+Contrib Ilum Publica Municipal          40,45
+Multa 2% sobre conta de 08/2023       1.473,47
+Imposto Retido - CSLL        -780,14
+Imposto Retido - COFINS      -2.340,47
+Imposto Retido - PIS/PASEP        -507,07
+Imposto Retido - IRPJ      -1.386,30
+TOTAL      73.043,50      2.560,45      73.569,67      13.242,53
+Histórico de Consumo
+Mês/Ano Demanda(kW) Energia(kWh)
+HP HFP HP HFP HR
+OUT/23       294        329    11.550    63.350         0
+SET/23       210        228     8.750    49.000         0
+AGO/23       266        280    11.550    60.900         0
+JUL/23       364        379     8.050    48.300         0
+JUN/23       221        410    10.500    56.700         0
+MAI/23       221        231    11.900    60.550         0
+ABR/23       266        294    11.200    63.700         0
+MAR/23       427        406    14.700    74.550         0
+FEV/23       228        287     8.750    50.050         0
+JAN/23       119        147     5.600    38.850         0
+DEZ/22       196        266     7.350    42.000         0
+NOV/22       214        224     9.450    65.100         0
+OUT/22       245        291    11.900    79.100         0
+Reservado ao Fisco
+DOCUMENTO SEM VALOR FISCAL - NÃO GERA DIREITO A CRÉDITO DE ICMS
+Base de cálculo (R$) Alíquota (%) Valor (R$)
+ICMS 73.569,67   18,00 13.242,53
+PASEP 62.148,46    0,73 453,64
+COFINS 62.148,46 3,39 2.106,81
+Fale com CEMIG: 116 - CEMIG Torpedo 29810 - Ouvidoria CEMIG: 0800 7283838 - Agência Nacional de Energia Elétrica - ANEEL - Telefone: 167- Ligação gratuita de telefones fixos e móveis.
+Código de Débito Automático Instalação Vencimento Total a pagar
+008068568404 3009014934 11/12/2023 R$ 73.043,50 
+Outubro/2023 83670000730-2 43500138001-1 33047501933-8 08068568404-7
+NnNnWwNwNnWnNnNnWnWnNwNwNnNnWwWwNnNnNnWwWwNnNwNwNnWnWnNnNnWwWnNwWwWnNwNnNnNnNnWwWwNnWwNwNnNnWnWnNnNwWwNnNwNnWnWnNwWwWwNnNnNnNnNnWwWnNwNwNnNwWnWnNwNnWnWnNwNwWwNnWnNnWnWnNwNwNnWnNnNwWwNnNwWnWnNwNnWnNwWwNnNnWnNnNwWnNwNnNnWwWnNwWnN
+Grandezas Contratadas
+Demanda Fora Ponta              420
+Demanda Geração                0
+CEFET NOVA SUIÇA
+AV AMAZONAS 5253 EL
+NOVA SUISSA
+30421-169 BELO HORIZONTE, MG
+Nº DO CLIENTE Nº DA INSTALAÇÃO
+7000081824 3009014934
+Referente a Vencimento Valor a pagar(R$)
+OUT/2023 11/12/2023 73.043,50 
+NOTA FISCAL Nº 089584829 - SÉRIE 000
+Data de emissão: 10/11/2023
+Consulte pela chave de acesso em:
+http://www.sped.fazenda.mg.gov.br/spedmg/nf3e
+chave de acesso:
+31231106981180000116660000895848291042467707
+Protocolo de autorização: 1312300098632661
+10.11.2023 às 19:52:31
+Classe Subclasse Modalidade Tarifária Datas de Leitura
+Poder Público  Poder Publico THS Verde A4 Anterior Atual Nº de dias Próxima
+ Federal 30/09 31/10  31 30/11
+DOCUMENTO AUXILIAR DA NOTA FISCAL DE ENERGIA ELÉTRICA ELETRÔNICA SEGUNDA VIA
+CEMIG DISTRIBUIÇÃO S.A. CNPJ 06.981.180/0001-16 / INSC. ESTADUAL 062.322136.0087.
+AV. BARBACENA, 1.200 - 17º ANDAR - ALA 1 - BAIRRO SANTO AGOSTINHO
+CEP: 30190-131 - BELO HORIZONTE - MG. TARIFA SOCIAL DE ENERGIA ELÉTRICA - TSEE FOI CRIADA PELA LEI Nº 10.438, DE 26 DE ABRIL DE 2002
+Informações Gerais
+SALDO ATUAL DE GERAÇÃO: 0,00 kWh PONTA, 0,00 kWh F. PONTA, 0,00 kWh NOTURNO. Tarifa vigente
+conforme Res Aneel nº 3.202, de 23/05/2023. Retenção de 5,85%, valor R$ 3.832,39 , conforme Art. 64 da lei
+nº 9430, de 27/12/96. Retenção de 9,45%, valor R$ 1.181,59 , conforme Art. 64 da lei nº 9430, de 27/12/96.
+Conforme DECRETO Nº 46.213, DE 11 DE ABRIL DE 2013, não será exigido o recolhimento do ICMS sobre a
+parcela de Demanda de Potência não utilizada UC é parte do sistema de compensação de energia.    Bandeira
+tarifária OUT/2023: Band. Verde  Ocorrencia de demanda de ultrapassagem - entrar em contato com o seu
+Agente Comercial.     
+NOTIFICAÇÃO DE DÉBITO(S)
+Até 10/11/2023 constava(m) o(s) seguinte(s) débito(s):
+Mês/Ano      Valor (R$)    Mês/Ano    Valor (R$)    Prev. Corte
+08/2023 70.537,74
+A religação estará condicionada à inexistência de débitos
+vencidos na unidade consumidora. No mês em que ocorrer
+suspensão/religação será cobrado, no mínimo, o custo de
+disponibilidade.
+LEITURAS
+Segmentos HFP/único HP HR
+Grandezas Leitura anterior Leitura atual Leitura anterior Leitura atual Leitura anterior Leitura atual
+kW 0 0        0      
+kWh 0 129 0 24 0      0      
+kWh Injet. 0 3 0 0 0      0      
+UFER 0 3 0 0 0      0      
+DMCR 0 0        0      
+kW Injet. 0 0        0      
+DEMANDA(kW)
+Segmento Produto Registrado Acerto Reg. Data/Hora Acerto Fat. Contratado  Faturado Faturado
+ultrapass. normal
+Demanda ativa 329                       420            420        
+Demanda Energia Interrupt.                                             
+HFP/Único Demanda reativa - UFDR                                             
+DMCR 308                                             
+Demanda injetada 91                       91                    
+Demanda ativa 294                                             
+Demanda Energia Interrupt.                                             
+HP Demanda reativa - UFDR 277                                             
+DMCR                                             
+Demanda injetada                                             
+Demanda ativa                                             
+HR Demanda reativa - UFDR                                             
+DMCR                                             
+Demanda injetada                                             
+ENERGIA (kWh)
+Segmento Produto Registrado Acerto reg. Contratado Take Acerto Fat. Faturado Faturado
+ultrapass. normal
+Energia ativa 63.350                                  63.350     
+HFP/Único Energia Injetada 1.050                                  1.050      
+Energia reativa - UFER 1.750                                  1.750      
+Energia ativa 11.550                                  11.550     
+HP Energia Injetada                                             
+Energia reativa- UFER                                             
+Energia ativa                                             
+HR Energia Injetada                                             
+Energia reativa - UFER                                             
+FATORES
+Segmento Fator de carga Fator de potência
+HFP 0,282       
+HP 0,655       
+HR       
+CONSTANTES
+RTC     5 
+RTP 70
+kW        350
+kWh        350
+Perdas Transf.
+Medidor        1,0
+Notas:
+As leituras referem-se ao medidor atual.
+Data de assinatura do CCER: 29/06/2023.
+Vigência do CCER: 28/06/2024.
+DEMONSTRATIVO DE GRANDEZAS FATURADAS
+Cliente: CEFET NOVA SUIÇA Unidade: BELO HORIZONTE
+Instalação: 3009014934 Medidor: GMP197302678 Período de Medição  01/10/2023 a 31/10/2023
+Subgrupo: A4 Local de Medição: Mês/Ano: 10/2023
+Modulação contratual/Horário de ponta: 17:00 às 20:00 Dias livres :    SAB e DOM
+NOTA FISCAL Nº 089584829 - SÉRIE 000
+Data de emissão: 10.11.2023
+Consulte pela chave de acesso em: http://www.sped.fazenda.mg.gov.br/spedmg/nf3e
+chave de acesso: 31231106981180000116660000895848291042467707
+Protocolo de autorização: 1312300098632661 - 10.11.2023 às19:52:31

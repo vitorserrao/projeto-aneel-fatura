@@ -8,6 +8,7 @@ from datetime import date
 from decimal import Decimal
 
 from infra.repositories.tarifa_repository import TarifaVigente
+from core.models import POSTO_INTERMEDIARIO
 from services.calculo_service import _grandeza_de, _posto_de
 
 
@@ -51,5 +52,5 @@ def test_posto_legado_nao_mapeado():
     # seca/úmida/intermediário não dobram em Ponta/Fora (regra P5 pendente)
     assert _posto_de(_t("MWh", "Ponta seca")) is None
     assert _posto_de(_t("MWh", "Fora ponta úmida")) is None
-    assert _posto_de(_t("MWh", "Intermediário")) is None
+    assert _posto_de(_t("MWh", "Intermediário")) == POSTO_INTERMEDIARIO
     assert _posto_de(_t("MWh", "Não se aplica")) is None

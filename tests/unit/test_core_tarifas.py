@@ -75,7 +75,7 @@ def test_parcela_rejeita_componente_grandeza_ou_posto_nao_suportado():
     with pytest.raises(ValueError):
         _parcela(grandeza="REATIVOS")
     with pytest.raises(ValueError):
-        _parcela(posto="INTERMEDIARIO")
+        _parcela(posto="SECA")
 
 
 def test_parcela_rejeita_unidade_vazia_ou_valor_negativo():
