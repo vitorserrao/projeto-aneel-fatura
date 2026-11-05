@@ -81,7 +81,8 @@ def test_planejamento_anual_cemig_2023(banco):
     por_modalidade = {m["modalidade"]: m for m in body["modalidades"]}
     assert por_modalidade["Verde"]["custo_contrato_atual"] > 0
     assert por_modalidade["Verde"]["dc_atual"] == 400.0
-    assert por_modalidade["Verde"]["dc_otima"] >= 30.0
+    # DC ótima perto da demanda medida (máx. 238 kW), nunca o mínimo de 30 kW.
+    assert por_modalidade["Verde"]["dc_otima"] >= 180.0
     assert por_modalidade["Azul"]["dc_otima"] is not None
     assert por_modalidade["Verde"]["pi"]["anual"] is not None
     assert len(por_modalidade["Verde"]["pi"]["mensal"]) == 12
