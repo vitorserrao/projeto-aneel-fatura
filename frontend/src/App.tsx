@@ -3,20 +3,38 @@ import { Header } from './components/Header';
 import { Stepper } from './components/Stepper';
 import { StepOneForm } from './components/StepOneForm';
 import { StepTwoReport } from './components/StepTwoReport';
-import { MigrationModal } from './components/MigrationModal';
 import { Footer } from './components/Footer';
 import { AuditResult, InvoiceFormData } from './types/energy';
-import { calculateAudit } from './utils/calculator';
 import {
   BandeiraOpcao,
+  calcularEpi,
   calcularFatura,
   compararModalidades,
+  compararPlanejamento,
+  lerHistorico,
   listarBandeiras,
   listarClasses,
   listarDistribuidoras,
   listarSubgrupos,
 } from './lib/api';
-import { adaptarComparacao } from './lib/adapter';
+import { adaptarComparacao, adaptarEpi, adaptarPlanejamento } from './lib/adapter';
+
+const HISTORICO_EXEMPLO_COPEL = [
+  // Mês de consumo; demanda ponta; demanda fora ponta; consumo ponta; consumo fora ponta
+  // (quadro "Histórico de Consumo" da fatura Copel 04/2023 — grandezas faturadas)
+  '04/2022; 1,37; 206,44; 12; 6914',
+  '05/2022; 7,97; 208,11; 25; 10600',
+  '06/2022; 0,78; 207,13; 15; 2258',
+  '07/2022; 0,39; 210,47; 14; 7463',
+  '08/2022; 0,59; 206,44; 16; 10289',
+  '09/2022; 0,88; 203,39; 16; 12832',
+  '10/2022; 1,08; 193,25; 14; 9336',
+  '11/2022; 0,78; 191,68; 16; 6903',
+  '12/2022; 6,69; 168,16; 27; 6616',
+  '01/2023; 4,82; 156,55; 49; 6846',
+  '02/2023; 6,78; 139,82; 34; 7518',
+  '03/2023; 6,88; 150,65; 55; 9094',
+].join('\n');
 
 const DEFAULT_FORM: InvoiceFormData = {
   // Seção 1: Distribuidora e Modalidade
@@ -26,7 +44,7 @@ const DEFAULT_FORM: InvoiceFormData = {
   subclasse: 'Não se aplica',
   detalhe: 'Não se aplica',
   dataReferencia: '15/03/2023',
-  modalidadeAtual: 'convencional',
+  modalidadeAtual: 'verde',
   bandeiraAutomatica: true,
   bandeira: 'verde',
 
@@ -40,13 +58,17 @@ const DEFAULT_FORM: InvoiceFormData = {
   demandaForaPontaKw: 0,
   demandaContratadaPontaKw: 0,
   demandaContratadaForaPontaKw: 0,
-  demandaIsentaIcmsAtiva: false,
+  demandaIsentaIcmsAtiva: true,
   demandaIsentaIcms: 109.35,
 
   // Outras Parcelas e Mercado Livre (ACL)
   outrosValores: 115.01,
   percentualConsumoMesAnterior: 0,
-  precoMedioACL: 312.4,
+  precoMedioACL: 0,
+  opexMensal: 0,
+  capex: 0,
+  horizonteMeses: 60,
+  historico12: '',
 
   // Seção 3: Reativos
   buscarReativoAuto: true,
@@ -87,8 +109,7 @@ const DEFAULT_FORM: InvoiceFormData = {
 export default function App() {
   const [currentStep, setCurrentStep] = useState<1 | 2>(1);
   const [formData, setFormData] = useState<InvoiceFormData>(DEFAULT_FORM);
-  const [isMigrationOpen, setIsMigrationOpen] = useState(false);
-  const [auditResult, setAuditResult] = useState<AuditResult>(() => calculateAudit(DEFAULT_FORM));
+  const [auditResult, setAuditResult] = useState<AuditResult | null>(null);
   const [carregando, setCarregando] = useState(false);
   const [erroApi, setErroApi] = useState<string | null>(null);
 
@@ -123,8 +144,13 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  /** Executa o cálculo: API real como fonte primária; demo como fallback. */
-  async function executarAnalise(): Promise<void> {
+  /**
+   * Executa a análise na API (fonte única dos números):
+   * fatura da modalidade atual + comparação (obrigatórias), E-PI e
+   * planejamento anual (opcionais — o relatório indica quando faltam).
+   * Sem API não há relatório: o front não inventa valores.
+   */
+  async function executarAnalise(): Promise<boolean> {
     setCarregando(true);
     setErroApi(null);
     try {
@@ -137,12 +163,26 @@ export default function App() {
       }
       const base =
         respComparacao.status === 'fulfilled' ? respComparacao.value : respFatura.value;
-      setAuditResult(adaptarComparacao(base, formData, respFatura.value.fatura));
+
+      const { meses } = lerHistorico(formData.historico12);
+      const grupoA = formData.modalidadeAtual === 'verde' || formData.modalidadeAtual === 'azul';
+      const [respEpi, respPlan] = await Promise.allSettled([
+        calcularEpi(formData),
+        grupoA && meses.length > 0 ? compararPlanejamento(formData, meses) : Promise.resolve(null),
+      ]);
+      const epi = respEpi.status === 'fulfilled' ? adaptarEpi(respEpi.value, formData) : null;
+      const planejamento =
+        respPlan.status === 'fulfilled' && respPlan.value
+          ? adaptarPlanejamento(respPlan.value, meses.length)
+          : null;
+
+      setAuditResult(adaptarComparacao(base, formData, respFatura.value.fatura, epi, planejamento));
+      return true;
     } catch (e) {
       const mensagem = e instanceof Error ? e.message : String(e);
       setErroApi(mensagem);
-      // Fallback: motor de demonstração local (mesma experiência, sem a API).
-      setAuditResult(calculateAudit(formData));
+      setAuditResult(null);
+      return false;
     } finally {
       setCarregando(false);
     }
@@ -154,7 +194,7 @@ export default function App() {
       distribuidora: 'COPEL-DIS',
       subgrupo: 'A4',
       dataReferencia: '15/03/2023',
-      modalidadeAtual: 'convencional',
+      modalidadeAtual: 'verde',
       bandeiraAutomatica: true,
       bandeira: 'verde',
       consumoPonta: 55,
@@ -162,10 +202,15 @@ export default function App() {
       consumoIntermediario: 0,
       demandaMedida: 150.65,
       demandaContratada: 260,
+      demandaIsentaIcmsAtiva: true,
       demandaIsentaIcms: 109.35,
       outrosValores: 115.01,
       percentualConsumoMesAnterior: 0,
-      precoMedioACL: 312.4,
+      precoMedioACL: 0,
+      opexMensal: 0,
+      capex: 0,
+      horizonteMeses: 60,
+      historico12: HISTORICO_EXEMPLO_COPEL,
       buscarReativoAuto: true,
       consumoReativoPonta: 0,
       consumoReativoForaPonta: 9,
@@ -179,7 +224,7 @@ export default function App() {
       cipCosip: 0,
     };
     setFormData(exemplo);
-    setAuditResult(calculateAudit(exemplo));
+    setAuditResult(null);
   };
 
   const handleExportPdf = () => {
@@ -197,13 +242,21 @@ export default function App() {
           {/* Status da API */}
           {erroApi ? (
             <div className="mb-4 rounded-xl bg-amber-50 border border-amber-300 px-4 py-3 text-xs text-amber-900">
-              <strong>API indisponível — usando motor de demonstração.</strong>{' '}
+              <strong>Não foi possível calcular: a API não respondeu.</strong>{' '}
+              Nenhum valor é estimado sem o motor de cálculo. Verifique se a API está no ar e tente de novo.{' '}
               <span className="text-amber-800">{erroApi}</span>
             </div>
           ) : null}
 
           {/* Progress Stepper */}
-          <Stepper currentStep={currentStep} onGoToStep={handleGoToStep} />
+          <Stepper
+            currentStep={currentStep}
+            onGoToStep={(step) => {
+              // O relatório só existe depois do cálculo na API.
+              if (step === 2 && !auditResult) return;
+              handleGoToStep(step);
+            }}
+          />
 
           {/* Step 1 View */}
           {currentStep === 1 && (
@@ -211,7 +264,9 @@ export default function App() {
               formData={formData}
               onChange={setFormData}
               onSubmit={() => {
-                void executarAnalise().then(() => handleGoToStep(2));
+                void executarAnalise().then((ok) => {
+                  if (ok) handleGoToStep(2);
+                });
               }}
               onFillExample={handleFillExample}
               carregando={carregando}
@@ -224,12 +279,11 @@ export default function App() {
           )}
 
           {/* Step 2 View */}
-          {currentStep === 2 && (
+          {currentStep === 2 && auditResult && (
             <StepTwoReport
               audit={auditResult}
               formData={formData}
               onBackToEdit={() => handleGoToStep(1)}
-              onRequestMigration={() => setIsMigrationOpen(true)}
               onExportPdf={handleExportPdf}
             />
           )}
@@ -239,13 +293,6 @@ export default function App() {
       {/* Institutional Footer */}
       <Footer />
 
-      {/* Modal de Requerimento de Migração */}
-      <MigrationModal
-        isOpen={isMigrationOpen}
-        onClose={() => setIsMigrationOpen(false)}
-        audit={auditResult}
-        formData={formData}
-      />
     </div>
   );
 }

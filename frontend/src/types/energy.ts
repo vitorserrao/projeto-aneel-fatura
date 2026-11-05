@@ -62,7 +62,14 @@ export interface InvoiceFormData {
   // Outras Parcelas e Mercado Livre (ACL)
   outrosValores: number; // R$
   percentualConsumoMesAnterior: number; // fração 0..1
-  precoMedioACL: number; // R$/MWh (0 = desativa)
+  precoMedioACL: number; // R$/MWh (0 = sem proposta: só calcula o E-PI)
+  opexMensal: number; // R$/mês — E-PI com custos de migração (0 = simplificado)
+  capex: number; // R$ — E-PI com custos de migração
+  horizonteMeses: number; // meses de amortização do CAPEX
+
+  // Histórico de 12 meses para o planejamento anual (texto colado):
+  // "MM/AAAA; demanda ponta; demanda fora ponta; consumo ponta; consumo fora ponta"
+  historico12: string;
 
   // Seção 3: Reativos (art. 304)
   buscarReativoAuto: boolean; // true = VRERE/VRDRE do banco (reativos_direto=false)
@@ -138,7 +145,38 @@ export interface ModalidadeIndisponivel {
 }
 
 /** Fonte do cálculo: API real ou motor de demonstração (fallback). */
-export type FonteCalculo = 'api' | 'demo';
+export type FonteCalculo = 'api';
+
+/** E-PI (preço de indiferença estimado) devolvido por POST /api/epi/calcular. */
+export interface EpiResumo {
+  pi: number; // R$/MWh
+  modalidade: string;
+  eMwh: number;
+  baseAclMwh: number;
+  comCustosMigracao: boolean;
+  aviso: string | null;
+}
+
+/** Resultado de POST /api/planejamento/comparar (12 meses). */
+export interface PlanejamentoModalidade {
+  modalidade: string;
+  custoContratoAtual: number;
+  custoDemandaOtimizada: number;
+  dcAtual: number | [number, number] | null;
+  dcOtima: number | [number, number];
+  epiAnual: number | null;
+}
+
+export interface PlanejamentoResumo {
+  meses: number;
+  melhorContratoAtual: string;
+  melhorDemandaOtimizada: string;
+  ganhoTotal: number;
+  ganhoDemanda: number;
+  ganhoModalidade: number;
+  modalidades: PlanejamentoModalidade[];
+  avisos: string[];
+}
 
 export interface AuditResult {
   simId: string;
@@ -182,4 +220,8 @@ export interface AuditResult {
   indisponiveis: ModalidadeIndisponivel[];
   /** Onde o cálculo foi executado. */
   fonte: FonteCalculo;
+  /** E-PI do mês informado (null se a API não respondeu). */
+  epi: EpiResumo | null;
+  /** Planejamento anual (null sem histórico de 12 meses). */
+  planejamento: PlanejamentoResumo | null;
 }

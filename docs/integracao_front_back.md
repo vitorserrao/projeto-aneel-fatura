@@ -17,10 +17,13 @@
 | `GET /api/bandeiras?competencia=AAAA-MM-DD` | Opções de bandeira + valores vigentes |
 | `GET /api/tarifas?...` | Consulta de tarifas por filtros (tela de auditoria) |
 
-- `api/routers/epi.py` é ESQUELETO (sem endpoints) → **ACL/EPI continua no
-  front** (estimativa local) até o EPI ser implementado no back.
-- `api/main.py` **não tem CORS** → adicionar middleware para o domínio do
-  front (item da fase de infra).
+- **Atualização 04/11/2026 (front mínimo):** o front chama também
+  `POST /api/epi/calcular` (E-PI simplificado ou com OPEX/CAPEX) e, quando o
+  usuário cola o histórico de 12 meses, `POST /api/planejamento/comparar`.
+  O motor de demonstração (`calculateAudit`) foi **removido**: sem API não há
+  relatório (o front mostra o erro e não estima valores). O custo no ACL só
+  aparece quando há proposta: `custo ACR − (E-PI − preço) × base ACL`.
+- CORS configurado em `api/main.py` (`FRONTEND_ORIGINS`).
 
 ## Parâmetros do formulário (front) → Consumidor/query (back)
 
