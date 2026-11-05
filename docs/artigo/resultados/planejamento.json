@@ -1,0 +1,260 @@
+{
+  "cemig": {
+    "titulo": "CEMIG-D · UC CEMIG-2 · A4 Verde · jan–dez/2023",
+    "optante_b": {
+      "elegivel": false,
+      "motivo": "Optante B (art. 292): exige transformadores ≤ 112,5 kVA (ou ≤ 1.125 kVA se cooperativa de eletrificação rural), hotelaria/turismo ou iluminação esportiva ≥ 2/3 da carga (atividades esportivas/parques agropecuários)."
+    },
+    "melhor_contrato_atual": "Verde",
+    "melhor_demanda_otimizada": "Verde",
+    "ganho": {
+      "total": 102424.61116170627,
+      "demanda": 102424.61116170627,
+      "modalidade": 0.0
+    },
+    "modalidades": [
+      {
+        "modalidade": "Azul",
+        "custo_contrato_atual": 823406.07,
+        "custo_demanda_otimizada": 650020.87,
+        "dc_atual": [
+          400.0,
+          400.0
+        ],
+        "dc_otima": [
+          200.0,
+          204.0
+        ],
+        "epi_simplificado": 297.1125902370257,
+        "epi_com_custos": 281.31662783912157
+      },
+      {
+        "modalidade": "Verde",
+        "custo_contrato_atual": 708343.71,
+        "custo_demanda_otimizada": 605919.1,
+        "dc_atual": 400.0,
+        "dc_otima": 30.0,
+        "epi_simplificado": 297.1125902370257,
+        "epi_com_custos": 281.31662783912157
+      }
+    ],
+    "series_mensais": {
+      "Azul · atual": [
+        52242.44,
+        54854.89,
+        68741.02,
+        62761.19,
+        63430.41,
+        72370.74,
+        67420.51,
+        76405.22,
+        77643.43,
+        77838.52,
+        79550.01,
+        70147.7
+      ],
+      "Azul · otimizada": [
+        38409.32,
+        41021.78,
+        55116.44,
+        48928.08,
+        49597.3,
+        56197.5,
+        51247.26,
+        60231.97,
+        67394.79,
+        62049.57,
+        65852.41,
+        53974.45
+      ],
+      "Verde · atual": [
+        39517.4,
+        42893.45,
+        63537.18,
+        53995.45,
+        56435.34,
+        63129.02,
+        54627.41,
+        68055.91,
+        68794.62,
+        69872.98,
+        70826.08,
+        56658.87
+      ],
+      "Verde · otimizada": [
+        31711.55,
+        35087.6,
+        55731.33,
+        46189.6,
+        48629.49,
+        54072.54,
+        45570.93,
+        58999.43,
+        59738.14,
+        60816.5,
+        61769.6,
+        47602.39
+      ]
+    },
+    "meses": [
+      "2023-01",
+      "2023-02",
+      "2023-03",
+      "2023-04",
+      "2023-05",
+      "2023-06",
+      "2023-07",
+      "2023-08",
+      "2023-09",
+      "2023-10",
+      "2023-11",
+      "2023-12"
+    ],
+    "demanda_medida": [
+      98.0,
+      165.0,
+      207.0,
+      189.0,
+      179.0,
+      168.0,
+      154.0,
+      189.0,
+      238.0,
+      214.0,
+      231.0,
+      200.0
+    ],
+    "avisos": [
+      "Demanda ótima calculada como referência: a adoção está sujeita às regras de alteração contratual da REN 1.000/2021 (não implementadas)."
+    ]
+  },
+  "copel": {
+    "titulo": "Copel · UC COPEL-1 · A4 Verde · mai/2022–abr/2023",
+    "optante_b": {
+      "elegivel": false,
+      "motivo": "Optante B (art. 292): exige transformadores ≤ 112,5 kVA (ou ≤ 1.125 kVA se cooperativa de eletrificação rural), hotelaria/turismo ou iluminação esportiva ≥ 2/3 da carga (atividades esportivas/parques agropecuários)."
+    },
+    "melhor_contrato_atual": "Verde",
+    "melhor_demanda_otimizada": "Verde",
+    "ganho": {
+      "total": 62049.816177891335,
+      "demanda": 62049.816177891335,
+      "modalidade": 0.0
+    },
+    "modalidades": [
+      {
+        "modalidade": "Azul",
+        "custo_contrato_atual": 226505.14,
+        "custo_demanda_otimizada": 105228.63,
+        "dc_atual": [
+          260.0,
+          260.0
+        ],
+        "dc_otima": [
+          30.0,
+          201.0
+        ],
+        "epi_simplificado": 265.0660714033046,
+        "epi_com_custos": 133.69642063630408
+      },
+      {
+        "modalidade": "Verde",
+        "custo_contrato_atual": 115894.1,
+        "custo_demanda_otimizada": 53844.29,
+        "dc_atual": 260.0,
+        "dc_otima": 30.0,
+        "epi_simplificado": 265.0660714033046,
+        "epi_com_custos": 133.69642063630408
+      }
+    ],
+    "series_mensais": {
+      "Azul · atual": [
+        18443.55,
+        19599.81,
+        15657.89,
+        18657.39,
+        19964.68,
+        21141.3,
+        19530.13,
+        18405.39,
+        18355.94,
+        18452.16,
+        18777.62,
+        19519.3
+      ],
+      "Azul · otimizada": [
+        8712.2,
+        9898.57,
+        5938.98,
+        8561.44,
+        9793.89,
+        10913.88,
+        9258.32,
+        8133.58,
+        8084.13,
+        8180.35,
+        8505.81,
+        9247.49
+      ],
+      "Verde · atual": [
+        9560.36,
+        10649.96,
+        6785.35,
+        9355.66,
+        10662.75,
+        11835.65,
+        10219.55,
+        9101.02,
+        8988.71,
+        9134.9,
+        9417.5,
+        10182.69
+      ],
+      "Verde · otimizada": [
+        4502.86,
+        5592.47,
+        1727.86,
+        4147.07,
+        5454.15,
+        6627.06,
+        5010.95,
+        3892.43,
+        3780.11,
+        3926.31,
+        4208.91,
+        4974.1
+      ]
+    },
+    "meses": [
+      "2022-04",
+      "2022-05",
+      "2022-06",
+      "2022-07",
+      "2022-08",
+      "2022-09",
+      "2022-10",
+      "2022-11",
+      "2022-12",
+      "2023-01",
+      "2023-02",
+      "2023-03"
+    ],
+    "demanda_medida": [
+      206.44,
+      208.11,
+      207.13,
+      210.47,
+      206.44,
+      203.39,
+      193.25,
+      191.68,
+      168.16,
+      156.55,
+      139.82,
+      150.65
+    ],
+    "avisos": [
+      "Demanda ótima calculada como referência: a adoção está sujeita às regras de alteração contratual da REN 1.000/2021 (não implementadas)."
+    ]
+  }
+}
