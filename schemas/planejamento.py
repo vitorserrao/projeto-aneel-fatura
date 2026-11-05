@@ -44,6 +44,8 @@ class PlanejamentoSolicitacao(BaseModel):
     cofins: float = Field(..., ge=0, lt=1)
     icms: float = Field(..., ge=0, lt=1)
     tipo_icms: str = Field(default="fora", description="'dentro' (aditiva) ou 'fora' (multiplicativa)")
+    demanda_isenta_icms: bool = Field(default=True, description="Demanda contratada não utilizada sem ICMS (Súmula 391/STJ)")
+    tributar_reativos: bool = Field(default=False, description="Tributar reativos excedentes (CEMIG/Equatorial)")
 
     modalidade_atual: str = Field(default="Verde", description="Azul ou Verde")
     dc_atual_verde: float | None = Field(default=None, ge=0)

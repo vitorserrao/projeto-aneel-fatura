@@ -128,7 +128,7 @@ def calcular_fatura(
     cofins: float = Query(default=0.0, ge=0, le=1, description="COFINS (fração)"),
     icms: float = Query(default=0.0, ge=0, le=1, description="ICMS (fração)"),
     tipo_icms: str = Query(
-        default="dentro",
+        default="fora",
         description="Tipo de faturamento do ICMS: 'dentro' (aditiva) ou 'fora' (multiplicativa)",
     ),
     reativos_direto: bool = Query(
@@ -265,7 +265,7 @@ def comparar_modalidades(
     cofins: float = Query(default=0.0, ge=0, le=1, description="COFINS (fração)"),
     icms: float = Query(default=0.0, ge=0, le=1, description="ICMS (fração)"),
     tipo_icms: str = Query(
-        default="dentro",
+        default="fora",
         description="Tipo de faturamento do ICMS: 'dentro' (aditiva) ou 'fora' (multiplicativa)",
     ),
     reativos_direto: bool = Query(

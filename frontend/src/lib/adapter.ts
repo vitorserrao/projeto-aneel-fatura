@@ -3,19 +3,23 @@
  *
  * As categorias do motor (TARIFA/ULTRAPASSAGEM/REATIVOS/BANDEIRA/ENCARGO/
  * OUTROS) são traduzidas para as categorias visuais do relatório; os campos
- * do relatório que a API não calcula (ACL, EPI) continuam estimados no
- * frontend, conforme docs/integracao_front_back.md.
+ * do mercado livre usam o E-PI calculado pela API (POST /api/epi/calcular);
+ * o front não estima nenhum valor tarifário por conta própria.
  */
 import type {
   AuditResult,
+  EpiResumo,
   InvoiceFormData,
+  PlanejamentoResumo,
   ModalidadeTeTusd,
   TableItemBreakdown,
   TariffModalidade,
 } from '../types/energy';
 import type {
   ComparacaoResponseApi,
+  EpiResultadoApi,
   FaturaApi,
+  PlanejamentoApi,
   FaturaResponseApi,
   LinhaFaturaApi,
 } from './api';
@@ -86,16 +90,50 @@ function comparativoDeFaturas(faturas: FaturaApi[]): ModalidadeTeTusd[] {
   });
 }
 
-/** Estimativa ACL local (o EPI da API ainda é esqueleto). */
-function custoAclLocal(form: InvoiceFormData, fatura: FaturaApi): number {
-  if (form.precoMedioACL <= 0) return 0;
-  const consumoTotalKwh = form.consumoPonta + form.consumoForaPonta + form.consumoIntermediario;
-  const demanda = somaPorCategoria(fatura, ['Demanda']);
-  const fixos = somaPorCategoria(fatura, ['Bandeira', 'Outros', 'Tributos']);
-  return Math.round(consumoTotalKwh * (form.precoMedioACL / 1000) + demanda * 0.75 + fixos);
+/** E-PI da API → resumo de exibição. */
+export function adaptarEpi(epi: EpiResultadoApi, form: InvoiceFormData): EpiResumo {
+  return {
+    pi: epi.pi,
+    modalidade: epi.modalidade,
+    eMwh: epi.e_mwh,
+    baseAclMwh: epi.base_acl,
+    comCustosMigracao: (form.opexMensal || 0) > 0 || (form.capex || 0) > 0,
+    aviso: epi.aviso,
+  };
 }
 
-export function adaptarFatura(fatura: FaturaApi, form: InvoiceFormData): Partial<AuditResult> {
+/**
+ * Custo mensal estimado no ACL para a proposta informada, a partir do E-PI:
+ * custo ACR (melhor modalidade) − (E-PI − preço) × base ACL.
+ * Sem proposta (preço 0) → 0 (o relatório mostra só o E-PI).
+ */
+export function custoAclPorEpi(custoMelhorAcr: number, epi: EpiResumo | null, precoMwh: number): number {
+  if (!epi || precoMwh <= 0) return 0;
+  return Math.max(0, custoMelhorAcr - (epi.pi - precoMwh) * epi.baseAclMwh);
+}
+
+/** Planejamento anual da API → resumo de exibição. */
+export function adaptarPlanejamento(p: PlanejamentoApi, meses: number): PlanejamentoResumo {
+  return {
+    meses,
+    melhorContratoAtual: p.melhor_contrato_atual,
+    melhorDemandaOtimizada: p.melhor_demanda_otimizada,
+    ganhoTotal: p.ganho.total,
+    ganhoDemanda: p.ganho.demanda,
+    ganhoModalidade: p.ganho.modalidade,
+    modalidades: p.modalidades.map((m) => ({
+      modalidade: m.modalidade,
+      custoContratoAtual: m.custo_contrato_atual,
+      custoDemandaOtimizada: m.custo_demanda_otimizada,
+      dcAtual: m.dc_atual,
+      dcOtima: m.dc_otima,
+      epiAnual: m.pi?.anual ?? null,
+    })),
+    avisos: p.avisos,
+  };
+}
+
+export function adaptarFatura(fatura: FaturaApi, _form: InvoiceFormData): Partial<AuditResult> {
   const te = somaPorCategoria(fatura, ['TE']);
   const tusd = somaPorCategoria(fatura, ['TUSD']);
   const demanda = somaPorCategoria(fatura, ['Demanda']);
@@ -109,7 +147,6 @@ export function adaptarFatura(fatura: FaturaApi, form: InvoiceFormData): Partial
     },
     reativosTotal: somaPorCategoria(fatura, ['Outros']),
     comparativoTeTusd: comparativoDeFaturas([fatura]),
-    custoACL: custoAclLocal(form, fatura),
   };
 }
 
@@ -118,6 +155,8 @@ export function adaptarComparacao(
   resp: ComparacaoResponseApi | FaturaResponseApi,
   form: InvoiceFormData,
   faturaAtual: FaturaApi,
+  epi: EpiResumo | null = null,
+  planejamento: PlanejamentoResumo | null = null,
 ): AuditResult {
   const respComparacao = 'comparacao' in resp ? resp.comparacao : null;
   const respFatura: FaturaApi = 'fatura' in resp ? resp.fatura : faturaAtual;
@@ -160,7 +199,7 @@ export function adaptarComparacao(
     custoConvencional,
     custoVerde,
     custoOptanteB,
-    custoACL: extras.custoACL ?? 0,
+    custoACL: custoAclPorEpi(novoCusto, epi, form.precoMedioACL),
     custoBranca,
     diferencaAzulVsVerde: custoAzul - custoVerde,
     sobreprecoConvencionalPct: custoVerde > 0 ? ((custoConvencional - custoVerde) / custoVerde) * 100 : 0,
@@ -176,5 +215,7 @@ export function adaptarComparacao(
     notas: notasApi.map((n) => ({ tipo: n.tipo, mensagem: n.mensagem })),
     indisponiveis: indisponiveisApi.map((i) => ({ modalidade: i.modalidade, motivo: i.motivo })),
     fonte: 'api',
+    epi,
+    planejamento,
   };
 }

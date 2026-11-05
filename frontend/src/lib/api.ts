@@ -282,3 +282,143 @@ export function listarClasses(): Promise<string[]> {
 export function listarBandeiras(dataReferencia: string): Promise<BandeirasApi> {
   return getJson(`/api/bandeiras?competencia=${competenciaIso(dataReferencia)}`) as Promise<BandeirasApi>;
 }
+
+/* ------------------------------------------------------------------ */
+/* E-PI — POST /api/epi/calcular                                       */
+/* ------------------------------------------------------------------ */
+
+export interface EpiResultadoApi {
+  pi: number;
+  modalidade: string;
+  bandeira_r_mwh: number;
+  e_mwh: number;
+  c_te: number;
+  c_e_acr: number;
+  custos_acl: number;
+  base_acl: number;
+  aviso: string | null;
+}
+
+/** E-PI do perfil (modalidade = menor custo no ACR quando omitida). */
+export async function calcularEpi(
+  form: InvoiceFormData,
+  modalidadeApi?: string,
+): Promise<EpiResultadoApi> {
+  const corpo: Record<string, unknown> = {
+    distribuidora: form.distribuidora,
+    subgrupo: form.subgrupo,
+    data_referencia: dataReferenciaIso(form.dataReferencia),
+    consumo_ponta_kwh: form.consumoPonta,
+    consumo_fora_ponta_kwh: form.consumoForaPonta,
+    pis: form.pis / 100,
+    cofins: form.cofins / 100,
+    icms: form.icms / 100,
+    k: 0.03,
+    opex_mensal: form.opexMensal || 0,
+    capex: form.capex || 0,
+    horizonte_meses: form.horizonteMeses > 0 ? form.horizonteMeses : 60,
+  };
+  if (modalidadeApi) corpo.modalidade = modalidadeApi;
+  return (await postJson('/api/epi/calcular', corpo, {})) as EpiResultadoApi;
+}
+
+/* ------------------------------------------------------------------ */
+/* Planejamento anual — POST /api/planejamento/comparar                */
+/* ------------------------------------------------------------------ */
+
+export interface MesHistorico {
+  data_referencia: string; // AAAA-MM-15
+  d_med_ponta: number;
+  d_med_fora_ponta: number;
+  e_ponta_kwh: number;
+  e_fora_ponta_kwh: number;
+}
+
+/** Número em pt-BR ("12.345,6") ou en ("12345.6") → number. */
+function numeroBr(txt: string): number {
+  const t = txt.trim();
+  if (!t) return NaN;
+  if (t.includes(',')) return Number(t.replace(/\./g, '').replace(',', '.'));
+  // "54.950" com 3 casas após o ponto = milhar pt-BR
+  if (/^\d{1,3}(\.\d{3})+$/.test(t)) return Number(t.replace(/\./g, ''));
+  return Number(t);
+}
+
+/**
+ * Lê o histórico colado: uma linha por mês, no formato
+ * "MM/AAAA; demanda ponta; demanda fora ponta; consumo ponta; consumo fora ponta"
+ * (separador ';', tab ou espaços). Devolve os meses válidos em ordem cronológica
+ * e a lista de linhas que não puderam ser lidas.
+ */
+export function lerHistorico(texto: string): { meses: MesHistorico[]; erros: string[] } {
+  const meses: MesHistorico[] = [];
+  const erros: string[] = [];
+  for (const bruta of texto.split(/\r?\n/)) {
+    const linha = bruta.trim();
+    if (!linha) continue;
+    const partes = linha.split(/[;\t]|\s{2,}|\s(?=\d)/).map((p) => p.trim()).filter(Boolean);
+    const m = /^(\d{1,2})\/(\d{4})$/.exec(partes[0] ?? '');
+    const nums = partes.slice(1, 5).map(numeroBr);
+    if (!m || nums.length < 4 || nums.some((n) => Number.isNaN(n) || n < 0)) {
+      erros.push(linha);
+      continue;
+    }
+    const mes = m[1].padStart(2, '0');
+    meses.push({
+      data_referencia: `${m[2]}-${mes}-15`,
+      d_med_ponta: nums[0],
+      d_med_fora_ponta: nums[1],
+      e_ponta_kwh: nums[2],
+      e_fora_ponta_kwh: nums[3],
+    });
+  }
+  meses.sort((a, b) => a.data_referencia.localeCompare(b.data_referencia));
+  return { meses: meses.slice(-12), erros };
+}
+
+export interface PlanejamentoApi {
+  melhor_contrato_atual: string;
+  melhor_demanda_otimizada: string;
+  ganho: { total: number; demanda: number; modalidade: number };
+  modalidades: {
+    modalidade: string;
+    custo_contrato_atual: number;
+    custo_demanda_otimizada: number;
+    dc_atual: number | [number, number] | null;
+    dc_otima: number | [number, number];
+    pi: { anual: number | null; mensal: (number | null)[] } | null;
+  }[];
+  avisos: string[];
+}
+
+export async function compararPlanejamento(
+  form: InvoiceFormData,
+  meses: MesHistorico[],
+): Promise<PlanejamentoApi> {
+  const azul = form.modalidadeAtual === 'azul';
+  const corpo: Record<string, unknown> = {
+    distribuidora: form.distribuidora,
+    subgrupo: form.subgrupo,
+    classe: form.classe || 'Não se aplica',
+    detalhe: form.detalhe || 'Não se aplica',
+    atividade: form.atividade,
+    tipo_ligacao: form.tipoLigacao,
+    data_referencia: dataReferenciaIso(form.dataReferencia),
+    meses,
+    pis: form.pis / 100,
+    cofins: form.cofins / 100,
+    icms: form.icms / 100,
+    tipo_icms: form.tipoIcms,
+    demanda_isenta_icms: true,
+    tributar_reativos: form.tributarReativos,
+    modalidade_atual: azul ? 'Azul' : 'Verde',
+    dc_atual_verde: azul ? null : form.demandaContratada || null,
+    dc_atual_azul_ponta: azul ? form.demandaContratadaPontaKw || null : form.demandaContratada || null,
+    dc_atual_azul_fora: azul ? form.demandaContratadaForaPontaKw || null : form.demandaContratada || null,
+    k: 0.03,
+    opex_mensal: form.opexMensal || 0,
+    capex: form.capex || 0,
+    horizonte_meses: form.horizonteMeses > 0 ? form.horizonteMeses : 60,
+  };
+  return (await postJson('/api/planejamento/comparar', corpo, {})) as PlanejamentoApi;
+}

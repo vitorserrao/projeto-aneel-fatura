@@ -449,7 +449,7 @@ def calcular_fatura(
     tarifa_reativo_energia_r_kvarh=None,
     tarifa_reativo_demanda_r_kvar=None,
     demanda_unica=False,
-    tipo_icms="dentro",
+    tipo_icms="fora",
     arredondar_centavos=False,
     demanda_isenta_icms=False,
     demanda_isenta_icms_kw: float | None = None,
@@ -470,8 +470,8 @@ def calcular_fatura(
 
     Quando ``aplicar_tributos=True``, aplica a tributação conforme
     ``tipo_icms`` às linhas **tarifárias e de ultrapassagem**:
-    - ``"dentro"`` (aditiva, padrão): ``tarifa / (1 − pis − cofins − icms)``
-    - ``"fora"`` (multiplicativa, XLSM Fatura-1): 
+    - ``"dentro"`` (aditiva): ``tarifa / (1 − pis − cofins − icms)``
+    - ``"fora"`` (multiplicativa, **padrão** — validada em faturas reais Copel/CEMIG/Equatorial): 
       ``tarifa / ((1 − pis − cofins) × (1 − icms))``
 
     ``arredondar_centavos=True`` arredonda o ``custo`` de cada linha a centavos.
@@ -596,7 +596,9 @@ def calcular_fatura(
         def _fator_linha(l):
             if "ISENTA ICMS" in l.descricao:
                 return fator_isento
-            if l.categoria in ("TARIFA", "ULTRAPASSAGEM"):
+            # Bandeira também é tributada (faturas reais: Equatorial cobra
+            # PIS/COFINS/ICMS no "Adicional Bandeira"; ENEL embute o ICMS).
+            if l.categoria in ("TARIFA", "ULTRAPASSAGEM", "BANDEIRA"):
                 return fator
             if tributar_reativos and l.categoria == "REATIVOS":
                 return fator

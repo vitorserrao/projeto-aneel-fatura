@@ -6,11 +6,11 @@ Equatorial Pará Distribuidora de Energia S.A.
 CNPJ: 04.895.728/0001-80 | Insc. Estadual: 150.744.80-3
 Rodovia Augusto Montenegro, km 8,5
 Coqueiro - Belém - PA CEP: 66.823-010
-INSTITUTO FEDERAL DE E. C. TECNOLOGIA
-INSTALAÇÃO: 14115269 
+[dados do cliente removidos]
+INSTALAÇÃO: [ID] 
 CNPJ: **.***.998/000*-**
-AV ESPIRITO SANTO , 3322 , ESC TRAB PRODUCAO
-ABAETE CEP: 68440-000 FRANCILANDIA - ABAETETUBA
+[dados do cliente removidos]
+[dados do cliente removidos]
 - PA
 FATOR DE POTÊNCIA: 0,88529122
 Tensão Nominal Disp: 13.800      Lim Min: 12.834 V      Lim Max: 14.490 V      Tipo de Tarifa: A4_VD
@@ -18,14 +18,14 @@ Data das Leitura Anterior Leitura Atual Nº de Dias Próxima Leitura
 Leituras 30/11/2024 31/12/2024 31 31/01/2025
 Medidor Grandeza Posto Horário Leitura Leitura Const. Consumo
 Anterior Atual Medidor
-14141902 Consumo Fora Ponta Consumo Ativo FP Reg 55.154.309 55.659.363 0,0630 31.818,40 kWh
-14141902 Consumo Ponta Consumo Ativo NP Reg 6.988.829 7.047.897 0,0630 3.721,28 kWh
-14141902 Demanda Fora Ponta Demanda Ativa FP Reg 0 587 0,2520 147,92 kW
-14141902 Demanda Ponta Demanda Ativa NP Reg 0 395 0,2520 99,54 kW
-14141902 Dem. Reat. Exced. FP. Demanda DMCR FP Reg 0 0 0,0630 0,00 kVAr
-14141902 Dem. Reat. Exced. Pta Demanda DMCR NP Reg 0 0 0,0630 0,00 kVAr
-14141902 Reat. Exced. F. Ponta Consumo Reativo Exced FP Reg 4.198.573 4.218.715 0,0630 1.268,94 kVAr
-14141902 Reat. Exced. Ponta Consumo Reativo Exced NP Reg 422.726 424.701 0,0630 124,42 kVAr
+[ID] Consumo Fora Ponta Consumo Ativo FP Reg 55.154.309 55.659.363 0,0630 31.818,40 kWh
+[ID] Consumo Ponta Consumo Ativo NP Reg 6.988.829 7.047.897 0,0630 3.721,28 kWh
+[ID] Demanda Fora Ponta Demanda Ativa FP Reg 0 587 0,2520 147,92 kW
+[ID] Demanda Ponta Demanda Ativa NP Reg 0 395 0,2520 99,54 kW
+[ID] Dem. Reat. Exced. FP. Demanda DMCR FP Reg 0 0 0,0630 0,00 kVAr
+[ID] Dem. Reat. Exced. Pta Demanda DMCR NP Reg 0 0 0,0630 0,00 kVAr
+[ID] Reat. Exced. F. Ponta Consumo Reativo Exced FP Reg 4.198.573 4.218.715 0,0630 1.268,94 kVAr
+[ID] Reat. Exced. Ponta Consumo Reativo Exced NP Reg 422.726 424.701 0,0630 124,42 kVAr
  
  
  
@@ -78,11 +78,11 @@ REAVISO DE VENCIMENTO
 Resolução ANEEL
 3371/24
 Nome do Cliente: C.C: Unidade de Leitura: Competência: Vencimento: Valor cobrado (R$):
-INSTITUTO FEDERAL DE E. C. TECNOLOGIA 3016148970 AB00A020 12/2024 39.781,08
+[dados do cliente removidos]
 AG / FATURA AGRUPADA - NÃO RECEBER
 ............................................................................................................................................................................
 Reservado ao Fisco
-7594.AB91.965D.8E36.61DE.E0CF.48F5.7C3B
+[ID]
 2ª Via
 Página 1/2
 Total a Pagar
@@ -90,19 +90,19 @@ R$ 39.781,08
 Vencimento
 22/01/2025
 Conta Contrato
-3016148970
+[ID]
 Conta Mês
 12/2024
-NOTA FISCAL Nº 109686808 - SÉRIE 000 /
+NOTA FISCAL Nº [ID] - SÉRIE 000 /
 DATA DE EMISSÃO: 10/12/2024
 Consulte pela Chave de Acesso em:
 https://dfe-portal.svrs.rs.gov.br/NFE/Consulta
 chave de acesso:
-15241204895728000180660001096868081008223785
-Protocolo de autorização: 3152400031403596 -
+[ID]
+Protocolo de autorização: [ID] -
 10/12/2024 às 16:23:03
 Parceiro de Negócio
-88699750
+[ID]
 Ouvidoria Equatorial Pará: 0800 091 8500. As informações sobre as condições de fornecimento, tarifas, produtos, serviços prestados, ARCON-PA: 0800 727 0167 Agência Nacional de
  Ligação Gratuita de telefones fixos e móveis tributos e informações complementares encontram-se disponíveis para consulta nas Ligação gratuita de telefones fixos. Energia Elétrica (ANEEL) 167.
 de segunda a sexta, das 08h às 18h Agências de Atendimento e na área reservada ao consumidor no site da Equatorial Pará. Ligação Gratuita de telefones fixos e móveis.

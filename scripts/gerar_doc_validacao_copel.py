@@ -51,7 +51,7 @@ def main() -> int:
         ["Campo", "Valor"],
         [
             ["Distribuidora", "Copel Distribuição S.A. (CNPJ 04.368.898/0001-06)"],
-            ["Consumidor", "ON PETRO DISTRIBUIDORA DE COMBUSTIVEIS LTDA"],
+            ["Consumidor", "UC COPEL-1 (comercial, A4 Verde)"],
             ["Subgrupo", "A4"],
             ["Modalidade", "Tarifa Horária Verde"],
             ["Competência / fatura", "04/2023 (leituras 28/02/2023 a 31/03/2023)"],

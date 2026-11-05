@@ -1,0 +1,17 @@
+caso;item;fatura_rs;motor_rs;delta_rs
+CEMIG-D · UC CEMIG-2 · A4 Verde · jan–dez/2023;Demanda isenta de ICMS;4014.22;4014.22;0.0
+CEMIG-D · UC CEMIG-2 · A4 Verde · jan–dez/2023;Demanda;4895.39;4895.4;0.01
+CEMIG-D · UC CEMIG-2 · A4 Verde · jan–dez/2023;Energia fora ponta (TE+TUSD);28994.44;28994.46;0.02
+CEMIG-D · UC CEMIG-2 · A4 Verde · jan–dez/2023;Energia ponta (TE+TUSD);17873.59;17873.62;0.03
+CEMIG-D · UC CEMIG-2 · A4 Verde · jan–dez/2023;CIP/COSIP;40.45;40.45;0.0
+Copel · UC COPEL-1 · A4 Verde · mai/2022–abr/2023;TE ponta;27.49;27.5;0.01
+Copel · UC COPEL-1 · A4 Verde · mai/2022–abr/2023;TUSD ponta;72.79;72.79;0.0
+Copel · UC COPEL-1 · A4 Verde · mai/2022–abr/2023;TE fora ponta;2895.85;2895.86;0.01
+Copel · UC COPEL-1 · A4 Verde · mai/2022–abr/2023;TUSD fora ponta;1298.56;1298.57;0.01
+Copel · UC COPEL-1 · A4 Verde · mai/2022–abr/2023;Reativo excedente;3.0;3.0;0.0
+Copel · UC COPEL-1 · A4 Verde · mai/2022–abr/2023;Demanda;3411.6;3411.63;0.03
+Copel · UC COPEL-1 · A4 Verde · mai/2022–abr/2023;Demanda isenta de ICMS;2030.63;2030.6;-0.03
+Copel · UC COPEL-1 · A4 Verde · mai/2022–abr/2023;CIP/COSIP;115.01;115.01;0.0
+Equatorial · UC EQT-TUCURUI-NUCLEO · B-Optante · 12/2024;Energia (tarifa única B);3271.48;3271.49;0.01
+Equatorial · UC EQT-TUCURUI-NUCLEO · B-Optante · 12/2024;Reativo excedente;62.43;62.42;-0.01
+Equatorial · UC EQT-TUCURUI-NUCLEO · B-Optante · 12/2024;Adicional de bandeira;18.47;18.48;0.01

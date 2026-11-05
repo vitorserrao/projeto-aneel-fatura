@@ -22,7 +22,7 @@ import {
   MODALIDADE_OPTIONS,
   formatNumber,
 } from '../utils/calculator';
-import { bandeiraApiParaForm } from '../lib/api';
+import { bandeiraApiParaForm, lerHistorico } from '../lib/api';
 
 interface StepOneFormProps {
   formData: InvoiceFormData;
@@ -79,6 +79,8 @@ export const StepOneForm: React.FC<StepOneFormProps> = ({
   const handleModalidadeClick = (mod: TariffModalidade) => {
     onChange({ ...formData, modalidadeAtual: mod });
   };
+
+  const historicoLido = lerHistorico(formData.historico12);
 
   const handleFloatChange = (field: keyof InvoiceFormData, val: string) => {
     const normalized = val.replace(',', '.');
@@ -405,7 +407,9 @@ export const StepOneForm: React.FC<StepOneFormProps> = ({
                 2. Consumo Ativo e Demanda Registrada
               </h2>
               <p className="text-xs text-slate-500 mt-0.5">
-                Valores mensais de energia e potência contratada
+                Valores mensais de energia e potência contratada. Use as quantidades{' '}
+                <strong>faturadas</strong> (coluna &quot;Faturado&quot; ou Histórico de Consumo): elas já
+                incluem as perdas de transformação, quando houver.
               </p>
             </div>
           </div>
@@ -803,9 +807,9 @@ export const StepOneForm: React.FC<StepOneFormProps> = ({
                     htmlFor="inp-preco-acl"
                     className="text-xs font-semibold text-slate-600 block"
                   >
-                    Preço Médio de Energia no ACL
+                    Preço de uma proposta no ACL (opcional)
                   </label>
-                  <span className="text-[10px] text-slate-400">0 = desativa ACL</span>
+                  <span className="text-[10px] text-slate-400">vazio = só calcula o E-PI</span>
                 </div>
                 <div className="relative flex rounded-xl border border-slate-200 focus-within:ring-2 focus-within:ring-amber-400 focus-within:border-amber-400 overflow-hidden bg-slate-50/60 focus-within:bg-white transition-all">
                   <input
@@ -814,13 +818,67 @@ export const StepOneForm: React.FC<StepOneFormProps> = ({
                     value={formData.precoMedioACL || ''}
                     onChange={(e) => handleFloatChange('precoMedioACL', e.target.value)}
                     className="w-full h-10 px-3 bg-transparent text-sm font-semibold font-mono-num text-slate-800 focus:outline-none"
-                    placeholder="312,4"
+                    placeholder="0"
                   />
                   <span className="px-3 flex items-center text-xs font-mono-num text-slate-500 bg-slate-100/70 border-l border-slate-200">
                     R$/MWh
                   </span>
                 </div>
               </div>
+            </div>
+
+            {/* E-PI com custos de migração (modo avançado, opcional) */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {(
+                [
+                  ['opexMensal', 'OPEX da migração (R$/mês)', 'gestão, CCEE, comercializadora'],
+                  ['capex', 'CAPEX da migração (R$)', 'adequação da medição (SMF)'],
+                  ['horizonteMeses', 'Amortizar o CAPEX em (meses)', 'padrão 60'],
+                ] as const
+              ).map(([campo, rotulo, dica]) => (
+                <div key={campo} className="space-y-1">
+                  <label htmlFor={`inp-${campo}`} className="text-xs font-semibold text-slate-600 block">
+                    {rotulo}
+                  </label>
+                  <input
+                    id={`inp-${campo}`}
+                    type="text"
+                    value={formData[campo] || ''}
+                    onChange={(e) => handleFloatChange(campo, e.target.value)}
+                    className="w-full h-10 px-3 rounded-xl border border-slate-200 bg-slate-50/60 text-sm font-semibold font-mono-num text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:bg-white"
+                    placeholder="0"
+                  />
+                  <span className="text-[10px] text-slate-400">{dica}</span>
+                </div>
+              ))}
+            </div>
+            <p className="text-[11px] text-slate-500">
+              Sem OPEX e CAPEX o sistema calcula o E-PI simplificado (perdas k = 3%). Com eles, o E-PI
+              desconta os custos de migração.
+            </p>
+
+            {/* Histórico de 12 meses — planejamento anual */}
+            <div className="space-y-1.5 pt-2 border-t border-slate-100">
+              <label htmlFor="inp-historico12" className="text-xs font-semibold text-slate-700 block">
+                Histórico de 12 meses (opcional — ativa o planejamento anual e a demanda ótima)
+              </label>
+              <textarea
+                id="inp-historico12"
+                rows={5}
+                value={formData.historico12}
+                onChange={(e) => onChange({ ...formData, historico12: e.target.value })}
+                className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-50/60 text-xs font-mono-num text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:bg-white"
+                placeholder={'MM/AAAA; demanda ponta (kW); demanda fora ponta (kW); consumo ponta (kWh); consumo fora ponta (kWh)\n12/2023; 193; 200; 7.000; 54.950'}
+              />
+              <span className="text-[11px] text-slate-500">
+                Uma linha por mês, do quadro &quot;Histórico de Consumo&quot; da fatura (valores faturados).{' '}
+                {historicoLido.meses.length > 0
+                  ? `${historicoLido.meses.length} mês(es) reconhecido(s).`
+                  : ''}
+                {historicoLido.erros.length > 0
+                  ? ` ${historicoLido.erros.length} linha(s) não reconhecida(s).`
+                  : ''}
+              </span>
             </div>
           </div>
         </div>

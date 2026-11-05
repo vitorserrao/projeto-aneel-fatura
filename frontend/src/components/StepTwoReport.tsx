@@ -1119,7 +1119,8 @@ export const StepTwoReport: React.FC<StepTwoReportProps> = ({
             </span>
           </div>
 
-          {/* Card 3: Convencional */}
+          {/* Card 3: Convencional — só quando calculada (Grupo B) */}
+          {audit.custoConvencional > 0 ? (
           <div className="p-5 rounded-2xl bg-white border border-slate-200 flex flex-col justify-between gap-3 shadow-2xs hover:shadow-xs transition-shadow">
             <div className="flex flex-col gap-2">
               <div className="flex items-center justify-between">
@@ -1140,30 +1141,118 @@ export const StepTwoReport: React.FC<StepTwoReportProps> = ({
               <AlertTriangle className="w-4 h-4 text-rose-500" /> +{formatNumber(audit.sobreprecoConvencionalPct, 1)}% de sobrepreço
             </span>
           </div>
+          ) : null}
 
-          {/* Card 4: Mercado Livre (ACL) */}
+          {/* Card 4: Mercado Livre — E-PI calculado pela API */}
           <div className="p-5 rounded-2xl bg-white border border-slate-200 flex flex-col justify-between gap-3 shadow-2xs hover:shadow-xs transition-shadow">
             <div className="flex flex-col gap-2">
               <div className="flex items-center justify-between">
-                <span className="text-xs uppercase font-semibold text-slate-800">Mercado Livre</span>
-                <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 font-semibold">
-                  Viabilidade Futura
+                <span className="text-xs uppercase font-semibold text-slate-800">Mercado Livre · E-PI</span>
+                <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200 font-semibold">
+                  {audit.epi?.comCustosMigracao ? 'Com OPEX/CAPEX' : 'Simplificado'}
                 </span>
               </div>
-              <span className="font-mono-num text-2xl font-bold text-slate-900">
-                {formatCurrency(audit.custoACL)}
-              </span>
-              <p className="text-xs text-slate-600 leading-relaxed">
-                Elegível via Portaria Normativa nº 50/2022. Possibilidade de negociação bilateral
-                livre e redução de até 38% nos custos.
-              </p>
+              {audit.epi ? (
+                <>
+                  <span className="font-mono-num text-2xl font-bold text-slate-900">
+                    {formatNumber(audit.epi.pi, 2)} <span className="text-sm font-semibold text-slate-500">R$/MWh</span>
+                  </span>
+                  <p className="text-xs text-slate-600 leading-relaxed">
+                    Preço de indiferença estimado sobre a {audit.epi.modalidade}: proposta de energia abaixo
+                    desse valor tende a compensar a migração; acima, não compensa.
+                  </p>
+                  {formData.precoMedioACL > 0 ? (
+                    <p className="text-xs font-semibold text-slate-800">
+                      Proposta de {formatNumber(formData.precoMedioACL, 2)} R$/MWh:{' '}
+                      {formData.precoMedioACL < audit.epi.pi ? 'abaixo do E-PI, tende a compensar' : 'acima do E-PI, não compensa'}{' '}
+                      (≈ {formatCurrency(Math.abs(audit.epi.pi - formData.precoMedioACL) * audit.epi.baseAclMwh)}/mês na energia).
+                    </p>
+                  ) : null}
+                  {audit.epi.aviso ? <p className="text-xs text-amber-800">{audit.epi.aviso}</p> : null}
+                </>
+              ) : (
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  O E-PI não pôde ser calculado pela API para este perfil.
+                </p>
+              )}
             </div>
             <span className="text-xs text-slate-700 font-semibold flex items-center gap-1.5 mt-1 pt-2 border-t border-slate-100">
-              <TrendingUp className="w-4 h-4 text-slate-500" /> Migração planejada
+              <TrendingUp className="w-4 h-4 text-slate-500" /> Perdas k = 3% · TUSD continua no ACL
             </span>
           </div>
         </div>
       </div>
+
+      {/* PLANEJAMENTO ANUAL (12 meses) — POST /api/planejamento/comparar */}
+      {audit.planejamento ? (
+        <div className="w-full bg-white rounded-2xl p-6 shadow-sm border border-slate-200/80 space-y-4">
+          <div>
+            <h3 className="font-display text-lg font-bold text-slate-900">
+              Planejamento anual · {audit.planejamento.meses} meses
+            </h3>
+            <p className="text-xs text-slate-600 mt-1">
+              Contrato atual × demanda contratada otimizada, com as tarifas vigentes em cada mês do histórico.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-4">
+              <div className="text-[11px] uppercase font-semibold text-emerald-800">Ganho total no período</div>
+              <div className="font-mono-num text-xl font-bold text-emerald-900">{formatCurrency(audit.planejamento.ganhoTotal)}</div>
+              <div className="text-xs text-emerald-800">melhor: {audit.planejamento.melhorDemandaOtimizada}</div>
+            </div>
+            <div className="rounded-xl bg-slate-50 border border-slate-200 p-4">
+              <div className="text-[11px] uppercase font-semibold text-slate-600">Ajuste da demanda</div>
+              <div className="font-mono-num text-xl font-bold text-slate-900">{formatCurrency(audit.planejamento.ganhoDemanda)}</div>
+            </div>
+            <div className="rounded-xl bg-slate-50 border border-slate-200 p-4">
+              <div className="text-[11px] uppercase font-semibold text-slate-600">Troca de modalidade</div>
+              <div className="font-mono-num text-xl font-bold text-slate-900">{formatCurrency(audit.planejamento.ganhoModalidade)}</div>
+            </div>
+          </div>
+          <div className="overflow-x-auto rounded-xl border border-slate-200">
+            <table className="w-full text-sm">
+              <thead className="bg-slate-50 text-xs text-slate-600">
+                <tr>
+                  <th className="text-left py-2.5 px-3">Modalidade</th>
+                  <th className="text-right py-2.5 px-3">Demanda atual (kW)</th>
+                  <th className="text-right py-2.5 px-3">Custo atual</th>
+                  <th className="text-right py-2.5 px-3">Demanda ótima (kW)</th>
+                  <th className="text-right py-2.5 px-3">Custo otimizado</th>
+                  <th className="text-right py-2.5 px-3">E-PI (R$/MWh)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {audit.planejamento.modalidades.map((m) => {
+                  const dc = (v: number | [number, number] | null) =>
+                    v === null ? '—' : Array.isArray(v) ? `${formatNumber(v[0])} / ${formatNumber(v[1])}` : formatNumber(v);
+                  return (
+                    <tr key={m.modalidade} className="border-t border-slate-100">
+                      <td className="py-2.5 px-3 font-semibold text-slate-900">{m.modalidade}</td>
+                      <td className="py-2.5 px-3 text-right font-mono-num">{dc(m.dcAtual)}</td>
+                      <td className="py-2.5 px-3 text-right font-mono-num">{formatCurrency(m.custoContratoAtual)}</td>
+                      <td className="py-2.5 px-3 text-right font-mono-num">{dc(m.dcOtima)}</td>
+                      <td className="py-2.5 px-3 text-right font-mono-num font-semibold">{formatCurrency(m.custoDemandaOtimizada)}</td>
+                      <td className="py-2.5 px-3 text-right font-mono-num">{m.epiAnual !== null ? formatNumber(m.epiAnual, 2) : '—'}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+          {audit.planejamento.avisos.length > 0 ? (
+            <ul className="text-xs text-slate-600 list-disc pl-5 space-y-1">
+              {audit.planejamento.avisos.map((a) => (
+                <li key={a}>{a}</li>
+              ))}
+            </ul>
+          ) : null}
+        </div>
+      ) : (
+        <div className="w-full bg-white rounded-2xl p-5 border border-dashed border-slate-300 text-xs text-slate-600 no-print">
+          Informe o histórico de 12 meses na etapa anterior para ver o planejamento anual (demanda contratada ótima,
+          ganho por ajuste de demanda e por troca de modalidade, e E-PI do período).
+        </div>
+      )}
 
       {/* AÇÕES DE NAVEGAÇÃO NO RODAPÉ */}
       <div className="w-full bg-white rounded-2xl p-5 shadow-sm border border-slate-200/80 flex items-center justify-between gap-4 no-print">

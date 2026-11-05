@@ -59,6 +59,8 @@ def comparar_planejamento_anual(
             cofins=solicitacao.cofins,
             icms=solicitacao.icms,
             tipo_icms=solicitacao.tipo_icms,
+            demanda_isenta_icms=solicitacao.demanda_isenta_icms,
+            tributar_reativos=solicitacao.tributar_reativos,
             modalidade_atual=solicitacao.modalidade_atual,
             dc_atual_verde=solicitacao.dc_atual_verde,
             dc_atual_azul_ponta=solicitacao.dc_atual_azul_ponta,

@@ -57,6 +57,8 @@ class PlanejamentoService:
         cofins: float,
         icms: float,
         tipo_icms: str = "fora",
+        demanda_isenta_icms: bool = True,
+        tributar_reativos: bool = False,
         modalidade_atual: str = "Verde",
         dc_atual_verde: float | None = None,
         dc_atual_azul_ponta: float | None = None,
@@ -78,6 +80,9 @@ class PlanejamentoService:
                 ``d_med_fora_ponta``, ``d_med_unica``, ``e_ponta_kwh``,
                 ``e_fora_ponta_kwh``.
             pis, cofins, icms, tipo_icms: tributos do motor (fórmula oficial).
+            demanda_isenta_icms: demanda contratada e não utilizada sem ICMS
+                (Súmula 391/STJ; confirmado nas faturas reais) — padrão True.
+            tributar_reativos: tributa linhas de reativos (CEMIG/Equatorial).
             modalidade_atual: "Azul" ou "Verde".
             dc_atual_verde / dc_atual_azul_ponta / dc_atual_azul_fora:
                 demandas contratadas atuais (None = usa 30 kW mínimo).
@@ -114,6 +119,8 @@ class PlanejamentoService:
                 perfil_base, meses[i], "Verde", parcelas_verde[i],
                 dc_unica=dc, demanda_unica=True,
                 pis=pis, cofins=cofins, icms=icms, tipo_icms=tipo_icms,
+                demanda_isenta_icms=demanda_isenta_icms,
+                tributar_reativos=tributar_reativos,
             )
             d_med = medidas_verde[i]
             detalhe = custo_demanda_mensal(d_med, dc, 1.0)
@@ -130,6 +137,8 @@ class PlanejamentoService:
                 dc_unica=None,
                 dc_ponta=dc_ponta, dc_fora=dc_fora, demanda_unica=False,
                 pis=pis, cofins=cofins, icms=icms, tipo_icms=tipo_icms,
+                demanda_isenta_icms=demanda_isenta_icms,
+                tributar_reativos=tributar_reativos,
             )
             return fatura.custo_total
 
@@ -198,6 +207,8 @@ class PlanejamentoService:
                     perfil_base, meses[i], "Optante B", parcelas_optante[i],
                     dc_unica=None, demanda_unica=False,
                     pis=pis, cofins=cofins, icms=icms, tipo_icms=tipo_icms,
+                    demanda_isenta_icms=demanda_isenta_icms,
+                    tributar_reativos=tributar_reativos,
                 ).custo_total
                 for i in range(len(meses))
             )
@@ -375,6 +386,8 @@ class PlanejamentoService:
         cofins: float,
         icms: float,
         tipo_icms: str,
+        demanda_isenta_icms: bool = True,
+        tributar_reativos: bool = False,
     ):
         consumidor = self._consumidor_mes(
             perfil_base,
@@ -399,6 +412,8 @@ class PlanejamentoService:
             cofins=cofins,
             icms=icms,
             tipo_icms=tipo_icms,
+            demanda_isenta_icms=demanda_isenta_icms,
+            tributar_reativos=tributar_reativos,
         )
 
     def _consumidor_mes(

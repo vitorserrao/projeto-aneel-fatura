@@ -108,6 +108,44 @@ linhas TARIFA **e ULTRAPASSAGEM** (as demais linhas permanecem sem tributos).
   conforme evidenciado nas faturas Copel/CEMIG/Equatorial.
 - Tolerância de aceite: **≤ R$ 0,05 por linha e ≤ R$ 1,00 no total**.
 
+## Decisões da fase do artigo ERIAC (04/11/2026)
+
+### D1 — Padrão de tributação multiplicativo
+`tipo_icms="fora"` (`tarifa / ((1 − PIS − COFINS) × (1 − ICMS))`) passa a ser o
+padrão do motor, do `CalculoService` e da API: é a forma que reproduz as faturas
+reais da Copel, CEMIG e Equatorial. A forma aditiva (`"dentro"`) continua
+disponível por parâmetro.
+
+### D2 — Entradas são as grandezas FATURADAS (perdas de transformação)
+Quando a medição fica no secundário do transformador do consumidor, a
+distribuidora acrescenta um percentual de perdas às grandezas medidas
+(REN 1.000/2021, art. 305; 2,5% nas faturas Copel 04/2023 e Equatorial
+Tucuruí Núcleo 12/2024 — ex.: 2.600 kWh medidos × 1,025 = 2.665 kWh faturados).
+O acréscimo não aparece como linha da fatura: já vem embutido na coluna
+"Faturado" e no "Histórico de Consumo". **Premissa:** o sistema recebe as
+grandezas faturadas (energia, demanda e reativo), que já incluem as perdas.
+Um campo "medição no secundário (+%)" só será necessário se o sistema passar a
+ler dados direto do medidor (trabalho futuro).
+
+### D3 — Reativo excedente no Optante B (divergência em aberto)
+O art. 302 fixa o fator de potência de referência (0,92) para o Grupo A e o
+art. 303 diz que o Grupo B não paga reativo excedente. O Optante B (art. 292)
+continua sendo unidade do Grupo A atendida em média tensão, apenas **faturada**
+com tarifa do Grupo B. A fatura real da Equatorial (Tucuruí Núcleo, 12/2024,
+classificação "B-Optante") cobra reativo excedente (164 kvarh × 0,290980 R$/kvarh).
+Não foi encontrada regra explícita para o caso.
+
+```
+Fatura real (Equatorial): cobra reativo excedente do B-Optante
+Fonte oficial (arts. 302–303): FP de referência para o Grupo A; Grupo B isento
+Diferença: enquadramento técnico (A) × faturamento (B)
+Impacto: R$ 62,43 na fatura de 12/2024
+```
+
+**Decisão provisória:** o motor cobra o reativo do Optante B **somente quando o
+usuário informa** o excedente (comportamento atual, sem regra automática).
+Pergunta registrada para o orientador.
+
 ## O que o Sprint 1 NÃO implementa (permanece pendente)
 
 - ~~Fórmula do EPI (P2)~~ — ✅ implementada em `core/epi.py` (ver docs/epi.md).

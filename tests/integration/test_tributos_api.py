@@ -58,6 +58,7 @@ def test_fatura_com_tributos(banco):
             "pis": pis,
             "cofins": cofins,
             "icms": icms,
+            "tipo_icms": "dentro",
         },
     )
     assert r_com.status_code == 200, r_com.text
@@ -79,6 +80,7 @@ def test_tributos_invalidos_retornam_422(banco):
             "pis": 0.5,
             "cofins": 0.4,
             "icms": 0.2,  # soma = 1.1 > 1 -> denominador <= 0
+            "tipo_icms": "dentro",
         },
     )
     assert r.status_code == 422

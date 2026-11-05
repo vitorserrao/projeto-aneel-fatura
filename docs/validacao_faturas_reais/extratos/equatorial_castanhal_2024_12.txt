@@ -6,29 +6,29 @@ Equatorial Pará Distribuidora de Energia S.A.
 CNPJ: 04.895.728/0001-80 | Insc. Estadual: 150.744.80-3
 Rodovia Augusto Montenegro, km 8,5
 Coqueiro - Belém - PA CEP: 66.823-010
-INSTITUTO FEDERAL DE E. C. TECNOLOGIA
+[dados do cliente removidos]
 INSTALAÇÃO: 32832 
 CNPJ: **.***.998/000*-**
-RD BR 316 , 63 , CEP: 68740-001 CASTANHAL -
-CASTANHAL - PA
+[dados do cliente removidos]
+[dados do cliente removidos]
 FATOR DE POTÊNCIA: 0,81575372
 Tensão Nominal Disp: 13.800      Lim Min: 12.834 V      Lim Max: 14.490 V      Tipo de Tarifa: A4_VD
 Data das Leitura Anterior Leitura Atual Nº de Dias Próxima Leitura
 Leituras 30/11/2024 31/12/2024 31 31/01/2025
 Medidor Grandeza Posto Horário Leitura Leitura Const. Consumo
 Anterior Atual Medidor
-32140002711 Ener. Inje. F. Ponta Consumo Ativo Gerado FP 97 106 0,2800 2,52 kWh
-32140002711 Ener. Inje. Ponta Consumo Ativo Gerado NP 0 0 0,2800 0,00 kWh
-32140002711 Consumo Fora Ponta Consumo Ativo FP Reg 6.539.269 6.801.694 0,2800 73.479,00 kWh
-32140002711 Consumo Ponta Consumo Ativo NP Reg 582.294 606.602 0,2800 6.806,24 kWh
-32140002711 Demanda Fora Ponta Demanda Ativa FP Reg 0 346 1,1200 387,52 kW
-32140002711 Demanda Ponta Demanda Ativa NP Reg 0 315 1,1200 352,80 kW
-32140002711 Dem. Geração Fora Pta Demanda Geração FP Reg 0 0 1,1200 0,00 kW
-32140002711 Demanda Geração Ponta Demanda Geração NP Reg 0 0 1,1200 0,00 kW
-32140002711 Dem. Reat. Exced. FP. Demanda DMCR FP Reg 0 0 0,2800 0,00 kVAr
-32140002711 Dem. Reat. Exced. Pta Demanda DMCR NP Reg 0 0 0,2800 0,00 kVAr
-32140002711 Reat. Exced. F. Ponta Consumo Reativo Exced FP Reg 662.162 694.107 0,2800 8.944,60 kVAr
-32140002711 Reat. Exced. Ponta Consumo Reativo Exced NP Reg 108.676 113.373 0,2800 1.315,16 kVAr
+[ID] Ener. Inje. F. Ponta Consumo Ativo Gerado FP 97 106 0,2800 2,52 kWh
+[ID] Ener. Inje. Ponta Consumo Ativo Gerado NP 0 0 0,2800 0,00 kWh
+[ID] Consumo Fora Ponta Consumo Ativo FP Reg 6.539.269 6.801.694 0,2800 73.479,00 kWh
+[ID] Consumo Ponta Consumo Ativo NP Reg 582.294 606.602 0,2800 6.806,24 kWh
+[ID] Demanda Fora Ponta Demanda Ativa FP Reg 0 346 1,1200 387,52 kW
+[ID] Demanda Ponta Demanda Ativa NP Reg 0 315 1,1200 352,80 kW
+[ID] Dem. Geração Fora Pta Demanda Geração FP Reg 0 0 1,1200 0,00 kW
+[ID] Demanda Geração Ponta Demanda Geração NP Reg 0 0 1,1200 0,00 kW
+[ID] Dem. Reat. Exced. FP. Demanda DMCR FP Reg 0 0 0,2800 0,00 kVAr
+[ID] Dem. Reat. Exced. Pta Demanda DMCR NP Reg 0 0 0,2800 0,00 kVAr
+[ID] Reat. Exced. F. Ponta Consumo Reativo Exced FP Reg 662.162 694.107 0,2800 8.944,60 kVAr
+[ID] Reat. Exced. Ponta Consumo Reativo Exced NP Reg 108.676 113.373 0,2800 1.315,16 kVAr
  
  
  
@@ -60,8 +60,8 @@ INFORMAÇÕES PARA O CLIENTE
   Conforme Lei 14.300/21, durante período de transição não haverá cobrança  da energia
 elétrica compensada.
   Saldo de créditos expirados no ciclo ref 12/24: 0,00 kWh.
-  Esta instalação recebe excedente de energia na modalidade Distribuição Percentual das seguintes CC: 3016170622(100%),107329986(100%).
- Conta contrato geradora 107329986: Saldo do Mês Geral
+[dados do cliente removidos]
+[dados do cliente removidos]
 Tipo de Fornecimento: TRIFÁSICOClassificação: Poder Público Federal - ADMINISTRACAO
 PUBLICA FEDERAL DIRETA
 Itens de Fatura Quant. Preço Unit.(R$) Tarifa PIS/ ICMS Valor(R$)
@@ -87,11 +87,11 @@ REAVISO DE VENCIMENTO
 Resolução ANEEL
 3371/24
 Nome do Cliente: C.C: Unidade de Leitura: Competência: Vencimento: Valor cobrado (R$):
-INSTITUTO FEDERAL DE E. C. TECNOLOGIA 3016170622 CS00A020 12/2024 87.329,39
+[dados do cliente removidos]
 AG / FATURA AGRUPADA - NÃO RECEBER
 ............................................................................................................................................................................
 Reservado ao Fisco
-45D9.8FCD.07F4.2CA5.BFF0.3E1C.79CE.315B
+[ID]
 2ª Via
 Página 1/3
 Total a Pagar
@@ -99,19 +99,19 @@ R$ 87.329,39
 Vencimento
 22/01/2025
 Conta Contrato
-3016170622
+[ID]
 Conta Mês
 12/2024
-NOTA FISCAL Nº 110518136 - SÉRIE 000 /
+NOTA FISCAL Nº [ID] - SÉRIE 000 /
 DATA DE EMISSÃO: 17/12/2024
 Consulte pela Chave de Acesso em:
 https://dfe-portal.svrs.rs.gov.br/NFE/Consulta
 chave de acesso:
-15241204895728000180660001105181361015703745
-Protocolo de autorização: 3152400032170958 -
+[ID]
+Protocolo de autorização: [ID] -
 17/12/2024 às 11:43:55
 Parceiro de Negócio
-88699750
+[ID]
 Ouvidoria Equatorial Pará: 0800 091 8500. As informações sobre as condições de fornecimento, tarifas, produtos, serviços prestados, ARCON-PA: 0800 727 0167 Agência Nacional de
  Ligação Gratuita de telefones fixos e móveis tributos e informações complementares encontram-se disponíveis para consulta nas Ligação gratuita de telefones fixos. Energia Elétrica (ANEEL) 167.
 de segunda a sexta, das 08h às 18h Agências de Atendimento e na área reservada ao consumidor no site da Equatorial Pará. Ligação Gratuita de telefones fixos e móveis.
@@ -183,29 +183,29 @@ Equatorial Pará Distribuidora de Energia S.A.
 CNPJ: 04.895.728/0001-80 | Insc. Estadual: 150.744.80-3
 Rodovia Augusto Montenegro, km 8,5
 Coqueiro - Belém - PA CEP: 66.823-010
-INSTITUTO FEDERAL DE E. C. TECNOLOGIA
+[dados do cliente removidos]
 INSTALAÇÃO: 32832 
 CNPJ: **.***.998/000*-**
-RD BR 316 , 63 , CEP: 68740-001 CASTANHAL -
-CASTANHAL - PA
+[dados do cliente removidos]
+[dados do cliente removidos]
 FATOR DE POTÊNCIA: 0,81575372
 Tensão Nominal Disp: 13.800      Lim Min: 12.834 V      Lim Max: 14.490 V      Tipo de Tarifa: A4_VD
 Data das Leitura Anterior Leitura Atual Nº de Dias Próxima Leitura
 Leituras 30/11/2024 31/12/2024 31 31/01/2025
 Medidor Grandeza Posto Horário Leitura Leitura Const. Consumo
 Anterior Atual Medidor
-32140002711 Ener. Inje. F. Ponta Consumo Ativo Gerado FP 97 106 0,2800 2,52 kWh
-32140002711 Ener. Inje. Ponta Consumo Ativo Gerado NP 0 0 0,2800 0,00 kWh
-32140002711 Consumo Fora Ponta Consumo Ativo FP Reg 6.539.269 6.801.694 0,2800 73.479,00 kWh
-32140002711 Consumo Ponta Consumo Ativo NP Reg 582.294 606.602 0,2800 6.806,24 kWh
-32140002711 Demanda Fora Ponta Demanda Ativa FP Reg 0 346 1,1200 387,52 kW
-32140002711 Demanda Ponta Demanda Ativa NP Reg 0 315 1,1200 352,80 kW
-32140002711 Dem. Geração Fora Pta Demanda Geração FP Reg 0 0 1,1200 0,00 kW
-32140002711 Demanda Geração Ponta Demanda Geração NP Reg 0 0 1,1200 0,00 kW
-32140002711 Dem. Reat. Exced. FP. Demanda DMCR FP Reg 0 0 0,2800 0,00 kVAr
-32140002711 Dem. Reat. Exced. Pta Demanda DMCR NP Reg 0 0 0,2800 0,00 kVAr
-32140002711 Reat. Exced. F. Ponta Consumo Reativo Exced FP Reg 662.162 694.107 0,2800 8.944,60 kVAr
-32140002711 Reat. Exced. Ponta Consumo Reativo Exced NP Reg 108.676 113.373 0,2800 1.315,16 kVAr
+[ID] Ener. Inje. F. Ponta Consumo Ativo Gerado FP 97 106 0,2800 2,52 kWh
+[ID] Ener. Inje. Ponta Consumo Ativo Gerado NP 0 0 0,2800 0,00 kWh
+[ID] Consumo Fora Ponta Consumo Ativo FP Reg 6.539.269 6.801.694 0,2800 73.479,00 kWh
+[ID] Consumo Ponta Consumo Ativo NP Reg 582.294 606.602 0,2800 6.806,24 kWh
+[ID] Demanda Fora Ponta Demanda Ativa FP Reg 0 346 1,1200 387,52 kW
+[ID] Demanda Ponta Demanda Ativa NP Reg 0 315 1,1200 352,80 kW
+[ID] Dem. Geração Fora Pta Demanda Geração FP Reg 0 0 1,1200 0,00 kW
+[ID] Demanda Geração Ponta Demanda Geração NP Reg 0 0 1,1200 0,00 kW
+[ID] Dem. Reat. Exced. FP. Demanda DMCR FP Reg 0 0 0,2800 0,00 kVAr
+[ID] Dem. Reat. Exced. Pta Demanda DMCR NP Reg 0 0 0,2800 0,00 kVAr
+[ID] Reat. Exced. F. Ponta Consumo Reativo Exced FP Reg 662.162 694.107 0,2800 8.944,60 kVAr
+[ID] Reat. Exced. Ponta Consumo Reativo Exced NP Reg 108.676 113.373 0,2800 1.315,16 kVAr
  
  
  
@@ -246,22 +246,22 @@ Página 3/3
 Formulário com informações complementares e, por isso, não possui dados para pagamento.
                     Para pagamento, deve-se utilizar a fatura principal.
 Reservado ao Fisco
-45D9.8FCD.07F4.2CA5.BFF0.3E1C.79CE.315B
+[ID]
 Total a Pagar
 R$ 87.329,39
 Vencimento
 22/01/2025
 Conta Contrato
-3016170622
+[ID]
 Conta Mês
 12/2024
-NOTA FISCAL Nº 110518136 - SÉRIE 000 /
+NOTA FISCAL Nº [ID] - SÉRIE 000 /
 DATA DE EMISSÃO: 17/12/2024
 Consulte pela Chave de Acesso em:
 https://dfe-portal.svrs.rs.gov.br/NFE/Consulta
 chave de acesso:
-15241204895728000180660001105181361015703745
-Protocolo de autorização: 3152400032170958 -
+[ID]
+Protocolo de autorização: [ID] -
 17/12/2024 às 11:43:55
 Parceiro de Negócio
-88699750
+[ID]
