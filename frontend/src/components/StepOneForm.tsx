@@ -405,7 +405,9 @@ export const StepOneForm: React.FC<StepOneFormProps> = ({
                 2. Consumo Ativo e Demanda Registrada
               </h2>
               <p className="text-xs text-slate-500 mt-0.5">
-                Valores mensais de energia e potência contratada
+                Valores mensais de energia e potência contratada. Use as quantidades{' '}
+                <strong>faturadas</strong> (coluna &quot;Faturado&quot; ou Histórico de Consumo): elas já
+                incluem as perdas de transformação, quando houver.
               </p>
             </div>
           </div>

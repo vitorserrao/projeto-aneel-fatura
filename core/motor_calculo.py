@@ -596,7 +596,9 @@ def calcular_fatura(
         def _fator_linha(l):
             if "ISENTA ICMS" in l.descricao:
                 return fator_isento
-            if l.categoria in ("TARIFA", "ULTRAPASSAGEM"):
+            # Bandeira também é tributada (faturas reais: Equatorial cobra
+            # PIS/COFINS/ICMS no "Adicional Bandeira"; ENEL embute o ICMS).
+            if l.categoria in ("TARIFA", "ULTRAPASSAGEM", "BANDEIRA"):
                 return fator
             if tributar_reativos and l.categoria == "REATIVOS":
                 return fator
