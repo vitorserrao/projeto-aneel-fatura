@@ -4,29 +4,29 @@ Copel Distribuição S.A.
 R Jose Izidoro Biazetto, 158 - Bloco C - Mossungue
 CEP: 81200-240 - Curitiba - PR
 CNPJ 04.368.898/0001-06
-INSC. ESTADUAL 9023307399
+[dados do cliente removidos]
 A4 Comercial, Servicos, Outras Atividades / Com Atac de Alcool Carburante, Biod, GasTrifasico / 500A
 28/02/2023 31/03/2023 30 01/05/2023
-108248496
-88489705
+[ID]
+[ID]
 04/2023 27/04/2023 R$9.854,93
-Nome: ON PETRO DISTRIBUIDORA DE
-COMBUSTIVEIS LTDA
-Endereço: R Alexandre Zanchetta, 131 - Pe
-01543 2021 - Italia
-CEP: 83015-148
-Cidade: Sao Jose dos Pinhais - Estado: PR
-CNPJ: 09250921/0005-00
-I.E.:9093174019
-NOTA FISCAL No. 33155965 - SÉRIE 3
+[dados do cliente removidos]
+[dados do cliente removidos]
+[dados do cliente removidos]
+[dados do cliente removidos]
+CEP: [CEP]
+[dados do cliente removidos]
+CNPJ: [CNPJ]
+[dados do cliente removidos]
+NOTA FISCAL No. [ID] - SÉRIE 3
 DATA DE EMISSÃO: 13/04/2023
 Consulte Chave de Acesso em:
 https://nf3e.fazenda.pr.gov.br/nf3e/NF3eConsulta?wsdl
 Chave de Acesso
-4123 0404 3688 9800 0106 6600 3033 1559 6510 2921 5895
-Protocolo de Autorização: 1412300017899288
+[ID]
+Protocolo de Autorização: [ID]
 13/04/2023 às 09:29:12+00:00
-Protocolo de Autorização: 1412300017899288 13/04/2023 09:29:12
+Protocolo de Autorização: [ID] 13/04/2023 09:29:12
 +00:00
 ENERGIA ELETRICA TE PONTA
 ENERGIA ELETRICA USD PONTA
@@ -106,14 +106,14 @@ Res. Capacidade Ponta: 0 kW
 Res. Capacidade Fora Ponta: 0 kW
 Montante na Ponta: 0 kW
 Montante Fora de Ponta: 0 kW
-0040624956
-0040624956
-0040624956
-0040624956
-0040624956
-0040624956
-0040624956
-0040624956
+[ID]
+[ID]
+[ID]
+[ID]
+[ID]
+[ID]
+[ID]
+[ID]
 CONSUMO kWh
 CONSUMO kWh
 EN.EXCE kWh
@@ -173,27 +173,27 @@ FP
 150.65
 INCLUSO NA FATURA PIS R$79,35 E COFINS R$365,83 CONFORME RES. ANEEL 130/2005.
 FATURA DO MES 03/2023 ARRECADADA POR DEBITO AUTOMATICO
-GERENTE DA AGENCIA COPEL DE SUA REGIAO: LEANDRO PORTELA DA LUZ
+[dados do cliente removidos]
 A qualquer tempo pode ser solicitado o cancelamento de valores não relacionados à prestação do serviço de energia elétrica, como convênios e doações.
 Periodos Band.Tarif.: Verde:01/03-31/03
-108248496 04/2023 27/04/2023 R$9.854,93
-Nùmero da fatura: FAT-01-20234332921589-74
-836300000988   549301110009   001010202347   332921589740
+[ID] 04/2023 27/04/2023 R$9.854,93
+Nùmero da fatura: FAT-01-[ID]-74
+[ID]   [ID]   [ID]   [ID]
 NÃO RECEBER - DÉBITO AUTOMÁTICO - BANCO - 341 - AGÊNCIA - 0113
 PERÍODO FISCAL: 13/04/2023
-DAFC.010E.013F.4657.35EA.C506.C942.7A19
+[ID]
 Responsável pela Iluminação Pública: Municipio (41) 3381-5905 (41)
 TOTAL 9.854,93 445,18 1.387,67
 Página: 1 / 1 DANF3EA4A (V1.00)
 Página: 2 / 1 DANF3EA4A (V1.00)
 página 1 / 1
-ON PETRO DISTRIBUIDORA DE COMBUSTIVEIS LTDA
-R ALEXANDRE ZANCHETTA, 131 - PE 01543 2021
-ITALIA - SAO JOSE DOS PINHAIS - PR - CEP: 83015-148
-CNPJ 09.250.921/0005-00 - IE: 9093174019
-Abril/2023 108248496
+[dados do cliente removidos]
+[dados do cliente removidos]
+[dados do cliente removidos]
+CNPJ [CNPJ] - IE: [ID]
+Abril/2023 [ID]
 27/04/2023 R$ 9.854,93
-FAT-01-20234332921589-74
+FAT-01-[ID]-74
 EXTRATO DE FATURAMENTO - TARIFA HORARIA VERDE Emitida em 04/04/2023
 Informações Técnicas
 Comerc/Com Atac de Alcool Carburante, Biod, G
@@ -207,7 +207,7 @@ Data Real Leit Anterior 28/02/2023
 Data Provável Prox Leitura 01/05/2023
 EQUIPAMENTOS DE MEDIÇÃO
 E750-MF kW kWh kvarh
-Medidor 0040624956 0040624956 0040624956
+Medidor [ID] [ID] [ID]
 Constante 0.09600 0.02400 0.02400
 Constante Excedente Reativo kW/kWh 0.02400
 Grandezas e Valores para Faturamento

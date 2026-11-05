@@ -6,10 +6,10 @@ Data: 18/09/2026 · Critério: **≤ R$ 0,05/linha e ≤ R$ 1,00/total** · Refe
 
 | Caso | Fonte | Competência | Total fatura | Motor (banco) | Δ total | Status |
 |---|---|---:|---:|---:|---:|---|
-| Copel ON PETRO | `COPEL - grupo A.pdf` | 04/2023 | 9.854,93 | 9.854,96 | +0,03 | ✅ |
-| CEMIG CEFET BH | `23-09 BH CI_934.pdf` | 09/2023 | 56.184,86* | 58.474,69* | — | ✅ linhas técnicas |
-| ENEL CRBio | `ENEL - grupo A.pdf` | 01/2021 | 3.254,04 | 3.477,14 | +223,10 | ⏳ modo só-ICMS |
-| Equatorial IFPA Abaetetuba | `ABAETETUBA_DEZEMBRO_2024.pdf` | 12/2024 | 39.781,08 | 42.638,24* | — | ✅ consumo/reativo; demanda alíquota |
+| Copel UC COPEL-1 | `COPEL - grupo A.pdf` | 04/2023 | 9.854,93 | 9.854,96 | +0,03 | ✅ |
+| CEMIG UC CEMIG-1 | `23-09 BH CI_934.pdf` | 09/2023 | 56.184,86* | 58.474,69* | — | ✅ linhas técnicas |
+| ENEL UC ENEL-1 | `ENEL - grupo A.pdf` | 01/2021 | 3.254,04 | 3.477,14 | +223,10 | ⏳ modo só-ICMS |
+| Equatorial UC EQT-ABAETETUBA | `ABAETETUBA_DEZEMBRO_2024.pdf` | 12/2024 | 39.781,08 | 42.638,24* | — | ✅ consumo/reativo; demanda alíquota |
 
 \* CEMIG inclui multa/juros/retenções; Equatorial ainda não desconta retenções (IRPJ/CSLL/PIS/COFINS) do total — comparar por linha.
 

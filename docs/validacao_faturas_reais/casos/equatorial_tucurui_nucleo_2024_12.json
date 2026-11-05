@@ -1,0 +1,39 @@
+{
+  "meta": {
+    "fonte": "fwdfaturagrupoa/TUCURUI_NUCLEO_DEZEMBRO_2024.pdf",
+    "distribuidora": "EQUATORIAL PA",
+    "subgrupo": "A4",
+    "modalidade": "Optante B",
+    "competencia": "12/2024",
+    "total_fatura": 3156.27,
+    "uc": "UC EQT-TUCURUI-NUCLEO (Poder Público Federal, B-Optante, 13,8 kV)"
+  },
+  "perfil": {
+    "data_referencia": "2024-12-15",
+    "consumo_ponta_kwh": 0.0,
+    "consumo_fora_ponta_kwh": 2665.0,
+    "reativo_energia_fora_ponta_kvArh": 164.0,
+    "cip_cosip_rs": 0.0,
+    "outros_rs": 0.0,
+    "bandeira_adicional_r_kwh": 0.0053015625
+  },
+  "tributos": {"pis": 0.010021, "cofins": 0.046184, "icms": 0.19, "tipo_icms": "fora"},
+  "tarifas_liquidas": [
+    {"componente": "TUSD", "grandeza": "ENERGIA", "posto": "PONTA", "unidade": "R$/kWh", "valor": 0.938450},
+    {"componente": "TUSD", "grandeza": "ENERGIA", "posto": "FORA PONTA", "unidade": "R$/kWh", "valor": 0.938450},
+    {"componente": "REATIVO", "grandeza": "ENERGIA", "posto": "FORA PONTA", "unidade": "R$/kVArh", "valor": 0.290980}
+  ],
+  "linhas_esperadas": [
+    {"descricao": "Consumo (kWh) — tarifa única B (TE+TUSD)", "quantidade": 2665, "tarifa": 1.227572, "valor": 3271.48},
+    {"descricao": "Consumo Reativo Excedente (kVAr)", "quantidade": 164, "tarifa": 0.380671, "valor": 62.43},
+    {"descricao": "Adicional Bandeira", "quantidade": 2665, "tarifa": null, "valor": 18.47}
+  ],
+  "notas": [
+    "Caso real de Optante B (art. 292): unidade do Grupo A (13,8 kV) faturada com tarifa única do Grupo B, sem demanda.",
+    "Tarifa única B impressa na fatura (0,938450 R$/kWh) inclui TE+TUSD; o caso usa uma parcela única por posto.",
+    "Perdas de transformação de 2,5% já embutidas nas grandezas faturadas: 2.600 kWh medidos × 1,025 = 2.665 kWh; 160 kvarh × 1,025 = 164 kvarh (premissa D2).",
+    "Bandeira amarela de 22/11 a 30/11 (9 de 32 dias): adicional pro rata = 0,01885 × 9/32 = 0,0053016 R$/kWh; bandeira tributada.",
+    "Reativo excedente cobrado de B-Optante e tributado (divergência com art. 303 — premissa D3).",
+    "Total da fatura inclui retenções federais (IRPJ, CSLL, PIS, COFINS: −196,11) fora do motor; soma técnica = 3.352,38."
+  ]
+}

@@ -38,8 +38,8 @@ Grandezas Contratadas
 Demanda Fora Ponta 400
 Demanda Geração 0
 
-CEFET NOVA SUÍÇA — AV AMAZONAS 5253 EL — NOVA SUISSA — 30421-169 BELO HORIZONTE, MG
-Nº DO CLIENTE 7000081824 — Nº DA INSTALAÇÃO 3009014934
+[dados do cliente removidos]
+[dados do cliente removidos]
 Referente a DEZ/2023 — Vencimento 11/02/2024 — Valor a pagar R$ 52.234,40
 Classe: Poder Público — Subclasse: Poder Público Federal — Modalidade Tarifária: THS Verde A4
 Datas de Leitura: Anterior 30/11 — Atual 31/12 — Nº de dias 31 — Próxima 31/01

@@ -43,33 +43,33 @@ PASEP 62.148,46    0,73 453,64
 COFINS 62.148,46 3,39 2.106,81
 Fale com CEMIG: 116 - CEMIG Torpedo 29810 - Ouvidoria CEMIG: 0800 7283838 - Agência Nacional de Energia Elétrica - ANEEL - Telefone: 167- Ligação gratuita de telefones fixos e móveis.
 Código de Débito Automático Instalação Vencimento Total a pagar
-008068568404 3009014934 11/12/2023 R$ 73.043,50 
-Outubro/2023 83670000730-2 43500138001-1 33047501933-8 08068568404-7
+[ID] [ID] 11/12/2023 R$ 73.043,50 
+Outubro/2023 [ID]-2 [ID]-1 [ID]-8 [ID]-7
 NnNnWwNwNnWnNnNnWnWnNwNwNnNnWwWwNnNnNnWwWwNnNwNwNnWnWnNnNnWwWnNwWwWnNwNnNnNnNnWwWwNnWwNwNnNnWnWnNnNwWwNnNwNnWnWnNwWwWwNnNnNnNnNnWwWnNwNwNnNwWnWnNwNnWnWnNwNwWwNnWnNnWnWnNwNwNnWnNnNwWwNnNwWnWnNwNnWnNwWwNnNnWnNnNwWnNwNnNnWwWnNwWnN
 Grandezas Contratadas
 Demanda Fora Ponta              420
 Demanda Geração                0
-CEFET NOVA SUIÇA
-AV AMAZONAS 5253 EL
-NOVA SUISSA
-30421-169 BELO HORIZONTE, MG
-Nº DO CLIENTE Nº DA INSTALAÇÃO
-7000081824 3009014934
+[dados do cliente removidos]
+[dados do cliente removidos]
+[dados do cliente removidos]
+[dados do cliente removidos]
+[dados do cliente removidos]
+[ID] [ID]
 Referente a Vencimento Valor a pagar(R$)
 OUT/2023 11/12/2023 73.043,50 
-NOTA FISCAL Nº 089584829 - SÉRIE 000
+NOTA FISCAL Nº [ID] - SÉRIE 000
 Data de emissão: 10/11/2023
 Consulte pela chave de acesso em:
 http://www.sped.fazenda.mg.gov.br/spedmg/nf3e
 chave de acesso:
-31231106981180000116660000895848291042467707
-Protocolo de autorização: 1312300098632661
+[ID]
+Protocolo de autorização: [ID]
 10.11.2023 às 19:52:31
 Classe Subclasse Modalidade Tarifária Datas de Leitura
 Poder Público  Poder Publico THS Verde A4 Anterior Atual Nº de dias Próxima
  Federal 30/09 31/10  31 30/11
 DOCUMENTO AUXILIAR DA NOTA FISCAL DE ENERGIA ELÉTRICA ELETRÔNICA SEGUNDA VIA
-CEMIG DISTRIBUIÇÃO S.A. CNPJ 06.981.180/0001-16 / INSC. ESTADUAL 062.322136.0087.
+[dados do cliente removidos]
 AV. BARBACENA, 1.200 - 17º ANDAR - ALA 1 - BAIRRO SANTO AGOSTINHO
 CEP: 30190-131 - BELO HORIZONTE - MG. TARIFA SOCIAL DE ENERGIA ELÉTRICA - TSEE FOI CRIADA PELA LEI Nº 10.438, DE 26 DE ABRIL DE 2002
 Informações Gerais
@@ -143,12 +143,12 @@ As leituras referem-se ao medidor atual.
 Data de assinatura do CCER: 29/06/2023.
 Vigência do CCER: 28/06/2024.
 DEMONSTRATIVO DE GRANDEZAS FATURADAS
-Cliente: CEFET NOVA SUIÇA Unidade: BELO HORIZONTE
-Instalação: 3009014934 Medidor: GMP197302678 Período de Medição  01/10/2023 a 31/10/2023
+[dados do cliente removidos]
+Instalação: [ID] Medidor: GMP[ID] Período de Medição  01/10/2023 a 31/10/2023
 Subgrupo: A4 Local de Medição: Mês/Ano: 10/2023
 Modulação contratual/Horário de ponta: 17:00 às 20:00 Dias livres :    SAB e DOM
-NOTA FISCAL Nº 089584829 - SÉRIE 000
+NOTA FISCAL Nº [ID] - SÉRIE 000
 Data de emissão: 10.11.2023
 Consulte pela chave de acesso em: http://www.sped.fazenda.mg.gov.br/spedmg/nf3e
-chave de acesso: 31231106981180000116660000895848291042467707
-Protocolo de autorização: 1312300098632661 - 10.11.2023 às19:52:31
+chave de acesso: [ID]
+Protocolo de autorização: [ID] - 10.11.2023 às19:52:31

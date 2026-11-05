@@ -40,32 +40,32 @@ PASEP 48.942,16    0,73 357,24
 COFINS 48.942,16 3,37 1.649,33
 Fale com CEMIG: 116 - CEMIG Torpedo 29810 - Ouvidoria CEMIG: 0800 7283838 - Agência Nacional de Energia Elétrica - ANEEL - Telefone: 167- Ligação gratuita de telefones fixos e móveis.
 Código de Débito Automático Instalação Vencimento Total a pagar
-008068568404 3009014934 11/11/2023 R$ 56.184,86 
+[ID] [ID] 11/11/2023 R$ 56.184,86 
 Setembro/2023Comprovante de Pagamento
 Grandezas Contratadas
 Demanda Fora Ponta              420
 Demanda Geração                0
-CEFET NOVA SUIÇA
-AV AMAZONAS 5253 EL
-NOVA SUISSA
-30421-169 BELO HORIZONTE, MG
-Nº DO CLIENTE Nº DA INSTALAÇÃO
-7000081824 3009014934
+[dados do cliente removidos]
+[dados do cliente removidos]
+[dados do cliente removidos]
+[dados do cliente removidos]
+[dados do cliente removidos]
+[ID] [ID]
 Referente a Vencimento Valor a pagar(R$)
 SET/2023 11/11/2023 56.184,86 
-NOTA FISCAL Nº 076943142 - SÉRIE 000
+NOTA FISCAL Nº [ID] - SÉRIE 000
 Data de emissão: 02/10/2023
 Consulte pela chave de acesso em:
 http://www.sped.fazenda.mg.gov.br/spedmg/nf3e
 chave de acesso:
-31231006981180000116660000769431421042151430
-Protocolo de autorização: 1312300085884786
+[ID]
+Protocolo de autorização: [ID]
 02.10.2023 às 20:25:08
 Classe Subclasse Modalidade Tarifária Datas de Leitura
 Poder Público  Poder Publico THS Verde A4 Anterior Atual Nº de dias Próxima
  Federal 31/08 30/09  30 31/10
 DOCUMENTO AUXILIAR DA NOTA FISCAL DE ENERGIA ELÉTRICA ELETRÔNICA SEGUNDA VIA
-CEMIG DISTRIBUIÇÃO S.A. CNPJ 06.981.180/0001-16 / INSC. ESTADUAL 062.322136.0087.
+[dados do cliente removidos]
 AV. BARBACENA, 1.200 - 17º ANDAR - ALA 1 - BAIRRO SANTO AGOSTINHO
 CEP: 30190-131 - BELO HORIZONTE - MG. TARIFA SOCIAL DE ENERGIA ELÉTRICA - TSEE FOI CRIADA PELA LEI Nº 10.438, DE 26 DE ABRIL DE 2002
 Informações Gerais
@@ -130,12 +130,12 @@ Notas:
 Data de assinatura do CCER: 29/06/2023.
 Vigência do CCER: 28/06/2024.
 DEMONSTRATIVO DE GRANDEZAS FATURADAS
-Cliente: CEFET NOVA SUIÇA Unidade: BELO HORIZONTE
-Instalação: 3009014934 Medidor: GPE236000266 Período de Medição  01/09/2023 a 30/09/2023
+[dados do cliente removidos]
+Instalação: [ID] Medidor: GPE[ID] Período de Medição  01/09/2023 a 30/09/2023
 Subgrupo: A4 Local de Medição: Mês/Ano: 09/2023
 Modulação contratual/Horário de ponta: 17:00 às 20:00 Dias livres :    SAB e DOM
-NOTA FISCAL Nº 076943142 - SÉRIE 000
+NOTA FISCAL Nº [ID] - SÉRIE 000
 Data de emissão: 02.10.2023
 Consulte pela chave de acesso em: http://www.sped.fazenda.mg.gov.br/spedmg/nf3e
-chave de acesso: 31231006981180000116660000769431421042151430
-Protocolo de autorização: 1312300085884786 - 02.10.2023 às20:25:08
+chave de acesso: [ID]
+Protocolo de autorização: [ID] - 02.10.2023 às20:25:08

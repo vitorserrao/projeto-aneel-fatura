@@ -28,7 +28,7 @@
 ## 3. Seleção inicial
 
 - **Verde (PDF textual):**
-  1. COPEL ON PETRO 04/2023 (caso já validado — revalidar nas duas camadas).
+  1. COPEL UC COPEL-1 04/2023 (caso já validado — revalidar nas duas camadas).
   2. CEMIG BH CI_934 09/2023 (imprime tarifa líquida e tarifa com impostos).
   3. ENEL A4 Comercial 01/2021 (linhas TUSD/TE detalhadas).
   4. Equatorial ABAETETUBA 12/2024 (A4 Verde, fp 0,885 → reativos excedentes).
