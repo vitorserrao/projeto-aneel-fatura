@@ -6,11 +6,11 @@
       "motivo": "Optante B (art. 292): exige transformadores ≤ 112,5 kVA (ou ≤ 1.125 kVA se cooperativa de eletrificação rural), hotelaria/turismo ou iluminação esportiva ≥ 2/3 da carga (atividades esportivas/parques agropecuários)."
     },
     "melhor_contrato_atual": "Verde",
-    "melhor_demanda_otimizada": "Verde",
+    "melhor_demanda_otimizada": "Azul",
     "ganho": {
-      "total": 102424.61116170627,
-      "demanda": 102424.61116170627,
-      "modalidade": 0.0
+      "total": 47715.57789393398,
+      "demanda": 40027.897122711525,
+      "modalidade": 7687.6807712224545
     },
     "modalidades": [
       {
@@ -30,10 +30,10 @@
       },
       {
         "modalidade": "Verde",
-        "custo_contrato_atual": 708343.71,
-        "custo_demanda_otimizada": 605919.1,
+        "custo_contrato_atual": 697736.45,
+        "custo_demanda_otimizada": 657708.55,
         "dc_atual": 400.0,
-        "dc_otima": 30.0,
+        "dc_otima": 204.0,
         "epi_simplificado": 297.1125902370257,
         "epi_com_custos": 281.31662783912157
       }
@@ -68,32 +68,32 @@
         53974.45
       ],
       "Verde · atual": [
-        39517.4,
-        42893.45,
-        63537.18,
-        53995.45,
-        56435.34,
-        63129.02,
-        54627.41,
-        68055.91,
-        68794.62,
-        69872.98,
-        70826.08,
-        56658.87
+        38370.58,
+        42001.05,
+        62804.27,
+        53194.19,
+        55596.1,
+        62106.86,
+        53543.57,
+        67126.27,
+        68080.87,
+        69053.49,
+        70081.49,
+        55777.7
       ],
       "Verde · otimizada": [
-        31711.55,
-        35087.6,
-        55731.33,
-        46189.6,
-        48629.49,
-        54072.54,
-        45570.93,
-        58999.43,
-        59738.14,
-        60816.5,
-        61769.6,
-        47602.39
+        34979.88,
+        38610.36,
+        59465.48,
+        49803.49,
+        52205.41,
+        58172.92,
+        49609.63,
+        63192.33,
+        66493.79,
+        65320.26,
+        68011.23,
+        51843.76
       ]
     },
     "meses": [
@@ -137,8 +137,8 @@
     "melhor_contrato_atual": "Verde",
     "melhor_demanda_otimizada": "Verde",
     "ganho": {
-      "total": 62049.816177891335,
-      "demanda": 62049.816177891335,
+      "total": 12393.966832153805,
+      "demanda": 12393.966832153805,
       "modalidade": 0.0
     },
     "modalidades": [
@@ -159,10 +159,10 @@
       },
       {
         "modalidade": "Verde",
-        "custo_contrato_atual": 115894.1,
-        "custo_demanda_otimizada": 53844.29,
+        "custo_contrato_atual": 112334.21,
+        "custo_demanda_otimizada": 99940.24,
         "dc_atual": 260.0,
-        "dc_otima": 30.0,
+        "dc_otima": 201.0,
         "epi_simplificado": 265.0660714033046,
         "epi_com_custos": 133.69642063630408
       }
@@ -197,32 +197,32 @@
         9247.49
       ],
       "Verde · atual": [
-        9560.36,
-        10649.96,
-        6785.35,
-        9355.66,
-        10662.75,
-        11835.65,
-        10219.55,
-        9101.02,
-        8988.71,
-        9134.9,
-        9417.5,
-        10182.69
+        9348.36,
+        10444.58,
+        6576.09,
+        9153.76,
+        10444.42,
+        11604.89,
+        9947.45,
+        8822.53,
+        8614.34,
+        8713.21,
+        8927.61,
+        9736.95
       ],
       "Verde · otimizada": [
-        4502.86,
-        5592.47,
-        1727.86,
-        4147.07,
-        5454.15,
-        6627.06,
-        5010.95,
-        3892.43,
-        3780.11,
-        3926.31,
-        4208.91,
-        4974.1
+        8382.62,
+        9508.95,
+        5622.79,
+        8234.0,
+        9449.82,
+        10553.66,
+        8851.84,
+        7726.91,
+        7518.72,
+        7617.6,
+        7831.99,
+        8641.33
       ]
     },
     "meses": [
