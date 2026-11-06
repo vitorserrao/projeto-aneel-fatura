@@ -178,7 +178,7 @@ export default function App() {
       const { meses, avisos, periodo } = montarMesesPlanejamento(formData);
       const grupoA = formData.modalidadeAtual === 'verde' || formData.modalidadeAtual === 'azul';
       const [respEpi, respPlan] = await Promise.allSettled([
-        calcularEpi(formData),
+        calcularEpi(formData, { modalidade: formData.modalidadeAtual === 'azul' ? 'Azul' : formData.modalidadeAtual === 'optante_b' ? 'Optante B' : 'Verde', comCustos: (formData.opexMensal || 0) > 0 || (formData.capex || 0) > 0 }),
         grupoA && meses.length > 0 ? compararPlanejamento(formData, meses) : Promise.resolve(null),
       ]);
       const epi = respEpi.status === 'fulfilled' ? adaptarEpi(respEpi.value, formData) : null;
