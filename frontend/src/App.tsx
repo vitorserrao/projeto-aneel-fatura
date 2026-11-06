@@ -14,7 +14,7 @@ import {
 } from './lib/api';
 import { Analise, calcularEpiAnalise, executarAnalise } from './lib/analise';
 import { ResultadoSeries, calcularSeries } from './lib/series';
-import { validarFormulario } from './lib/validacao';
+import { premissasDeEntrada, validarFormulario } from './lib/validacao';
 import { DEFAULT_FORM, exemploCopel } from './lib/formPadrao';
 
 export default function App() {
@@ -106,8 +106,11 @@ export default function App() {
     const novoForm = { ...analise.form, ...mudancas };
     setForm((f) => ({ ...f, ...mudancas }));
     setAnalise({ ...analise, form: novoForm });
-    const epi = await calcularEpiAnalise(novoForm, analise.epi.modalidade);
-    setAnalise((a) => (a ? { ...a, form: novoForm, epi } : a));
+    const [epi, epiRecomendada] = await Promise.all([
+      calcularEpiAnalise(novoForm, analise.epi.modalidade),
+      analise.epiRecomendada ? calcularEpiAnalise(novoForm, analise.epiRecomendada.modalidade) : Promise.resolve(null),
+    ]);
+    setAnalise((a) => (a ? { ...a, form: novoForm, epi, epiRecomendada, premissas: premissasDeEntrada(novoForm) } : a));
   }
 
   const liberadas: Etapa[] = analise ? [1, 2, 3] : [1];
