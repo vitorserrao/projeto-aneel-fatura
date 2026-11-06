@@ -7,7 +7,7 @@ import React from 'react';
 import type { InvoiceFormData, TariffModalidade } from '../types/energy';
 import { BandeiraOpcao, bandeiraApiParaForm, dataReferenciaIso, lerHistorico } from '../lib/api';
 import { ehGrupoA, montarMesesPlanejamento, num, validarFormulario } from '../lib/validacao';
-import { DISTRIBUTORS, SUBGROUPS } from '../utils/calculator';
+import { DISTRIBUIDORAS_APOIO, SUBGROUPS } from '../lib/listas';
 import {
   LinhaTabela,
   linhasDeMeses,
@@ -136,7 +136,7 @@ export const EtapaDados: React.FC<Props> = ({
     }
   }, [form.ucCode, form.historico12]);
 
-  const opcoesDistribuidora = (distribuidorasApi ?? DISTRIBUTORS.map((d) => d.sigAgente)).map((s) => ({
+  const opcoesDistribuidora = (distribuidorasApi ?? DISTRIBUIDORAS_APOIO).map((s) => ({
     valor: s,
     rotulo: s,
   }));
