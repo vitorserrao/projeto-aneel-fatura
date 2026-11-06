@@ -34,6 +34,9 @@ export interface Distributor {
   baseConvencionalKwh: number;
 }
 
+/** Campo numérico: null = não informado (nunca vira 0 escondido). */
+export type NumOpc = number | null;
+
 export interface InvoiceFormData {
   // Seção 1: Distribuidora e Modalidade
   distribuidora: string; // sig_agente (ex: COPEL-DIS, ENEL-SP, CEMIG-D, etc.)
@@ -47,15 +50,15 @@ export interface InvoiceFormData {
   bandeira: BandeiraTarifaria;
 
   // Seção 2: Consumo Ativo e Demanda Registrada
-  consumoPonta: number; // kWh
-  consumoForaPonta: number; // kWh
-  consumoIntermediario: number; // kWh (Branca)
-  demandaMedida: number; // kW — Verde (demanda única)
-  demandaContratada: number; // kW — Verde (demanda única)
-  demandaPontaKw: number; // kW — Azul
-  demandaForaPontaKw: number; // kW — Azul
-  demandaContratadaPontaKw: number; // kW — Azul
-  demandaContratadaForaPontaKw: number; // kW — Azul
+  consumoPonta: number | null; // kWh
+  consumoForaPonta: number | null; // kWh
+  consumoIntermediario: number | null; // kWh (Branca)
+  demandaMedida: number | null; // kW — Verde (demanda única)
+  demandaContratada: number | null; // kW — Verde (demanda única)
+  demandaPontaKw: number | null; // kW — Azul
+  demandaForaPontaKw: number | null; // kW — Azul
+  demandaContratadaPontaKw: number | null; // kW — Azul
+  demandaContratadaForaPontaKw: number | null; // kW — Azul
   demandaIsentaIcmsAtiva: boolean; // envia demanda_isenta_icms=true
   demandaIsentaIcms: number; // kW (opcional)
 
@@ -66,6 +69,8 @@ export interface InvoiceFormData {
   opexMensal: number; // R$/mês — E-PI com custos de migração (0 = simplificado)
   capex: number; // R$ — E-PI com custos de migração
   horizonteMeses: number; // meses de amortização do CAPEX
+  encargosAcl: number | null; // R$/MWh (ESS/EER, CCEE) — vazio = 0, declarado no relatório
+  totalFatura: number | null; // R$ impresso na fatura — conferência (opcional)
 
   // Histórico de 12 meses para o planejamento anual (texto colado):
   // "MM/AAAA; demanda ponta; demanda fora ponta; consumo ponta; consumo fora ponta"
@@ -85,9 +90,9 @@ export interface InvoiceFormData {
 
   // Seção 4: Tributos
   aplicarTributos: boolean;
-  pis: number; // % (ex: 0.95)
-  cofins: number; // % (ex: 4.38)
-  icms: number; // % (ex: 18)
+  pis: number | null; // % (ex: 0.95)
+  cofins: number | null; // % (ex: 4.38)
+  icms: number | null; // % (ex: 18)
   tipoIcms: TipoICMS; // 'fora' | 'dentro'
   cipCosip: number; // R$
   arredondarCentavos: boolean; // arredondar_centavos da API
@@ -96,7 +101,7 @@ export interface InvoiceFormData {
   atividade: AtividadeEconomica;
   tipoLigacao: TipoLigacao;
   prePagamento: boolean;
-  potenciaTransformadoresKva: number; // ≤ 112,5 kVA (ou ≤ 1.125 cooperativa)
+  potenciaTransformadoresKva: number | null; // ≤ 112,5 kVA (ou ≤ 1.125 cooperativa)
   cooperativaEletrificacaoRural: boolean;
   hotelariaTurismo: boolean;
   cargaRefletoresKw: number; // ≥ 2/3 da carga instalada (esportivo/parques)
@@ -176,6 +181,10 @@ export interface PlanejamentoResumo {
   ganhoModalidade: number;
   modalidades: PlanejamentoModalidade[];
   avisos: string[];
+  /** true quando há menos de 12 meses (resultado indicativo, sem anualizar). */
+  parcial: boolean;
+  /** Período usado, ex.: "04/2022–03/2023". */
+  periodo: string;
 }
 
 export interface AuditResult {
@@ -224,4 +233,10 @@ export interface AuditResult {
   epi: EpiResumo | null;
   /** Planejamento anual (null sem histórico de 12 meses). */
   planejamento: PlanejamentoResumo | null;
+  /** Conferência com o total impresso na fatura (null = total não informado). */
+  conferencia: { totalFatura: number; totalCalculado: number; diferenca: number } | null;
+  /** false = elegibilidade ao Optante B não informada (não avaliado ≠ inelegível). */
+  optanteBAvaliado: boolean;
+  /** Premissas assumidas por falta de dado opcional, mostradas no relatório. */
+  premissasEntrada: string[];
 }

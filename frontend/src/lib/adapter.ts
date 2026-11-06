@@ -6,6 +6,8 @@
  * do mercado livre usam o E-PI calculado pela API (POST /api/epi/calcular);
  * o front não estima nenhum valor tarifário por conta própria.
  */
+import { num } from './numeros';
+import { optanteBInformado, premissasDeEntrada } from './validacao';
 import type {
   AuditResult,
   EpiResumo,
@@ -113,9 +115,16 @@ export function custoAclPorEpi(custoMelhorAcr: number, epi: EpiResumo | null, pr
 }
 
 /** Planejamento anual da API → resumo de exibição. */
-export function adaptarPlanejamento(p: PlanejamentoApi, meses: number): PlanejamentoResumo {
+export function adaptarPlanejamento(
+  p: PlanejamentoApi,
+  meses: number,
+  periodo = '',
+  avisosEntrada: string[] = [],
+): PlanejamentoResumo {
   return {
     meses,
+    parcial: meses < 12,
+    periodo,
     melhorContratoAtual: p.melhor_contrato_atual,
     melhorDemandaOtimizada: p.melhor_demanda_otimizada,
     ganhoTotal: p.ganho.total,
@@ -129,7 +138,7 @@ export function adaptarPlanejamento(p: PlanejamentoApi, meses: number): Planejam
       dcOtima: m.dc_otima,
       epiAnual: m.pi?.anual ?? null,
     })),
-    avisos: p.avisos,
+    avisos: [...avisosEntrada, ...p.avisos],
   };
 }
 
@@ -158,6 +167,7 @@ export function adaptarComparacao(
   epi: EpiResumo | null = null,
   planejamento: PlanejamentoResumo | null = null,
 ): AuditResult {
+  const totalFatura = form.totalFatura;
   const respComparacao = 'comparacao' in resp ? resp.comparacao : null;
   const respFatura: FaturaApi = 'fatura' in resp ? resp.fatura : faturaAtual;
   const disponiveis = respComparacao ? respComparacao.disponiveis : [respFatura];
@@ -174,7 +184,7 @@ export function adaptarComparacao(
   const novoCusto = disponiveis.find((f) => f.modalidade === melhorApi)?.custo_total ?? faturaAtual.custo_total;
   const custoAtual = faturaAtual.custo_total;
   const economiaMensal = Math.max(0, custoAtual - novoCusto);
-  const consumoTotalKwh = form.consumoPonta + form.consumoForaPonta + form.consumoIntermediario;
+  const consumoTotalKwh = num(form.consumoPonta) + num(form.consumoForaPonta) + num(form.consumoIntermediario);
 
   const extras = adaptarFatura(faturaAtual, form);
   const notasApi = 'notas' in resp ? resp.notas : [];
@@ -185,8 +195,12 @@ export function adaptarComparacao(
     distribuidoraNome: form.distribuidora,
     sigAgente: form.distribuidora,
     subgrupo: form.subgrupo,
-    demandaFaturavelKw: Math.max(form.demandaMedida, form.demandaContratada),
-    demandaContratadaKw: form.demandaContratada,
+    demandaFaturavelKw:
+      form.modalidadeAtual === 'azul'
+        ? Math.max(num(form.demandaForaPontaKw), num(form.demandaContratadaForaPontaKw))
+        : Math.max(num(form.demandaMedida), num(form.demandaContratada)),
+    demandaContratadaKw:
+      form.modalidadeAtual === 'azul' ? num(form.demandaContratadaForaPontaKw) : num(form.demandaContratada),
     consumoTotalCicloKwh: consumoTotalKwh,
     modalidadeRecomendadaNome: melhorApi,
     modalidadeRecomendadaKey: melhorKey,
@@ -203,19 +217,29 @@ export function adaptarComparacao(
     custoBranca,
     diferencaAzulVsVerde: custoAzul - custoVerde,
     sobreprecoConvencionalPct: custoVerde > 0 ? ((custoConvencional - custoVerde) / custoVerde) * 100 : 0,
-    consumoPontaPercentual: consumoTotalKwh > 0 ? (form.consumoPonta / consumoTotalKwh) * 100 : 0,
-    consumoForaPontaPercentual: consumoTotalKwh > 0 ? (form.consumoForaPonta / consumoTotalKwh) * 100 : 0,
+    consumoPontaPercentual: consumoTotalKwh > 0 ? (num(form.consumoPonta) / consumoTotalKwh) * 100 : 0,
+    consumoForaPontaPercentual: consumoTotalKwh > 0 ? (num(form.consumoForaPonta) / consumoTotalKwh) * 100 : 0,
     breakdown: extras.breakdown ?? [],
     totalOtimizado: novoCusto,
     composicao: extras.composicao ?? { energiaPct: 0, tusdPct: 0, tributosPct: 0 },
     comparativoTeTusd: comparativoDeFaturas(disponiveis),
     reativosTotal: extras.reativosTotal ?? 0,
     tributosTotaisEstimados: somaPorCategoria(faturaAtual, ['Tributos', 'Bandeira']),
-    tributosPercentual: Number((form.pis + form.cofins + form.icms).toFixed(2)),
+    tributosPercentual: Number((num(form.pis) + num(form.cofins) + num(form.icms)).toFixed(2)),
     notas: notasApi.map((n) => ({ tipo: n.tipo, mensagem: n.mensagem })),
     indisponiveis: indisponiveisApi.map((i) => ({ modalidade: i.modalidade, motivo: i.motivo })),
     fonte: 'api',
     epi,
     planejamento,
+    conferencia:
+      totalFatura !== null && totalFatura > 0
+        ? {
+            totalFatura,
+            totalCalculado: custoAtual,
+            diferenca: Number((custoAtual - totalFatura).toFixed(2)),
+          }
+        : null,
+    optanteBAvaliado: optanteBInformado(form) || form.modalidadeAtual === 'optante_b',
+    premissasEntrada: premissasDeEntrada(form),
   };
 }

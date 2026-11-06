@@ -23,6 +23,14 @@ import {
   formatNumber,
 } from '../utils/calculator';
 import { bandeiraApiParaForm, lerHistorico } from '../lib/api';
+import { ehGrupoA, montarMesesPlanejamento, num } from '../lib/validacao';
+
+/** Marca de campo obrigatório. */
+const Obg: React.FC = () => (
+  <span className="text-red-600" title="obrigatório" aria-label="obrigatório">
+    *
+  </span>
+);
 
 interface StepOneFormProps {
   formData: InvoiceFormData;
@@ -52,7 +60,8 @@ export const StepOneForm: React.FC<StepOneFormProps> = ({
 }) => {
   // Valores calculados dinamicamente para exibição no Passo 1
   const consumoTotalCiclo =
-    formData.consumoPonta + formData.consumoForaPonta + formData.consumoIntermediario;
+    num(formData.consumoPonta) + num(formData.consumoForaPonta) + num(formData.consumoIntermediario);
+  const grupoA = ehGrupoA(formData);
 
   // Distribuidoras e subgrupos: dados reais da API quando disponíveis.
   const opcoesDistribuidora = distribuidorasApi ?? DISTRIBUTORS.map((d) => d.sigAgente);
@@ -81,11 +90,26 @@ export const StepOneForm: React.FC<StepOneFormProps> = ({
   };
 
   const historicoLido = lerHistorico(formData.historico12);
+  const planoPrevia =
+    formData.modalidadeAtual === 'verde' || formData.modalidadeAtual === 'azul'
+      ? montarMesesPlanejamento(formData)
+      : { meses: [], avisos: [], periodo: '' };
 
   const handleFloatChange = (field: keyof InvoiceFormData, val: string) => {
     const normalized = val.replace(',', '.');
     const num = parseFloat(normalized);
     onChange({ ...formData, [field]: isNaN(num) ? 0 : num });
+  };
+
+  /** Campo que distingue vazio (null) de zero digitado. */
+  const handleOptChange = (field: keyof InvoiceFormData, val: string) => {
+    const t = val.trim();
+    if (t === '') {
+      onChange({ ...formData, [field]: null });
+      return;
+    }
+    const n = parseFloat(t.replace(',', '.'));
+    onChange({ ...formData, [field]: Number.isNaN(n) ? null : Math.max(0, n) });
   };
 
   const handleIntChange = (field: keyof InvoiceFormData, val: string) => {
@@ -111,7 +135,7 @@ export const StepOneForm: React.FC<StepOneFormProps> = ({
             Inserir Dados da Fatura
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-            Preencha os valores da conta de luz ou importe os parâmetros homologados da unidade.
+            Preencha os valores da conta de luz ou importe os parâmetros homologados da unidade. Campos com <span className="text-red-600">*</span> são obrigatórios; campo vazio nunca é tratado como zero.
           </p>
         </div>
 
@@ -157,7 +181,7 @@ export const StepOneForm: React.FC<StepOneFormProps> = ({
                 htmlFor="inp-distribuidora"
                 className="text-xs font-semibold uppercase tracking-wider text-slate-700 block"
               >
-                Distribuidora
+                Distribuidora <Obg />
               </label>
               <div className="relative">
                 <select
@@ -166,6 +190,7 @@ export const StepOneForm: React.FC<StepOneFormProps> = ({
                   onChange={(e) => onChange({ ...formData, distribuidora: e.target.value })}
                   className="w-full h-11 px-3.5 pr-8 bg-slate-50/60 border border-slate-200 rounded-xl text-sm font-semibold text-slate-800 focus:bg-white focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all appearance-none cursor-pointer truncate"
                 >
+                  <option value="">Selecione…</option>
                   {opcoesDistribuidora.map((sigla) => (
                     <option key={sigla} value={sigla}>
                       {sigla}
@@ -185,7 +210,7 @@ export const StepOneForm: React.FC<StepOneFormProps> = ({
                 htmlFor="inp-subgrupo"
                 className="text-xs font-semibold uppercase tracking-wider text-slate-700 block"
               >
-                Subgrupo
+                Subgrupo <Obg />
               </label>
               <div className="relative">
                 <select
@@ -194,6 +219,7 @@ export const StepOneForm: React.FC<StepOneFormProps> = ({
                   onChange={(e) => onChange({ ...formData, subgrupo: e.target.value })}
                   className="w-full h-11 px-3.5 pr-8 bg-slate-50/60 border border-slate-200 rounded-xl text-sm font-semibold text-slate-800 focus:bg-white focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all appearance-none cursor-pointer truncate"
                 >
+                  <option value="">Selecione…</option>
                   {opcoesSubgrupo.map((s) => (
                     <option key={s.id} value={s.id}>
                       {s.label}
@@ -213,7 +239,7 @@ export const StepOneForm: React.FC<StepOneFormProps> = ({
                 htmlFor="inp-data-ref"
                 className="text-xs font-semibold uppercase tracking-wider text-slate-700 block whitespace-nowrap"
               >
-                Data de Referência
+                Data de Referência <Obg />
               </label>
               <div className="relative flex rounded-xl border border-slate-200 focus-within:ring-2 focus-within:ring-amber-500 focus-within:border-amber-500 overflow-hidden bg-slate-50/60 focus-within:bg-white transition-all">
                 <input
@@ -290,6 +316,35 @@ export const StepOneForm: React.FC<StepOneFormProps> = ({
               />
             </div>
           </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <label htmlFor="inp-uc" className="text-xs font-semibold text-slate-600 block">
+                Código da UC <span className="font-normal text-slate-400">(opcional)</span>
+              </label>
+              <input
+                id="inp-uc"
+                type="text"
+                value={formData.ucCode}
+                onChange={(e) => onChange({ ...formData, ucCode: e.target.value })}
+                className="w-full h-10 px-3 rounded-xl border border-slate-200 bg-slate-50/60 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:bg-white"
+                placeholder="nº da instalação"
+              />
+            </div>
+            <div className="space-y-1">
+              <label htmlFor="inp-unidade" className="text-xs font-semibold text-slate-600 block">
+                Nome da unidade <span className="font-normal text-slate-400">(opcional)</span>
+              </label>
+              <input
+                id="inp-unidade"
+                type="text"
+                value={formData.unidadeNome}
+                onChange={(e) => onChange({ ...formData, unidadeNome: e.target.value })}
+                className="w-full h-10 px-3 rounded-xl border border-slate-200 bg-slate-50/60 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:bg-white"
+                placeholder="ex.: Matriz"
+              />
+            </div>
+          </div>
+
           <p className="text-[11px] text-slate-400">
             Classe/subclasse filtram a tarifa do Grupo B (Optante B, Convencional e Branca). Para
             Residencial/Rural a classe é derivada automaticamente da atividade; sem classe informada e
@@ -422,7 +477,7 @@ export const StepOneForm: React.FC<StepOneFormProps> = ({
                 htmlFor="inp-consumo-ponta"
                 className="text-xs font-semibold uppercase tracking-wider text-slate-700 block"
               >
-                Consumo Ponta
+                Consumo Ponta <Obg />
               </label>
               <div className="relative flex rounded-xl border border-slate-200 focus-within:ring-2 focus-within:ring-amber-400 focus-within:border-amber-400 overflow-hidden bg-slate-50/60 focus-within:bg-white transition-all">
                 <input
@@ -430,8 +485,8 @@ export const StepOneForm: React.FC<StepOneFormProps> = ({
                   type="number"
                   min="0"
                   step="1"
-                  value={formData.consumoPonta || ''}
-                  onChange={(e) => handleIntChange('consumoPonta', e.target.value)}
+                  value={formData.consumoPonta ?? ''}
+                  onChange={(e) => handleOptChange('consumoPonta', e.target.value)}
                   className="w-full h-11 px-3.5 bg-transparent text-sm font-semibold font-mono-num text-slate-800 focus:outline-none"
                   placeholder="0"
                 />
@@ -447,7 +502,7 @@ export const StepOneForm: React.FC<StepOneFormProps> = ({
                 htmlFor="inp-consumo-fponta"
                 className="text-xs font-semibold uppercase tracking-wider text-slate-700 block"
               >
-                Consumo Fora Ponta
+                Consumo Fora Ponta <Obg />
               </label>
               <div className="relative flex rounded-xl border border-slate-200 focus-within:ring-2 focus-within:ring-amber-400 focus-within:border-amber-400 overflow-hidden bg-slate-50/60 focus-within:bg-white transition-all">
                 <input
@@ -455,8 +510,8 @@ export const StepOneForm: React.FC<StepOneFormProps> = ({
                   type="number"
                   min="0"
                   step="1"
-                  value={formData.consumoForaPonta || ''}
-                  onChange={(e) => handleIntChange('consumoForaPonta', e.target.value)}
+                  value={formData.consumoForaPonta ?? ''}
+                  onChange={(e) => handleOptChange('consumoForaPonta', e.target.value)}
                   className="w-full h-11 px-3.5 bg-transparent text-sm font-semibold font-mono-num text-slate-800 focus:outline-none"
                   placeholder="0"
                 />
@@ -472,7 +527,7 @@ export const StepOneForm: React.FC<StepOneFormProps> = ({
                 htmlFor="inp-consumo-inter"
                 className="text-xs font-semibold uppercase tracking-wider text-slate-700 block"
               >
-                Consumo Intermediário
+                Consumo Intermediário {formData.modalidadeAtual === 'branca' ? <Obg /> : null}
               </label>
               <div className="relative flex rounded-xl border border-slate-200 focus-within:ring-2 focus-within:ring-amber-400 focus-within:border-amber-400 overflow-hidden bg-slate-50/60 focus-within:bg-white transition-all">
                 <input
@@ -480,8 +535,8 @@ export const StepOneForm: React.FC<StepOneFormProps> = ({
                   type="number"
                   min="0"
                   step="1"
-                  value={formData.consumoIntermediario || ''}
-                  onChange={(e) => handleIntChange('consumoIntermediario', e.target.value)}
+                  value={formData.consumoIntermediario ?? ''}
+                  onChange={(e) => handleOptChange('consumoIntermediario', e.target.value)}
                   className="w-full h-11 px-3.5 bg-transparent text-sm font-semibold font-mono-num text-slate-800 focus:outline-none"
                   placeholder="0"
                 />
@@ -523,14 +578,14 @@ export const StepOneForm: React.FC<StepOneFormProps> = ({
                   htmlFor="inp-demanda-medida"
                   className="text-xs font-semibold uppercase tracking-wider text-slate-700 block"
                 >
-                  Demanda Medida Única
+                  Demanda Medida Única <Obg />
                 </label>
                 <div className="relative flex rounded-xl border border-slate-200 focus-within:ring-2 focus-within:ring-amber-400 focus-within:border-amber-400 overflow-hidden bg-slate-50/60 focus-within:bg-white transition-all">
                   <input
                     id="inp-demanda-medida"
                     type="text"
-                    value={formData.demandaMedida || ''}
-                    onChange={(e) => handleFloatChange('demandaMedida', e.target.value)}
+                    value={formData.demandaMedida ?? ''}
+                    onChange={(e) => handleOptChange('demandaMedida', e.target.value)}
                     className="w-full h-11 px-3.5 bg-transparent text-sm font-semibold font-mono-num text-slate-800 focus:outline-none"
                     placeholder="0,00"
                   />
@@ -546,14 +601,14 @@ export const StepOneForm: React.FC<StepOneFormProps> = ({
                   htmlFor="inp-demanda-contratada"
                   className="text-xs font-semibold uppercase tracking-wider text-slate-700 block"
                 >
-                  Demanda Contratada Única
+                  Demanda Contratada Única <Obg />
                 </label>
                 <div className="relative flex rounded-xl border border-slate-200 focus-within:ring-2 focus-within:ring-400 focus-within:border-amber-400 overflow-hidden bg-slate-50/60 focus-within:bg-white transition-all">
                   <input
                     id="inp-demanda-contratada"
                     type="text"
-                    value={formData.demandaContratada || ''}
-                    onChange={(e) => handleFloatChange('demandaContratada', e.target.value)}
+                    value={formData.demandaContratada ?? ''}
+                    onChange={(e) => handleOptChange('demandaContratada', e.target.value)}
                     className="w-full h-11 px-3.5 bg-transparent text-sm font-semibold font-mono-num text-slate-800 focus:outline-none"
                     placeholder="0,00"
                   />
@@ -576,7 +631,7 @@ export const StepOneForm: React.FC<StepOneFormProps> = ({
                     id="inp-demanda-faturavel"
                     type="text"
                     readOnly
-                    value={formatNumber(Math.max(formData.demandaMedida, formData.demandaContratada), 2)}
+                    value={formatNumber(Math.max(num(formData.demandaMedida), num(formData.demandaContratada)), 2)}
                     className="w-full h-11 px-3.5 bg-transparent text-sm font-semibold font-mono-num text-slate-800 focus:outline-none cursor-default"
                   />
                   <span className="px-3 flex items-center text-xs font-mono-num text-slate-500 bg-slate-100/70 border-l border-slate-200">
@@ -618,14 +673,14 @@ export const StepOneForm: React.FC<StepOneFormProps> = ({
               {/* Azul — demanda por posto (ponta/fora ponta) */}
               <div className="space-y-1.5">
                 <label htmlFor="inp-demanda-ponta-medida" className="text-xs font-semibold uppercase tracking-wider text-slate-700 block">
-                  Demanda Medida — Ponta
+                  Demanda Medida — Ponta <Obg />
                 </label>
                 <div className="relative flex rounded-xl border border-slate-200 focus-within:ring-2 focus-within:ring-amber-400 focus-within:border-amber-400 overflow-hidden bg-slate-50/60 focus-within:bg-white transition-all">
                   <input
                     id="inp-demanda-ponta-medida"
                     type="text"
-                    value={formData.demandaPontaKw || ''}
-                    onChange={(e) => handleFloatChange('demandaPontaKw', e.target.value)}
+                    value={formData.demandaPontaKw ?? ''}
+                    onChange={(e) => handleOptChange('demandaPontaKw', e.target.value)}
                     className="w-full h-11 px-3.5 bg-transparent text-sm font-semibold font-mono-num text-slate-800 focus:outline-none"
                     placeholder="0,00"
                   />
@@ -634,14 +689,14 @@ export const StepOneForm: React.FC<StepOneFormProps> = ({
               </div>
               <div className="space-y-1.5">
                 <label htmlFor="inp-demanda-ponta-contratada" className="text-xs font-semibold uppercase tracking-wider text-slate-700 block">
-                  Demanda Contratada — Ponta
+                  Demanda Contratada — Ponta <Obg />
                 </label>
                 <div className="relative flex rounded-xl border border-slate-200 focus-within:ring-2 focus-within:ring-amber-400 focus-within:border-amber-400 overflow-hidden bg-slate-50/60 focus-within:bg-white transition-all">
                   <input
                     id="inp-demanda-ponta-contratada"
                     type="text"
-                    value={formData.demandaContratadaPontaKw || ''}
-                    onChange={(e) => handleFloatChange('demandaContratadaPontaKw', e.target.value)}
+                    value={formData.demandaContratadaPontaKw ?? ''}
+                    onChange={(e) => handleOptChange('demandaContratadaPontaKw', e.target.value)}
                     className="w-full h-11 px-3.5 bg-transparent text-sm font-semibold font-mono-num text-slate-800 focus:outline-none"
                     placeholder="0,00"
                   />
@@ -650,14 +705,14 @@ export const StepOneForm: React.FC<StepOneFormProps> = ({
               </div>
               <div className="space-y-1.5">
                 <label htmlFor="inp-demanda-fponta-medida" className="text-xs font-semibold uppercase tracking-wider text-slate-700 block">
-                  Demanda Medida — Fora Ponta
+                  Demanda Medida — Fora Ponta <Obg />
                 </label>
                 <div className="relative flex rounded-xl border border-slate-200 focus-within:ring-2 focus-within:ring-amber-400 focus-within:border-amber-400 overflow-hidden bg-slate-50/60 focus-within:bg-white transition-all">
                   <input
                     id="inp-demanda-fponta-medida"
                     type="text"
-                    value={formData.demandaForaPontaKw || ''}
-                    onChange={(e) => handleFloatChange('demandaForaPontaKw', e.target.value)}
+                    value={formData.demandaForaPontaKw ?? ''}
+                    onChange={(e) => handleOptChange('demandaForaPontaKw', e.target.value)}
                     className="w-full h-11 px-3.5 bg-transparent text-sm font-semibold font-mono-num text-slate-800 focus:outline-none"
                     placeholder="0,00"
                   />
@@ -666,14 +721,14 @@ export const StepOneForm: React.FC<StepOneFormProps> = ({
               </div>
               <div className="space-y-1.5">
                 <label htmlFor="inp-demanda-fponta-contratada" className="text-xs font-semibold uppercase tracking-wider text-slate-700 block">
-                  Demanda Contratada — Fora Ponta
+                  Demanda Contratada — Fora Ponta <Obg />
                 </label>
                 <div className="relative flex rounded-xl border border-slate-200 focus-within:ring-2 focus-within:ring-amber-400 focus-within:border-amber-400 overflow-hidden bg-slate-50/60 focus-within:bg-white transition-all">
                   <input
                     id="inp-demanda-fponta-contratada"
                     type="text"
-                    value={formData.demandaContratadaForaPontaKw || ''}
-                    onChange={(e) => handleFloatChange('demandaContratadaForaPontaKw', e.target.value)}
+                    value={formData.demandaContratadaForaPontaKw ?? ''}
+                    onChange={(e) => handleOptChange('demandaContratadaForaPontaKw', e.target.value)}
                     className="w-full h-11 px-3.5 bg-transparent text-sm font-semibold font-mono-num text-slate-800 focus:outline-none"
                     placeholder="0,00"
                   />
@@ -689,7 +744,7 @@ export const StepOneForm: React.FC<StepOneFormProps> = ({
                     id="inp-demanda-faturavel-ponta"
                     type="text"
                     readOnly
-                    value={formatNumber(Math.max(formData.demandaPontaKw, formData.demandaContratadaPontaKw), 2)}
+                    value={formatNumber(Math.max(num(formData.demandaPontaKw), num(formData.demandaContratadaPontaKw)), 2)}
                     className="w-full h-11 px-3.5 bg-transparent text-sm font-semibold font-mono-num text-slate-800 focus:outline-none cursor-default"
                   />
                   <span className="px-3 flex items-center text-xs font-mono-num text-slate-500 bg-slate-100/70 border-l border-slate-200">kW</span>
@@ -704,7 +759,7 @@ export const StepOneForm: React.FC<StepOneFormProps> = ({
                     id="inp-demanda-faturavel-fponta"
                     type="text"
                     readOnly
-                    value={formatNumber(Math.max(formData.demandaForaPontaKw, formData.demandaContratadaForaPontaKw), 2)}
+                    value={formatNumber(Math.max(num(formData.demandaForaPontaKw), num(formData.demandaContratadaForaPontaKw)), 2)}
                     className="w-full h-11 px-3.5 bg-transparent text-sm font-semibold font-mono-num text-slate-800 focus:outline-none cursor-default"
                   />
                   <span className="px-3 flex items-center text-xs font-mono-num text-slate-500 bg-slate-100/70 border-l border-slate-200">kW</span>
@@ -828,7 +883,21 @@ export const StepOneForm: React.FC<StepOneFormProps> = ({
             </div>
 
             {/* E-PI com custos de migração (modo avançado, opcional) */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="space-y-1">
+                <label htmlFor="inp-encargosAcl" className="text-xs font-semibold text-slate-600 block">
+                  Encargos do ACL (R$/MWh)
+                </label>
+                <input
+                  id="inp-encargosAcl"
+                  type="text"
+                  value={formData.encargosAcl ?? ''}
+                  onChange={(e) => handleOptChange('encargosAcl', e.target.value)}
+                  className="w-full h-10 px-3 rounded-xl border border-slate-200 bg-slate-50/60 text-sm font-semibold font-mono-num text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:bg-white"
+                  placeholder="não informado"
+                />
+                <span className="text-[10px] text-slate-400">ESS/EER e contribuição CCEE</span>
+              </div>
               {(
                 [
                   ['opexMensal', 'OPEX da migração (R$/mês)', 'gestão, CCEE, comercializadora'],
@@ -854,13 +923,14 @@ export const StepOneForm: React.FC<StepOneFormProps> = ({
             </div>
             <p className="text-[11px] text-slate-500">
               Sem OPEX e CAPEX o sistema calcula o E-PI simplificado (perdas k = 3%). Com eles, o E-PI
-              desconta os custos de migração.
+              desconta os custos de migração. Encargos não informados ficam fora do E-PI e isso é
+              indicado no relatório.
             </p>
 
             {/* Histórico de 12 meses — planejamento anual */}
             <div className="space-y-1.5 pt-2 border-t border-slate-100">
               <label htmlFor="inp-historico12" className="text-xs font-semibold text-slate-700 block">
-                Histórico de 12 meses (opcional — ativa o planejamento anual e a demanda ótima)
+                Histórico de até 12 meses (opcional — melhora o planejamento anual e a demanda ótima)
               </label>
               <textarea
                 id="inp-historico12"
@@ -868,17 +938,25 @@ export const StepOneForm: React.FC<StepOneFormProps> = ({
                 value={formData.historico12}
                 onChange={(e) => onChange({ ...formData, historico12: e.target.value })}
                 className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-50/60 text-xs font-mono-num text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:bg-white"
-                placeholder={'MM/AAAA; demanda ponta (kW); demanda fora ponta (kW); consumo ponta (kWh); consumo fora ponta (kWh)\n12/2023; 193; 200; 7.000; 54.950'}
+                placeholder={'Azul ou por posto: MM/AAAA; demanda ponta; demanda fora ponta; consumo ponta; consumo fora ponta\n12/2023; 193; 200; 7.000; 54.950\nVerde (demanda única): MM/AAAA; demanda; consumo ponta; consumo fora ponta\n11/2023; 231; 8.750; 63.000'}
               />
-              <span className="text-[11px] text-slate-500">
-                Uma linha por mês, do quadro &quot;Histórico de Consumo&quot; da fatura (valores faturados).{' '}
-                {historicoLido.meses.length > 0
-                  ? `${historicoLido.meses.length} mês(es) reconhecido(s).`
-                  : ''}
-                {historicoLido.erros.length > 0
-                  ? ` ${historicoLido.erros.length} linha(s) não reconhecida(s).`
-                  : ''}
+              <span className="text-[11px] text-slate-500 block">
+                Uma linha por mês, do quadro &quot;Histórico de Consumo&quot; da fatura (valores faturados).
+                Sem histórico, o planejamento usa só o mês desta fatura (resultado indicativo). Meses
+                ausentes não entram no cálculo — nunca viram zero.{' '}
+                {planoPrevia.meses.length > 0 ? (
+                  <strong className="text-slate-700">
+                    Planejamento com {planoPrevia.meses.length} mês(es){planoPrevia.periodo ? ` (${planoPrevia.periodo})` : ''}.
+                  </strong>
+                ) : null}
               </span>
+              {historicoLido.erros.length > 0 ? (
+                <ul className="text-[11px] text-red-700 list-disc pl-5">
+                  {historicoLido.erros.map((e) => (
+                    <li key={e}>{e}</li>
+                  ))}
+                </ul>
+              ) : null}
             </div>
           </div>
         </div>
@@ -886,7 +964,7 @@ export const StepOneForm: React.FC<StepOneFormProps> = ({
         {/* ========================================================================= */}
         {/* SEÇÃO 2B: OPTANTE B — GRUPO A FATURADO COMO GRUPO B (art. 292) */}
         {/* ========================================================================= */}
-        {formData.modalidadeAtual === 'optante_b' ? (
+        {grupoA || formData.modalidadeAtual === 'optante_b' ? (
           <div className="bg-white rounded-2xl p-6 border border-slate-200/90 shadow-xs space-y-5">
             <div className="flex items-start gap-3 border-b border-slate-100 pb-4">
               <div className="w-9 h-9 rounded-xl bg-amber-100 text-amber-900 flex items-center justify-center font-bold shrink-0 mt-0.5">
@@ -895,11 +973,19 @@ export const StepOneForm: React.FC<StepOneFormProps> = ({
               <div>
                 <h2 className="font-display text-base sm:text-lg font-bold text-slate-900">
                   2B. Optante B — Grupo A faturado como Grupo B (art. 292)
+                  {formData.modalidadeAtual === 'optante_b' ? (
+                    <span className="ml-2 text-[11px] font-semibold text-red-700">obrigatório</span>
+                  ) : (
+                    <span className="ml-2 text-[11px] font-semibold text-slate-500">opcional — avaliar como alternativa</span>
+                  )}
                 </h2>
                 <p className="text-xs text-slate-500 mt-0.5">
                   Elegibilidade: transformadores ≤ 112,5 kVA (ou ≤ 1.125 kVA se cooperativa de
                   eletrificação rural); hotelaria/pousada em área de veraneio ou turismo; ou
                   refletores ≥ 2/3 da carga instalada em atividades esportivas/parques agropecuários.
+                  {formData.modalidadeAtual !== 'optante_b'
+                    ? ' Sem a potência dos transformadores, o Optante B aparece como “não avaliado” (não como inelegível).'
+                    : ''}
                 </p>
               </div>
             </div>
@@ -950,14 +1036,14 @@ export const StepOneForm: React.FC<StepOneFormProps> = ({
 
               <div className="space-y-1.5">
                 <label htmlFor="inp-potencia-trafo" className="text-xs font-semibold uppercase tracking-wider text-slate-700 block">
-                  Potência dos transformadores
+                  Potência dos transformadores {formData.modalidadeAtual === 'optante_b' ? <Obg /> : null}
                 </label>
                 <div className="relative flex rounded-xl border border-slate-200 focus-within:ring-2 focus-within:ring-amber-400 focus-within:border-amber-400 overflow-hidden bg-slate-50/60 focus-within:bg-white transition-all">
                   <input
                     id="inp-potencia-trafo"
                     type="text"
-                    value={formData.potenciaTransformadoresKva || ''}
-                    onChange={(e) => handleFloatChange('potenciaTransformadoresKva', e.target.value)}
+                    value={formData.potenciaTransformadoresKva ?? ''}
+                    onChange={(e) => handleOptChange('potenciaTransformadoresKva', e.target.value)}
                     className="w-full h-11 px-3.5 bg-transparent text-sm font-semibold font-mono-num text-slate-800 focus:outline-none"
                     placeholder="112,5"
                   />
@@ -1314,14 +1400,14 @@ export const StepOneForm: React.FC<StepOneFormProps> = ({
             {/* PIS */}
             <div className="space-y-1.5">
               <label htmlFor="inp-pis" className="text-xs font-semibold text-slate-700 block">
-                PIS
+                PIS {formData.aplicarTributos ? <Obg /> : null}
               </label>
               <div className="relative flex rounded-xl border border-slate-200 focus-within:ring-2 focus-within:ring-amber-400 focus-within:border-amber-400 overflow-hidden bg-slate-50/60 focus-within:bg-white transition-all">
                 <input
                   id="inp-pis"
                   type="text"
-                  value={formData.pis || ''}
-                  onChange={(e) => handleFloatChange('pis', e.target.value)}
+                  value={formData.pis ?? ''}
+                  onChange={(e) => handleOptChange('pis', e.target.value)}
                   className="w-full h-11 px-3.5 bg-transparent text-sm font-semibold font-mono-num text-slate-800 focus:outline-none"
                   placeholder="0,95"
                   disabled={!formData.aplicarTributos}
@@ -1335,14 +1421,14 @@ export const StepOneForm: React.FC<StepOneFormProps> = ({
             {/* COFINS */}
             <div className="space-y-1.5">
               <label htmlFor="inp-cofins" className="text-xs font-semibold text-slate-700 block">
-                COFINS
+                COFINS {formData.aplicarTributos ? <Obg /> : null}
               </label>
               <div className="relative flex rounded-xl border border-slate-200 focus-within:ring-2 focus-within:ring-amber-400 focus-within:border-amber-400 overflow-hidden bg-slate-50/60 focus-within:bg-white transition-all">
                 <input
                   id="inp-cofins"
                   type="text"
-                  value={formData.cofins || ''}
-                  onChange={(e) => handleFloatChange('cofins', e.target.value)}
+                  value={formData.cofins ?? ''}
+                  onChange={(e) => handleOptChange('cofins', e.target.value)}
                   className="w-full h-11 px-3.5 bg-transparent text-sm font-semibold font-mono-num text-slate-800 focus:outline-none"
                   placeholder="4,38"
                   disabled={!formData.aplicarTributos}
@@ -1356,14 +1442,14 @@ export const StepOneForm: React.FC<StepOneFormProps> = ({
             {/* ICMS */}
             <div className="space-y-1.5">
               <label htmlFor="inp-icms" className="text-xs font-semibold text-slate-700 block">
-                ICMS
+                ICMS {formData.aplicarTributos ? <Obg /> : null}
               </label>
               <div className="relative flex rounded-xl border border-slate-200 focus-within:ring-2 focus-within:ring-amber-400 focus-within:border-amber-400 overflow-hidden bg-slate-50/60 focus-within:bg-white transition-all">
                 <input
                   id="inp-icms"
                   type="text"
-                  value={formData.icms || ''}
-                  onChange={(e) => handleFloatChange('icms', e.target.value)}
+                  value={formData.icms ?? ''}
+                  onChange={(e) => handleOptChange('icms', e.target.value)}
                   className="w-full h-11 px-3.5 bg-transparent text-sm font-semibold font-mono-num text-slate-800 focus:outline-none"
                   placeholder="18"
                   disabled={!formData.aplicarTributos}
@@ -1425,6 +1511,27 @@ export const StepOneForm: React.FC<StepOneFormProps> = ({
                   placeholder="0,00"
                 />
               </div>
+            </div>
+
+            {/* Total da fatura — conferência */}
+            <div className="space-y-1.5">
+              <label htmlFor="inp-total-fatura" className="text-xs font-semibold text-slate-700 block">
+                Total da fatura <span className="font-normal text-slate-400">(opcional — conferência)</span>
+              </label>
+              <div className="relative flex rounded-xl border border-slate-200 focus-within:ring-2 focus-within:ring-amber-400 focus-within:border-amber-400 overflow-hidden bg-slate-50/60 focus-within:bg-white transition-all">
+                <span className="px-3 flex items-center text-xs font-mono-num text-slate-500 bg-slate-100/70 border-r border-slate-200">
+                  R$
+                </span>
+                <input
+                  id="inp-total-fatura"
+                  type="text"
+                  value={formData.totalFatura ?? ''}
+                  onChange={(e) => handleOptChange('totalFatura', e.target.value)}
+                  className="w-full h-11 px-3.5 bg-transparent text-sm font-semibold font-mono-num text-slate-800 focus:outline-none"
+                  placeholder="valor impresso na conta"
+                />
+              </div>
+              <span className="text-[10px] text-slate-400">O relatório mostra a diferença entre o recalculado e a conta.</span>
             </div>
           </div>
         </div>

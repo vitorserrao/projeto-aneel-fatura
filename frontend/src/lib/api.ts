@@ -6,6 +6,7 @@
  * (snake_case) e para os query params de /api/calculo/fatura e /comparar.
  * Nenhuma regra de negócio vive aqui além do mapeamento de contrato.
  */
+import { num } from './numeros';
 import type { BandeiraTarifaria, InvoiceFormData, TariffModalidade } from '../types/energy';
 
 const API_BASE: string =
@@ -87,15 +88,15 @@ export function paraConsumidor(
     subclasse: form.subclasse || 'Não se aplica',
     detalhe: form.detalhe || 'Não se aplica',
     data_referencia: dataReferenciaIso(form.dataReferencia),
-    consumo_ponta_kwh: form.consumoPonta,
-    consumo_fora_ponta_kwh: form.consumoForaPonta,
-    consumo_intermediario_kwh: form.consumoIntermediario,
-    demanda_ponta_kw: form.demandaPontaKw,
-    demanda_fora_ponta_kw: form.demandaForaPontaKw,
-    demanda_contratada_ponta_kw: form.demandaContratadaPontaKw,
-    demanda_contratada_fora_ponta_kw: form.demandaContratadaForaPontaKw,
-    demanda_medida_unica_kw: form.demandaMedida,
-    demanda_contratada_unica_kw: form.demandaContratada,
+    consumo_ponta_kwh: num(form.consumoPonta),
+    consumo_fora_ponta_kwh: num(form.consumoForaPonta),
+    consumo_intermediario_kwh: num(form.consumoIntermediario),
+    demanda_ponta_kw: num(form.demandaPontaKw),
+    demanda_fora_ponta_kw: num(form.demandaForaPontaKw),
+    demanda_contratada_ponta_kw: num(form.demandaContratadaPontaKw),
+    demanda_contratada_fora_ponta_kw: num(form.demandaContratadaForaPontaKw),
+    demanda_medida_unica_kw: num(form.demandaMedida),
+    demanda_contratada_unica_kw: num(form.demandaContratada),
     percentual_mes_anterior: form.percentualConsumoMesAnterior,
     // 0 = automática (a API resolve a bandeira vigente pela competência).
     bandeira_adicional_r_kwh: form.bandeiraAutomatica
@@ -112,7 +113,7 @@ export function paraConsumidor(
     atividade: form.atividade,
     tipo_ligacao: form.tipoLigacao,
     pre_pagamento: form.prePagamento,
-    potencia_transformadores_kva: form.potenciaTransformadoresKva,
+    potencia_transformadores_kva: num(form.potenciaTransformadoresKva),
     cooperativa_eletrificacao_rural: form.cooperativaEletrificacaoRural,
     hotelaria_turismo: form.hotelariaTurismo,
     carga_refletores_kw: form.cargaRefletoresKw,
@@ -129,15 +130,16 @@ export function queryParamsFatura(
     modalidade: MODALIDADE_QUERY[modalidade],
     base_tarifaria: BASE_TARIFARIA,
     aplicar_tributos: String(form.aplicarTributos),
-    pis: String(form.pis / 100),
-    cofins: String(form.cofins / 100),
-    icms: String(form.icms / 100),
+    pis: String(num(form.pis) / 100),
+    cofins: String(num(form.cofins) / 100),
+    icms: String(num(form.icms) / 100),
     tipo_icms: form.tipoIcms,
     // buscarReativoAuto=true → a API busca VRERE/VRDRE (reativos_direto=false).
     reativos_direto: String(!form.buscarReativoAuto),
     arredondar_centavos: String(form.arredondarCentavos),
     tributar_reativos: String(form.tributarReativos),
-    demanda_isenta_icms: String(form.demandaIsentaIcmsAtiva && form.demandaIsentaIcms > 0),
+    // Vazio = a API calcula a parcela isenta (contratada − medida).
+    demanda_isenta_icms: String(form.demandaIsentaIcmsAtiva),
   };
   if (!form.buscarReativoAuto) {
     if (form.tarifaReativoEnergia > 0) {
@@ -308,12 +310,13 @@ export async function calcularEpi(
     distribuidora: form.distribuidora,
     subgrupo: form.subgrupo,
     data_referencia: dataReferenciaIso(form.dataReferencia),
-    consumo_ponta_kwh: form.consumoPonta,
-    consumo_fora_ponta_kwh: form.consumoForaPonta,
-    pis: form.pis / 100,
-    cofins: form.cofins / 100,
-    icms: form.icms / 100,
+    consumo_ponta_kwh: num(form.consumoPonta),
+    consumo_fora_ponta_kwh: num(form.consumoForaPonta),
+    pis: num(form.pis) / 100,
+    cofins: num(form.cofins) / 100,
+    icms: num(form.icms) / 100,
     k: 0.03,
+    encargos: num(form.encargosAcl),
     opex_mensal: form.opexMensal || 0,
     capex: form.capex || 0,
     horizonte_meses: form.horizonteMeses > 0 ? form.horizonteMeses : 60,
@@ -328,8 +331,11 @@ export async function calcularEpi(
 
 export interface MesHistorico {
   data_referencia: string; // AAAA-MM-15
-  d_med_ponta: number;
-  d_med_fora_ponta: number;
+  /** Azul / histórico por posto. */
+  d_med_ponta?: number;
+  d_med_fora_ponta?: number;
+  /** Fatura Verde: demanda medida única (vale para os dois postos na simulação Azul). */
+  d_med_unica?: number;
   e_ponta_kwh: number;
   e_fora_ponta_kwh: number;
 }
@@ -345,35 +351,52 @@ function numeroBr(txt: string): number {
 }
 
 /**
- * Lê o histórico colado: uma linha por mês, no formato
- * "MM/AAAA; demanda ponta; demanda fora ponta; consumo ponta; consumo fora ponta"
- * (separador ';', tab ou espaços). Devolve os meses válidos em ordem cronológica
- * e a lista de linhas que não puderam ser lidas.
+ * Lê o histórico colado: uma linha por mês, em um dos formatos
+ *   "MM/AAAA; demanda ponta; demanda fora ponta; consumo ponta; consumo fora ponta"
+ *   "MM/AAAA; demanda única; consumo ponta; consumo fora ponta"   (fatura Verde)
+ * (separador ';', tab ou espaços). Linha incompleta ou mês repetido vira erro
+ * — nunca é completada com zero. Devolve os meses em ordem cronológica.
  */
 export function lerHistorico(texto: string): { meses: MesHistorico[]; erros: string[] } {
   const meses: MesHistorico[] = [];
   const erros: string[] = [];
+  const vistos = new Set<string>();
+  let n = 0;
   for (const bruta of texto.split(/\r?\n/)) {
     const linha = bruta.trim();
-    if (!linha) continue;
+    n += 1;
+    if (!linha || linha.startsWith('#')) continue;
     const partes = linha.split(/[;\t]|\s{2,}|\s(?=\d)/).map((p) => p.trim()).filter(Boolean);
     const m = /^(\d{1,2})\/(\d{4})$/.exec(partes[0] ?? '');
-    const nums = partes.slice(1, 5).map(numeroBr);
-    if (!m || nums.length < 4 || nums.some((n) => Number.isNaN(n) || n < 0)) {
-      erros.push(linha);
+    const nums = partes.slice(1).map(numeroBr);
+    const mesNum = m ? Number(m[1]) : 0;
+    if (!m || mesNum < 1 || mesNum > 12) {
+      erros.push(`linha ${n}: mês inválido (use MM/AAAA) — "${linha}"`);
       continue;
     }
-    const mes = m[1].padStart(2, '0');
-    meses.push({
-      data_referencia: `${m[2]}-${mes}-15`,
-      d_med_ponta: nums[0],
-      d_med_fora_ponta: nums[1],
-      e_ponta_kwh: nums[2],
-      e_fora_ponta_kwh: nums[3],
-    });
+    if (nums.length !== 3 && nums.length !== 4) {
+      erros.push(`linha ${n}: esperado 3 valores (demanda única; consumo ponta; consumo fora ponta) ou 4 (demanda ponta; demanda fora ponta; consumo ponta; consumo fora ponta) — "${linha}"`);
+      continue;
+    }
+    if (nums.some((x) => Number.isNaN(x) || x < 0)) {
+      erros.push(`linha ${n}: valor vazio, negativo ou ilegível — "${linha}"`);
+      continue;
+    }
+    const chave = `${m[2]}-${m[1].padStart(2, '0')}`;
+    if (vistos.has(chave)) {
+      erros.push(`linha ${n}: mês ${m[1].padStart(2, '0')}/${m[2]} repetido`);
+      continue;
+    }
+    vistos.add(chave);
+    const base = { data_referencia: `${chave}-15` };
+    meses.push(
+      nums.length === 4
+        ? { ...base, d_med_ponta: nums[0], d_med_fora_ponta: nums[1], e_ponta_kwh: nums[2], e_fora_ponta_kwh: nums[3] }
+        : { ...base, d_med_unica: nums[0], e_ponta_kwh: nums[1], e_fora_ponta_kwh: nums[2] },
+    );
   }
   meses.sort((a, b) => a.data_referencia.localeCompare(b.data_referencia));
-  return { meses: meses.slice(-12), erros };
+  return { meses, erros };
 }
 
 export interface PlanejamentoApi {
@@ -405,17 +428,18 @@ export async function compararPlanejamento(
     tipo_ligacao: form.tipoLigacao,
     data_referencia: dataReferenciaIso(form.dataReferencia),
     meses,
-    pis: form.pis / 100,
-    cofins: form.cofins / 100,
-    icms: form.icms / 100,
+    pis: num(form.pis) / 100,
+    cofins: num(form.cofins) / 100,
+    icms: num(form.icms) / 100,
     tipo_icms: form.tipoIcms,
-    demanda_isenta_icms: true,
+    demanda_isenta_icms: form.demandaIsentaIcmsAtiva,
     tributar_reativos: form.tributarReativos,
     modalidade_atual: azul ? 'Azul' : 'Verde',
-    dc_atual_verde: azul ? null : form.demandaContratada || null,
-    dc_atual_azul_ponta: azul ? form.demandaContratadaPontaKw || null : form.demandaContratada || null,
-    dc_atual_azul_fora: azul ? form.demandaContratadaForaPontaKw || null : form.demandaContratada || null,
+    dc_atual_verde: azul ? null : (num(form.demandaContratada) || null),
+    dc_atual_azul_ponta: azul ? (num(form.demandaContratadaPontaKw) || null) : (num(form.demandaContratada) || null),
+    dc_atual_azul_fora: azul ? (num(form.demandaContratadaForaPontaKw) || null) : (num(form.demandaContratada) || null),
     k: 0.03,
+    encargos: num(form.encargosAcl),
     opex_mensal: form.opexMensal || 0,
     capex: form.capex || 0,
     horizonte_meses: form.horizonteMeses > 0 ? form.horizonteMeses : 60,

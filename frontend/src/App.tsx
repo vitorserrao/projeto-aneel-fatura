@@ -11,13 +11,13 @@ import {
   calcularFatura,
   compararModalidades,
   compararPlanejamento,
-  lerHistorico,
   listarBandeiras,
   listarClasses,
   listarDistribuidoras,
   listarSubgrupos,
 } from './lib/api';
 import { adaptarComparacao, adaptarEpi, adaptarPlanejamento } from './lib/adapter';
+import { montarMesesPlanejamento, validarFormulario } from './lib/validacao';
 
 const HISTORICO_EXEMPLO_COPEL = [
   // Mês de consumo; demanda ponta; demanda fora ponta; consumo ponta; consumo fora ponta
@@ -38,36 +38,38 @@ const HISTORICO_EXEMPLO_COPEL = [
 
 const DEFAULT_FORM: InvoiceFormData = {
   // Seção 1: Distribuidora e Modalidade
-  distribuidora: 'COPEL-DIS',
-  subgrupo: 'A4',
+  distribuidora: '',
+  subgrupo: '',
   classe: 'Não se aplica',
   subclasse: 'Não se aplica',
   detalhe: 'Não se aplica',
-  dataReferencia: '15/03/2023',
+  dataReferencia: '',
   modalidadeAtual: 'verde',
   bandeiraAutomatica: true,
   bandeira: 'verde',
 
   // Seção 2: Consumo Ativo e Demanda Registrada
-  consumoPonta: 55,
-  consumoForaPonta: 9094,
-  consumoIntermediario: 0,
-  demandaMedida: 150.65,
-  demandaContratada: 260,
-  demandaPontaKw: 0,
-  demandaForaPontaKw: 0,
-  demandaContratadaPontaKw: 0,
-  demandaContratadaForaPontaKw: 0,
+  consumoPonta: null,
+  consumoForaPonta: null,
+  consumoIntermediario: null,
+  demandaMedida: null,
+  demandaContratada: null,
+  demandaPontaKw: null,
+  demandaForaPontaKw: null,
+  demandaContratadaPontaKw: null,
+  demandaContratadaForaPontaKw: null,
   demandaIsentaIcmsAtiva: true,
-  demandaIsentaIcms: 109.35,
+  demandaIsentaIcms: 0,
 
   // Outras Parcelas e Mercado Livre (ACL)
-  outrosValores: 115.01,
+  outrosValores: 0,
   percentualConsumoMesAnterior: 0,
   precoMedioACL: 0,
   opexMensal: 0,
   capex: 0,
   horizonteMeses: 60,
+  encargosAcl: null,
+  totalFatura: null,
   historico12: '',
 
   // Seção 3: Reativos
@@ -75,7 +77,7 @@ const DEFAULT_FORM: InvoiceFormData = {
   tarifaReativoEnergia: 0,
   tarifaReativoDemanda: 0,
   consumoReativoPonta: 0,
-  consumoReativoForaPonta: 9,
+  consumoReativoForaPonta: 0,
   demandaReativaPonta: 0,
   demandaReativaForaPonta: 0,
   reativoEnergiaCapacitiva: 0,
@@ -84,9 +86,9 @@ const DEFAULT_FORM: InvoiceFormData = {
 
   // Seção 4: Tributos
   aplicarTributos: true,
-  pis: 0.95,
-  cofins: 4.38,
-  icms: 18,
+  pis: null,
+  cofins: null,
+  icms: null,
   tipoIcms: 'fora',
   cipCosip: 0,
   arredondarCentavos: true,
@@ -95,15 +97,15 @@ const DEFAULT_FORM: InvoiceFormData = {
   atividade: 'Comercial ou Industrial',
   tipoLigacao: 'Trifásico',
   prePagamento: false,
-  potenciaTransformadoresKva: 0,
+  potenciaTransformadoresKva: null,
   cooperativaEletrificacaoRural: false,
   hotelariaTurismo: false,
   cargaRefletoresKw: 0,
   cargaInstaladaTotalKw: 0,
 
   // Metadados
-  ucCode: '1049283-0',
-  unidadeNome: 'Matriz',
+  ucCode: '',
+  unidadeNome: '',
 };
 
 export default function App() {
@@ -112,6 +114,7 @@ export default function App() {
   const [auditResult, setAuditResult] = useState<AuditResult | null>(null);
   const [carregando, setCarregando] = useState(false);
   const [erroApi, setErroApi] = useState<string | null>(null);
+  const [pendencias, setPendencias] = useState<string[]>([]);
 
   // Dados dinâmicos vindos da API (null = fallback para as listas estáticas).
   const [distribuidorasApi, setDistribuidorasApi] = useState<string[] | null>(null);
@@ -151,6 +154,13 @@ export default function App() {
    * Sem API não há relatório: o front não inventa valores.
    */
   async function executarAnalise(): Promise<boolean> {
+    // Campos obrigatórios: nada vazio vira zero.
+    const faltando = validarFormulario(formData);
+    setPendencias(faltando);
+    if (faltando.length > 0) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return false;
+    }
     setCarregando(true);
     setErroApi(null);
     try {
@@ -164,7 +174,8 @@ export default function App() {
       const base =
         respComparacao.status === 'fulfilled' ? respComparacao.value : respFatura.value;
 
-      const { meses } = lerHistorico(formData.historico12);
+      // Planejamento: histórico informado + mês da fatura (sem histórico = só o mês).
+      const { meses, avisos, periodo } = montarMesesPlanejamento(formData);
       const grupoA = formData.modalidadeAtual === 'verde' || formData.modalidadeAtual === 'azul';
       const [respEpi, respPlan] = await Promise.allSettled([
         calcularEpi(formData),
@@ -173,7 +184,7 @@ export default function App() {
       const epi = respEpi.status === 'fulfilled' ? adaptarEpi(respEpi.value, formData) : null;
       const planejamento =
         respPlan.status === 'fulfilled' && respPlan.value
-          ? adaptarPlanejamento(respPlan.value, meses.length)
+          ? adaptarPlanejamento(respPlan.value, meses.length, periodo, avisos)
           : null;
 
       setAuditResult(adaptarComparacao(base, formData, respFatura.value.fatura, epi, planejamento));
@@ -211,6 +222,12 @@ export default function App() {
       capex: 0,
       horizonteMeses: 60,
       historico12: HISTORICO_EXEMPLO_COPEL,
+      // Fatura Copel 04/2023 (consumo de 03/2023): total impresso R$ 9.854,93
+      totalFatura: 9854.93,
+      encargosAcl: null,
+      potenciaTransformadoresKva: null,
+      ucCode: 'UC COPEL-1',
+      unidadeNome: 'Exemplo Copel A4 Verde',
       buscarReativoAuto: true,
       consumoReativoPonta: 0,
       consumoReativoForaPonta: 9,
@@ -225,6 +242,7 @@ export default function App() {
     };
     setFormData(exemplo);
     setAuditResult(null);
+    setPendencias([]);
   };
 
   const handleExportPdf = () => {
@@ -245,6 +263,18 @@ export default function App() {
               <strong>Não foi possível calcular: a API não respondeu.</strong>{' '}
               Nenhum valor é estimado sem o motor de cálculo. Verifique se a API está no ar e tente de novo.{' '}
               <span className="text-amber-800">{erroApi}</span>
+            </div>
+          ) : null}
+
+          {pendencias.length > 0 ? (
+            <div className="mb-4 rounded-xl bg-red-50 border border-red-300 px-4 py-3 text-xs text-red-900" role="alert">
+              <strong>Preencha antes de calcular ({pendencias.length}):</strong>
+              <ul className="list-disc pl-5 mt-1 space-y-0.5">
+                {pendencias.map((p) => (
+                  <li key={p}>{p}</li>
+                ))}
+              </ul>
+              <p className="mt-1 text-red-800">Campos vazios não são tratados como zero. Para zero, digite 0.</p>
             </div>
           ) : null}
 

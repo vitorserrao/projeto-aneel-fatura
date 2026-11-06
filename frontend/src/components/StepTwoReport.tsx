@@ -150,11 +150,11 @@ export const StepTwoReport: React.FC<StepTwoReportProps> = ({
                 {formatNumber(audit.economiaPercentual, 1)}% de economia
               </span>
               <span className="text-xs sm:text-sm text-slate-600">
-                Equivalente a{' '}
+                Neste mês. Se ele se repetisse por 12 meses:{' '}
                 <strong className="text-slate-900 font-semibold">
-                  {formatCurrency(audit.economiaAnual)} / ano
+                  ≈ {formatCurrency(audit.economiaAnual)} / ano
                 </strong>{' '}
-                sem obras ou investimentos
+                (o valor anual real está no planejamento abaixo)
               </span>
             </div>
           </div>
@@ -172,7 +172,10 @@ export const StepTwoReport: React.FC<StepTwoReportProps> = ({
               <span className="font-mono-num text-xl sm:text-2xl font-bold text-slate-800 mt-1">
                 {formatCurrency(audit.custoAtual)}
               </span>
-              <span className="text-xs text-slate-500 mt-1">Tarifa monômia A4</span>
+              <span className="text-xs text-slate-500 mt-1">
+                {audit.subgrupo}
+                {formData.unidadeNome || formData.ucCode ? ` · ${[formData.unidadeNome, formData.ucCode].filter(Boolean).join(' · ')}` : ''}
+              </span>
             </div>
 
             {/* Seta Transição */}
@@ -1093,7 +1096,7 @@ export const StepTwoReport: React.FC<StepTwoReportProps> = ({
               </p>
             </div>
             <span className="text-xs text-amber-900 font-bold flex items-center gap-1.5 mt-1 pt-2 border-t border-amber-100">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Economia imediata garantida
+              <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Menor custo no mês informado
             </span>
           </div>
 
@@ -1183,13 +1186,75 @@ export const StepTwoReport: React.FC<StepTwoReportProps> = ({
         </div>
       </div>
 
+      {/* CONFERÊNCIA E PREMISSAS — o que foi assumido por falta de dado */}
+      <div className="w-full bg-white rounded-2xl p-6 shadow-sm border border-slate-200/80 space-y-3">
+        <h3 className="font-display text-lg font-bold text-slate-900">Conferência e premissas</h3>
+        {audit.conferencia ? (
+          <div
+            className={`rounded-xl border px-4 py-3 text-sm ${
+              Math.abs(audit.conferencia.diferenca) <= 1
+                ? 'bg-emerald-50 border-emerald-200 text-emerald-900'
+                : 'bg-amber-50 border-amber-300 text-amber-900'
+            }`}
+          >
+            Fatura real {formatCurrency(audit.conferencia.totalFatura)} × recalculado{' '}
+            {formatCurrency(audit.conferencia.totalCalculado)} · diferença{' '}
+            <strong className="font-mono-num">{formatCurrency(audit.conferencia.diferenca)}</strong>
+            {Math.abs(audit.conferencia.diferenca) <= 1
+              ? ' — confere.'
+              : ' — confira os dados digitados. Itens financeiros (juros, multas, devoluções, retenções) não entram no cálculo.'}
+          </div>
+        ) : null}
+        <div className="text-xs text-slate-700">
+          <strong>Optante B:</strong>{' '}
+          {!audit.optanteBAvaliado
+            ? 'não avaliado (potência dos transformadores não informada).'
+            : audit.indisponiveis.find((i) => i.modalidade === 'Optante B')
+              ? `inelegível — ${audit.indisponiveis.find((i) => i.modalidade === 'Optante B')!.motivo}`
+              : audit.custoOptanteB > 0
+                ? `elegível — ${formatCurrency(audit.custoOptanteB)} no mês.`
+                : 'sem resultado da API.'}
+        </div>
+        {audit.indisponiveis.filter((i) => i.modalidade !== 'Optante B').length > 0 ? (
+          <ul className="text-xs text-slate-600 list-disc pl-5 space-y-1">
+            {audit.indisponiveis
+              .filter((i) => i.modalidade !== 'Optante B')
+              .map((i) => (
+                <li key={i.modalidade}>
+                  {i.modalidade}: {i.motivo}
+                </li>
+              ))}
+          </ul>
+        ) : null}
+        {audit.premissasEntrada.length + audit.notas.length > 0 ? (
+          <ul className="text-xs text-slate-600 list-disc pl-5 space-y-1">
+            {audit.premissasEntrada
+              .filter((p) => !p.startsWith('Optante B'))
+              .map((p) => (
+                <li key={p}>{p}</li>
+              ))}
+            {audit.notas.map((n) => (
+              <li key={n.mensagem}>{n.mensagem}</li>
+            ))}
+          </ul>
+        ) : null}
+      </div>
+
       {/* PLANEJAMENTO ANUAL (12 meses) — POST /api/planejamento/comparar */}
       {audit.planejamento ? (
         <div className="w-full bg-white rounded-2xl p-6 shadow-sm border border-slate-200/80 space-y-4">
           <div>
             <h3 className="font-display text-lg font-bold text-slate-900">
-              Planejamento anual · {audit.planejamento.meses} meses
+              Planejamento {audit.planejamento.parcial ? 'parcial' : 'anual'} · {audit.planejamento.meses}{' '}
+              {audit.planejamento.meses === 1 ? 'mês' : 'meses'}
+              {audit.planejamento.periodo ? ` (${audit.planejamento.periodo})` : ''}
             </h3>
+            {audit.planejamento.parcial ? (
+              <p className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mt-2">
+                Resultado indicativo: soma só os meses informados, sem extrapolar para 12. Informe o histórico
+                de 12 meses para a demanda contratada recomendada.
+              </p>
+            ) : null}
             <p className="text-xs text-slate-600 mt-1">
               Contrato atual × demanda contratada otimizada, com as tarifas vigentes em cada mês do histórico.
             </p>
@@ -1249,8 +1314,8 @@ export const StepTwoReport: React.FC<StepTwoReportProps> = ({
         </div>
       ) : (
         <div className="w-full bg-white rounded-2xl p-5 border border-dashed border-slate-300 text-xs text-slate-600 no-print">
-          Informe o histórico de 12 meses na etapa anterior para ver o planejamento anual (demanda contratada ótima,
-          ganho por ajuste de demanda e por troca de modalidade, e E-PI do período).
+          O planejamento de demanda vale para unidades do Grupo A nas modalidades Verde ou Azul. Para esta unidade
+          ele não foi calculado (ou a API não respondeu).
         </div>
       )}
 
