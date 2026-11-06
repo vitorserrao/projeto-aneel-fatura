@@ -193,3 +193,16 @@ describe('B7 — E-PI', () => {
     expect(a.epi.erro).toBe('TE indisponível para COPEL-DIS A4 Verde');
   });
 });
+
+describe('faixa boa da curva', () => {
+  it('interpola as bordas entre os pontos vizinhos', async () => {
+    const { faixaBoa } = await import('../series');
+    const f = faixaBoa([
+      { dc: 180, custo: 1100 },
+      { dc: 200, custo: 1000 },
+      { dc: 220, custo: 1050 },
+    ]);
+    // 1005 é cruzado a 1/20 do caminho 200→180 (199) e a 1/10 do caminho 200→220 (202).
+    expect(f).toEqual([199, 202]);
+  });
+});

@@ -301,7 +301,7 @@ export const Kpi: React.FC<{ rotulo: string; valor: React.ReactNode; sub?: React
 }) => (
   <div className="bg-white border border-borda rounded-2xl p-4 min-w-0">
     <div className="text-sm text-texto2">{rotulo}</div>
-    <div className="num text-xl sm:text-2xl font-semibold mt-1 truncate" style={cor ? { color: cor } : undefined}>
+    <div className="num text-lg sm:text-2xl font-semibold mt-1 break-words leading-tight" style={cor ? { color: cor } : undefined}>
       {valor}
     </div>
     {sub ? <div className="text-xs text-texto2 mt-1">{sub}</div> : null}

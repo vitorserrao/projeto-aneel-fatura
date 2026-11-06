@@ -302,13 +302,23 @@ export async function calcularCurva(
   });
 }
 
-/** Faixa de DC cujo custo fica até +0,5% do mínimo amostrado. */
+/**
+ * Faixa de DC cujo custo fica até +0,5% do mínimo amostrado. As bordas são
+ * interpoladas linearmente entre os pontos vizinhos (aproximação visual).
+ */
 export function faixaBoa(pontos: PontoCurva[], tolerancia = 0.005): [number, number] | null {
-  const validos = pontos.filter((p): p is { dc: number; custo: number } => p.custo !== null);
-  if (validos.length === 0) return null;
-  const min = Math.min(...validos.map((p) => p.custo));
-  const bons = validos.filter((p) => p.custo <= min * (1 + tolerancia)).map((p) => p.dc);
-  return [Math.min(...bons), Math.max(...bons)];
+  const v = pontos.filter((p): p is { dc: number; custo: number } => p.custo !== null).sort((a, b) => a.dc - b.dc);
+  if (v.length === 0) return null;
+  const min = Math.min(...v.map((p) => p.custo));
+  const lim = min * (1 + tolerancia);
+  const bons = v.map((p, i) => ({ ...p, i })).filter((p) => p.custo <= lim);
+  const iIni = bons[0].i;
+  const iFim = bons[bons.length - 1].i;
+  const cruza = (a: { dc: number; custo: number }, b: { dc: number; custo: number }) =>
+    a.custo === b.custo ? a.dc : a.dc + ((lim - a.custo) / (b.custo - a.custo)) * (b.dc - a.dc);
+  const de = iIni > 0 ? cruza(v[iIni], v[iIni - 1]) : v[iIni].dc;
+  const ate = iFim < v.length - 1 ? cruza(v[iFim], v[iFim + 1]) : v[iFim].dc;
+  return [Math.round(Math.min(de, ate)), Math.round(Math.max(de, ate))];
 }
 
 /* ------------------------------------------------------------------ */

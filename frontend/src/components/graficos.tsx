@@ -5,7 +5,21 @@
 import React from 'react';
 import { COR, compacto, numero } from '../lib/formato';
 
-const L = 800; // largura lógica
+/** Largura real do contêiner (px): o desenho usa essa escala e o texto fica legível no celular. */
+function useLargura(padrao = 800) {
+  const ref = React.useRef<HTMLDivElement>(null);
+  const [L, setL] = React.useState(padrao);
+  React.useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const medir = () => setL(Math.max(320, Math.round(el.clientWidth || padrao)));
+    medir();
+    const ro = new ResizeObserver(medir);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [padrao]);
+  return { ref, L };
+}
 
 function escala(min: number, max: number, a: number, b: number) {
   const d = max - min || 1;
@@ -61,6 +75,7 @@ export const GraficoLinhas: React.FC<{
   titulo: string;
   preencherEntre?: boolean;
 }> = ({ rotulosX, series, altura = 300, fmtY, titulo, preencherEntre }) => {
+  const { ref, L } = useLargura();
   const todos = series.flatMap((s) => s.valores.filter((v): v is number => v !== null));
   if (todos.length === 0) return null;
   const min0 = Math.min(...todos);
@@ -90,14 +105,17 @@ export const GraficoLinhas: React.FC<{
     }
   }
   return (
-    <svg viewBox={`0 0 ${L} ${altura}`} width="100%" role="img" aria-label={titulo} className="block">
+    <div ref={ref} className="w-full">
+      <svg viewBox={`0 0 ${L} ${altura}`} width="100%" role="img" aria-label={titulo} className="block">
       <EixoY ticks={ticks} y={y} x0={x0} x1={x1} fmt={fmtY} />
       {area ? <path d={area} fill={series[1].cor} opacity={0.08} /> : null}
-      {rotulosX.map((r, i) => (
-        <text key={r + i} x={x(i)} y={altura - 10} textAnchor="middle" fontSize="12" fill={COR.texto2}>
-          {r}
-        </text>
-      ))}
+      {rotulosX.map((r, i) =>
+        n > 6 && L < 640 && i % 2 === 1 ? null : (
+          <text key={r + i} x={x(i)} y={altura - 10} textAnchor="middle" fontSize="12" fill={COR.texto2}>
+            {r}
+          </text>
+        ),
+      )}
       {series.map((s) => {
         const ultimo = [...s.valores].reverse().find((v) => v !== null);
         const iU = s.valores.lastIndexOf(ultimo ?? null);
@@ -126,6 +144,7 @@ export const GraficoLinhas: React.FC<{
         );
       })}
     </svg>
+    </div>
   );
 };
 
@@ -149,6 +168,7 @@ export const GraficoBarras: React.FC<{
   fmtY?: (v: number) => string;
   mostrarValores?: boolean;
 }> = ({ barras, titulo, altura = 260, referencias = [], faixa, fmtY, mostrarValores = true }) => {
+  const { ref, L } = useLargura();
   const vals = [
     ...barras.map((b) => b.valor ?? 0),
     ...referencias.map((r) => r.valor),
@@ -163,7 +183,8 @@ export const GraficoBarras: React.FC<{
   const n = barras.length;
   const larg = (x1 - x0) / Math.max(n, 1);
   return (
-    <svg viewBox={`0 0 ${L} ${altura}`} width="100%" role="img" aria-label={titulo} className="block">
+    <div ref={ref} className="w-full">
+      <svg viewBox={`0 0 ${L} ${altura}`} width="100%" role="img" aria-label={titulo} className="block">
       <EixoY ticks={ticks} y={y} x0={x0} x1={x1} fmt={fmtY} />
       {faixa ? (
         <g>
@@ -190,8 +211,8 @@ export const GraficoBarras: React.FC<{
             <rect x={bx} width={bw} y={y(b.valor)} height={Math.max(0, yB - y(b.valor))} rx={3} fill={b.cor}>
               <title>{`${b.rotulo}: ${fmtY ? fmtY(b.valor) : numero(b.valor, 1)}`}</title>
             </rect>
-            {mostrarValores ? (
-              <text x={bx + bw / 2} y={y(b.valor) - 5} textAnchor="middle" fontSize="11" fontWeight={600} fill={COR.tinta} className="num">
+            {mostrarValores && bw >= 18 ? (
+              <text x={bx + bw / 2} y={y(b.valor) - 5} textAnchor="middle" fontSize={bw < 28 ? 9 : 11} fontWeight={600} fill={COR.tinta} className="num">
                 {b.marca ?? numero(b.valor, 0)}
               </text>
             ) : null}
@@ -211,6 +232,7 @@ export const GraficoBarras: React.FC<{
       ))}
       <line x1={x0} x2={x1} y1={yB} y2={yB} stroke={COR.tinta} />
     </svg>
+    </div>
   );
 };
 
@@ -279,6 +301,7 @@ export const GraficoCascata: React.FC<{ degraus: DegrauCascata[]; titulo: string
   titulo,
   altura = 320,
 }) => {
+  const { ref, L } = useLargura();
   let nivel = 0;
   const barras = degraus.map((d) => {
     if (d.tipo === 'total') {
@@ -304,7 +327,8 @@ export const GraficoCascata: React.FC<{ degraus: DegrauCascata[]; titulo: string
   const n = barras.length;
   const larg = (x1 - x0) / n;
   return (
-    <svg viewBox={`0 0 ${L} ${altura}`} width="100%" role="img" aria-label={titulo} className="block">
+    <div ref={ref} className="w-full">
+      <svg viewBox={`0 0 ${L} ${altura}`} width="100%" role="img" aria-label={titulo} className="block">
       <EixoY ticks={ticks} y={y} x0={x0} x1={x1} />
       {barras.map((b, i) => {
         const bx = x0 + i * larg + larg * 0.12;
@@ -332,10 +356,20 @@ export const GraficoCascata: React.FC<{ degraus: DegrauCascata[]; titulo: string
             {i < n - 1 ? (
               <line x1={bx + bw} x2={bx + larg} y1={yc(b.ate)} y2={yc(b.ate)} stroke={COR.texto2} strokeDasharray="3 3" />
             ) : null}
-            <text x={bx + bw / 2} y={altura - 28} textAnchor="middle" fontSize="13" fontWeight={600} fill={COR.tinta}>
-              {b.rotulo}
-            </text>
-            {b.sub ? (
+            {L < 560 ? (
+              <text x={bx + bw / 2} y={altura - 30} textAnchor="middle" fontSize={10} fontWeight={600} fill={COR.tinta}>
+                {b.rotulo.split(' ').map((p, k, arr) => (
+                  <tspan key={k} x={bx + bw / 2} dy={k === 0 ? (arr.length > 1 ? 0 : 6) : 12}>
+                    {p}
+                  </tspan>
+                ))}
+              </text>
+            ) : (
+              <text x={bx + bw / 2} y={altura - 28} textAnchor="middle" fontSize={13} fontWeight={600} fill={COR.tinta}>
+                {b.rotulo}
+              </text>
+            )}
+            {b.sub && L >= 560 ? (
               <text x={bx + bw / 2} y={altura - 12} textAnchor="middle" fontSize="11" fill={COR.texto2}>
                 {b.sub}
               </text>
@@ -345,6 +379,7 @@ export const GraficoCascata: React.FC<{ degraus: DegrauCascata[]; titulo: string
       })}
       <line x1={x0} x2={x1} y1={yB} y2={yB} stroke={COR.tinta} />
     </svg>
+    </div>
   );
 };
 
@@ -360,6 +395,7 @@ export const GraficoCurva: React.FC<{
   rotuloX: string;
   altura?: number;
 }> = ({ pontos, titulo, cor, faixa, marcadores = [], rotuloX, altura = 320 }) => {
+  const { ref, L } = useLargura();
   if (pontos.length < 2) return null;
   const xs = pontos.map((p) => p.x);
   const ys = pontos.map((p) => p.y);
@@ -374,7 +410,8 @@ export const GraficoCurva: React.FC<{
   const x = escala(Math.min(...xs), Math.max(...xs), x0, x1);
   const y = escala(ticksY[0], ticksY[ticksY.length - 1], yB, yA);
   return (
-    <svg viewBox={`0 0 ${L} ${altura}`} width="100%" role="img" aria-label={titulo} className="block">
+    <div ref={ref} className="w-full">
+      <svg viewBox={`0 0 ${L} ${altura}`} width="100%" role="img" aria-label={titulo} className="block">
       <EixoY ticks={ticksY} y={y} x0={x0} x1={x1} />
       {faixa ? (
         <g>
@@ -416,6 +453,7 @@ export const GraficoCurva: React.FC<{
         {rotuloX}
       </text>
     </svg>
+    </div>
   );
 };
 
@@ -428,6 +466,7 @@ export const GraficoEconomiaPreco: React.FC<{
   altura?: number;
   rotuloEpi: string;
 }> = ({ epi, base, titulo, proposta, altura = 280, rotuloEpi }) => {
+  const { ref, L } = useLargura();
   const pMin = Math.max(0, Math.floor((epi * 0.65) / 10) * 10);
   const pMax = Math.ceil((epi * 1.35) / 10) * 10;
   const f = (p: number) => (epi - p) * base;
@@ -442,7 +481,8 @@ export const GraficoEconomiaPreco: React.FC<{
   const y = escala(ticksY[0], ticksY[ticksY.length - 1], yB, yA);
   const yZero = y(0);
   return (
-    <svg viewBox={`0 0 ${L} ${altura}`} width="100%" role="img" aria-label={titulo} className="block">
+    <div ref={ref} className="w-full">
+      <svg viewBox={`0 0 ${L} ${altura}`} width="100%" role="img" aria-label={titulo} className="block">
       <EixoY ticks={ticksY} y={y} x0={x0} x1={x1} />
       <path d={`M ${x(pMin)},${yZero} L ${x(pMin)},${y(f(pMin))} L ${x(epi)},${yZero} Z`} fill={COR.verde} opacity={0.12} />
       <path d={`M ${x(epi)},${yZero} L ${x(pMax)},${y(f(pMax))} L ${x(pMax)},${yZero} Z`} fill={COR.alerta} opacity={0.1} />
@@ -475,5 +515,6 @@ export const GraficoEconomiaPreco: React.FC<{
         Preço da energia ofertado no mercado livre (R$/MWh)
       </text>
     </svg>
+    </div>
   );
 };
