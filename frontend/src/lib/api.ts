@@ -213,11 +213,53 @@ export interface BandeirasApi {
 /* HTTP                                                                */
 /* ------------------------------------------------------------------ */
 
+/**
+ * Erro da API com o que foi enviado e o que voltou — o front mostra a
+ * mensagem (`detail`) da API, nunca um texto genérico.
+ */
+export class ApiError extends Error {
+  constructor(
+    public readonly path: string,
+    public readonly status: number,
+    public readonly detail: string,
+    public readonly corpoEnviado: unknown = null,
+  ) {
+    super(`${path} → ${status}: ${detail}`);
+    this.name = 'ApiError';
+  }
+}
+
+/** Extrai `detail` do corpo de erro do FastAPI (texto ou lista do pydantic). */
+export function detalheErro(corpo: string): string {
+  try {
+    const j = JSON.parse(corpo) as { detail?: unknown };
+    const d = j.detail;
+    if (typeof d === 'string') return d;
+    if (Array.isArray(d)) {
+      return d
+        .map((e: { loc?: unknown[]; msg?: string }) =>
+          [Array.isArray(e.loc) ? e.loc.slice(1).join('.') : '', e.msg ?? ''].filter(Boolean).join(': '),
+        )
+        .join('; ');
+    }
+  } catch {
+    /* corpo não é JSON */
+  }
+  return corpo.slice(0, 300) || 'sem resposta';
+}
+
+/** Mensagem legível de um erro qualquer (ApiError → detail da API). */
+export function mensagemErro(e: unknown): string {
+  if (e instanceof ApiError) return e.detail;
+  if (e instanceof Error) return e.message;
+  return String(e);
+}
+
 async function getJson(path: string): Promise<unknown> {
   const resp = await fetch(`${API_BASE}${path}`);
   if (!resp.ok) {
     const corpo = await resp.text().catch(() => '');
-    throw new Error(`GET ${path} → ${resp.status}: ${corpo.slice(0, 300)}`);
+    throw new ApiError(`GET ${path}`, resp.status, detalheErro(corpo));
   }
   return resp.json();
 }
@@ -227,7 +269,8 @@ async function postJson(
   body: Record<string, unknown>,
   params: Record<string, string>,
 ): Promise<unknown> {
-  const url = `${API_BASE}${path}?${new URLSearchParams(params).toString()}`;
+  const qs = new URLSearchParams(params).toString();
+  const url = `${API_BASE}${path}${qs ? `?${qs}` : ''}`;
   const resp = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -235,7 +278,7 @@ async function postJson(
   });
   if (!resp.ok) {
     const corpo = await resp.text().catch(() => '');
-    throw new Error(`POST ${path} → ${resp.status}: ${corpo.slice(0, 300)}`);
+    throw new ApiError(`POST ${path}`, resp.status, detalheErro(corpo), body);
   }
   return resp.json();
 }
@@ -256,6 +299,14 @@ export function calcularFatura(
     paraConsumidor(form, bandeirasOpcoes),
     queryParamsFatura(form, modalidade),
   ) as Promise<FaturaResponseApi>;
+}
+
+/** POST /api/calculo/fatura com corpo e parâmetros já montados. */
+export function postFatura(
+  corpo: Record<string, unknown>,
+  params: Record<string, string>,
+): Promise<FaturaResponseApi> {
+  return postJson('/api/calculo/fatura', corpo, params) as Promise<FaturaResponseApi>;
 }
 
 export function compararModalidades(
@@ -301,28 +352,41 @@ export interface EpiResultadoApi {
   aviso: string | null;
 }
 
-/** E-PI do perfil (modalidade = menor custo no ACR quando omitida). */
-export async function calcularEpi(
-  form: InvoiceFormData,
-  modalidadeApi?: string,
-): Promise<EpiResultadoApi> {
-  const corpo: Record<string, unknown> = {
+export interface OpcoesEpi {
+  /** Modalidade ACR (Verde/Azul/Optante B). Sempre enviada: sem ela a API
+   * escolhe a de menor custo com um perfil só de energia (sem demanda) e
+   * pode falhar ao calcular as outras modalidades. */
+  modalidade: string;
+  /** false = E-PI simplificado (OPEX/CAPEX zerados). */
+  comCustos: boolean;
+  /** Sobrescreve o consumo/data (ex.: um mês do histórico). */
+  consumoPontaKwh?: number;
+  consumoForaPontaKwh?: number;
+  dataReferenciaIso?: string;
+}
+
+/** Corpo de POST /api/epi/calcular (exportado para registro no PR/testes). */
+export function corpoEpi(form: InvoiceFormData, o: OpcoesEpi): Record<string, unknown> {
+  return {
     distribuidora: form.distribuidora,
     subgrupo: form.subgrupo,
-    data_referencia: dataReferenciaIso(form.dataReferencia),
-    consumo_ponta_kwh: num(form.consumoPonta),
-    consumo_fora_ponta_kwh: num(form.consumoForaPonta),
+    data_referencia: o.dataReferenciaIso ?? dataReferenciaIso(form.dataReferencia),
+    modalidade: o.modalidade,
+    consumo_ponta_kwh: o.consumoPontaKwh ?? num(form.consumoPonta),
+    consumo_fora_ponta_kwh: o.consumoForaPontaKwh ?? num(form.consumoForaPonta),
     pis: num(form.pis) / 100,
     cofins: num(form.cofins) / 100,
     icms: num(form.icms) / 100,
     k: 0.03,
     encargos: num(form.encargosAcl),
-    opex_mensal: form.opexMensal || 0,
-    capex: form.capex || 0,
+    opex_mensal: o.comCustos ? form.opexMensal || 0 : 0,
+    capex: o.comCustos ? form.capex || 0 : 0,
     horizonte_meses: form.horizonteMeses > 0 ? form.horizonteMeses : 60,
   };
-  if (modalidadeApi) corpo.modalidade = modalidadeApi;
-  return (await postJson('/api/epi/calcular', corpo, {})) as EpiResultadoApi;
+}
+
+export async function calcularEpi(form: InvoiceFormData, o: OpcoesEpi): Promise<EpiResultadoApi> {
+  return (await postJson('/api/epi/calcular', corpoEpi(form, o), {})) as EpiResultadoApi;
 }
 
 /* ------------------------------------------------------------------ */
@@ -411,6 +475,7 @@ export interface PlanejamentoApi {
     dc_otima: number | [number, number];
     pi: { anual: number | null; mensal: (number | null)[] } | null;
   }[];
+  equilibrio: { dp_eq: number; mensagem: string } | null;
   avisos: string[];
 }
 
