@@ -13,6 +13,7 @@ const API_BASE: string =
   (import.meta.env.VITE_API_BASE as string | undefined) ?? 'http://127.0.0.1:8000';
 
 export const BASE_TARIFARIA = 'Tarifa de Aplicação';
+export const NAO_SE_APLICA = 'Não se aplica';
 
 /** Modalidade do formulário → valor aceito pelo back (query `modalidade`). */
 const MODALIDADE_QUERY: Record<TariffModalidade, string> = {
@@ -76,32 +77,43 @@ export function competenciaIso(dataReferencia: string): string {
   return dataReferenciaIso(dataReferencia).slice(0, 7);
 }
 
-/** InvoiceFormData → corpo Consumidor da API (schemas/consumidor.py). */
+/** Adicional de bandeira (R$/kWh): 0 = automática (a API busca a da competência). */
+export function bandeiraParaApi(
+  form: InvoiceFormData,
+  bandeirasOpcoes?: { bandeira: string; valor_kwh: number }[] | null,
+): number {
+  if (form.bandeiraAutomatica) return 0;
+  // B12: valor manual em R$/kWh (ex.: bandeira proporcional aos dias).
+  if (form.bandeiraManualRkwh !== null && !Number.isNaN(form.bandeiraManualRkwh)) return form.bandeiraManualRkwh;
+  return bandeiraValorKwh(form.bandeira, bandeirasOpcoes);
+}
+
+/**
+ * InvoiceFormData → corpo Consumidor da API (schemas/consumidor.py).
+ *
+ * B9: só vão para a API os campos visíveis e aplicáveis à modalidade atual.
+ * O que não se aplica é omitido (a API usa o padrão 0 do schema, que para
+ * demanda e kVA significa "não informado"), nunca um valor antigo escondido.
+ * Retenções/créditos (B13) não vão para a API.
+ */
 export function paraConsumidor(
   form: InvoiceFormData,
   bandeirasOpcoes?: { bandeira: string; valor_kwh: number }[] | null,
 ): Record<string, unknown> {
-  return {
+  const mod = form.modalidadeAtual;
+  const corpo: Record<string, unknown> = {
     distribuidora: form.distribuidora,
     subgrupo: form.subgrupo,
-    classe: form.classe || 'Não se aplica',
-    subclasse: form.subclasse || 'Não se aplica',
-    detalhe: form.detalhe || 'Não se aplica',
+    // Classe/subclasse/detalhe saem da tela: a API recebe sempre "Não se aplica"
+    // (no Optante B a tarifa do Grupo B sai da atividade).
+    classe: NAO_SE_APLICA,
+    subclasse: NAO_SE_APLICA,
+    detalhe: NAO_SE_APLICA,
     data_referencia: dataReferenciaIso(form.dataReferencia),
     consumo_ponta_kwh: num(form.consumoPonta),
     consumo_fora_ponta_kwh: num(form.consumoForaPonta),
-    consumo_intermediario_kwh: num(form.consumoIntermediario),
-    demanda_ponta_kw: num(form.demandaPontaKw),
-    demanda_fora_ponta_kw: num(form.demandaForaPontaKw),
-    demanda_contratada_ponta_kw: num(form.demandaContratadaPontaKw),
-    demanda_contratada_fora_ponta_kw: num(form.demandaContratadaForaPontaKw),
-    demanda_medida_unica_kw: num(form.demandaMedida),
-    demanda_contratada_unica_kw: num(form.demandaContratada),
     percentual_mes_anterior: form.percentualConsumoMesAnterior,
-    // 0 = automática (a API resolve a bandeira vigente pela competência).
-    bandeira_adicional_r_kwh: form.bandeiraAutomatica
-      ? 0
-      : bandeiraValorKwh(form.bandeira, bandeirasOpcoes),
+    bandeira_adicional_r_kwh: bandeiraParaApi(form, bandeirasOpcoes),
     cip_cosip_rs: form.cipCosip,
     outros_rs: form.outrosValores,
     reativo_energia_ponta_kvArh: form.consumoReativoPonta,
@@ -113,12 +125,31 @@ export function paraConsumidor(
     atividade: form.atividade,
     tipo_ligacao: form.tipoLigacao,
     pre_pagamento: form.prePagamento,
-    potencia_transformadores_kva: num(form.potenciaTransformadoresKva),
-    cooperativa_eletrificacao_rural: form.cooperativaEletrificacaoRural,
-    hotelaria_turismo: form.hotelariaTurismo,
-    carga_refletores_kw: form.cargaRefletoresKw,
-    carga_instalada_total_kw: form.cargaInstaladaTotalKw,
   };
+  if (mod === 'branca') corpo.consumo_intermediario_kwh = num(form.consumoIntermediario);
+  if (mod === 'verde') {
+    corpo.demanda_medida_unica_kw = num(form.demandaMedida);
+    corpo.demanda_contratada_unica_kw = num(form.demandaContratada);
+  }
+  if (mod === 'azul') {
+    corpo.demanda_ponta_kw = num(form.demandaPontaKw);
+    corpo.demanda_fora_ponta_kw = num(form.demandaForaPontaKw);
+    corpo.demanda_contratada_ponta_kw = num(form.demandaContratadaPontaKw);
+    corpo.demanda_contratada_fora_ponta_kw = num(form.demandaContratadaForaPontaKw);
+  }
+  if (mod === 'optante_b') {
+    // Demanda só se o usuário informou as duas (B11: comparação com o Grupo A).
+    if (form.demandaMedida !== null && form.demandaContratada !== null) {
+      corpo.demanda_medida_unica_kw = form.demandaMedida;
+      corpo.demanda_contratada_unica_kw = form.demandaContratada;
+    }
+    corpo.potencia_transformadores_kva = num(form.potenciaTransformadoresKva);
+    corpo.cooperativa_eletrificacao_rural = form.cooperativaEletrificacaoRural;
+    corpo.hotelaria_turismo = form.hotelariaTurismo;
+    corpo.carga_refletores_kw = form.cargaRefletoresKw;
+    corpo.carga_instalada_total_kw = form.cargaInstaladaTotalKw;
+  }
+  return corpo;
 }
 
 /** Query params de /api/calculo/fatura e /api/calculo/comparar. */
@@ -487,8 +518,8 @@ export async function compararPlanejamento(
   const corpo: Record<string, unknown> = {
     distribuidora: form.distribuidora,
     subgrupo: form.subgrupo,
-    classe: form.classe || 'Não se aplica',
-    detalhe: form.detalhe || 'Não se aplica',
+    classe: NAO_SE_APLICA,
+    detalhe: NAO_SE_APLICA,
     atividade: form.atividade,
     tipo_ligacao: form.tipoLigacao,
     data_referencia: dataReferenciaIso(form.dataReferencia),

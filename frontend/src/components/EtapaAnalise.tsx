@@ -3,6 +3,7 @@
  * Toda frase de leitura é montada a partir dos números da API.
  */
 import React from 'react';
+import { recomendacaoMes } from '../lib/analise';
 import type { Analise } from '../lib/analise';
 import type { InvoiceFormData } from '../types/energy';
 import type { PlanejamentoApi } from '../lib/api';
@@ -203,7 +204,7 @@ const Diagnostico: React.FC<{
     <section className="bg-tinta text-white rounded-2xl p-6 sm:p-8 grid grid-cols-1 lg:grid-cols-[1.1fr_1fr] gap-8">
       <div className="min-w-0">
         <div className="text-acento text-xs font-bold tracking-widest uppercase">
-          Diagnóstico · {[analise.form.unidadeNome, analise.form.distribuidora].filter(Boolean).join(' · ')} · {rotuloPeriodo}
+          Diagnóstico · {analise.form.distribuidora} · {analise.form.subgrupo} · {rotuloPeriodo}
         </div>
         <h1 className="text-2xl sm:text-3xl font-bold mt-3 leading-tight">{titulo}</h1>
         {frases.length ? <p className="text-white/80 mt-4 text-[15px]">{frases.join(' ')}</p> : null}
@@ -241,14 +242,12 @@ function contratoDe(dc: number | [number, number] | null): Contrato {
 
 /** Sem planejamento (Grupo B, Optante B ou erro): diagnóstico só do mês. */
 const DiagnosticoMes: React.FC<{ analise: Analise }> = ({ analise }) => {
-  const ok = analise.modalidades.filter((m) => m.estado === 'ok' && m.atual).sort((a, b) => a.atual!.total - b.atual!.total);
-  const atual = analise.faturaAtual;
-  const melhor = ok[0];
-  const dif = melhor ? atual.total - melhor.atual!.total : 0;
-  const titulo =
-    melhor && melhor.modalidade !== analise.modalidadeAtual && dif > 1
-      ? `Neste mês, a ${nomeModalidade(melhor.modalidade)} sairia ${brl(dif)} mais barata`
-      : `Neste mês, a ${nomeModalidade(analise.modalidadeAtual)} é a opção de menor custo calculada`;
+  // B10: a recomendação nunca custa mais do que a modalidade atual.
+  const rec = recomendacaoMes(analise);
+  const titulo = rec
+    ? `Neste mês, a ${nomeModalidade(rec.modalidade)} sairia ${brl(rec.economia)} mais barata`
+    : 'A modalidade atual já é a mais barata';
+  const naoAvaliadas = analise.modalidades.filter((m) => m.estado === 'nao_avaliado').map((m) => nomeModalidade(m.modalidade));
   return (
     <section className="bg-tinta text-white rounded-2xl p-6 sm:p-8">
       <div className="text-acento text-xs font-bold tracking-widest uppercase">Diagnóstico · parcial · 1 mês</div>
@@ -257,6 +256,7 @@ const DiagnosticoMes: React.FC<{ analise: Analise }> = ({ analise }) => {
         {analise.planejamentoErro
           ? `O planejamento anual não pôde ser calculado: ${analise.planejamentoErro}`
           : 'O planejamento de demanda e a comparação mês a mês valem para unidades Verde ou Azul.'}
+        {naoAvaliadas.length ? ` Não avaliadas: ${naoAvaliadas.join(', ')} (faltam dados; veja a etapa 2).` : ''}
       </p>
     </section>
   );
@@ -796,7 +796,7 @@ const MercadoLivre: React.FC<{
   const temCustos = (form.opexMensal || 0) > 0 || (form.capex || 0) > 0;
   const [modo, setModo] = React.useState<'simples' | 'custos'>(temCustos ? 'custos' : 'simples');
   const sel = modo === 'custos' && epi.comCustos ? epi.comCustos : epi.simplificado;
-  const [edit, setEdit] = React.useState({ opex: form.opexMensal || null, capex: form.capex || null, horiz: form.horizonteMeses || null, prop: form.precoMedioACL || null });
+  const [edit, setEdit] = React.useState({ opex: form.opexMensal || null, capex: form.capex || null, horiz: form.horizonteMeses || null, prop: form.precoMedioACL || null, enc: form.encargosAcl });
   const periodo = n >= 12 ? 'por ano' : `em ${n} ${n === 1 ? 'mês' : 'meses'}`;
 
   // Curva: período (E-PI do /planejamento) ou só o mês (E-PI do /epi/calcular).
@@ -811,8 +811,8 @@ const MercadoLivre: React.FC<{
           <div className="text-acento text-xs font-bold tracking-widest uppercase">Mercado livre</div>
           <h2 className="text-2xl font-bold mt-2">Até quanto vale pagar pela energia?</h2>
           <p className="text-white/80 mt-2 text-sm">
-            O E-PI é o preço da energia no livre que empata com a opção no cativo
-            {epi.modalidade ? ` (${nomeModalidade(epi.modalidade)})` : ''}. Use como teto ao negociar.
+            O E-PI é o preço da energia no livre que empata com o custo no cativo
+            {epi.modalidade ? ` na modalidade atual (${nomeModalidade(epi.modalidade)})` : ''}. Use como teto ao negociar.
           </p>
         </div>
         <div className="text-right min-w-0">
@@ -822,9 +822,14 @@ const MercadoLivre: React.FC<{
                 {numero(sel.pi, 2)} <span className="text-base text-white/70">R$/MWh</span>
               </div>
               <div className="text-xs text-white/70 mt-1">no mês da fatura · {modo === 'custos' ? 'com custos de migração' : 'simplificado'}</div>
+              {analise.epiRecomendada?.simplificado && analise.epiRecomendada.modalidade ? (
+                <div className="text-sm text-white/80 mt-1 num">
+                  na {nomeModalidade(analise.epiRecomendada.modalidade)} (recomendada): {numero((modo === 'custos' && analise.epiRecomendada.comCustos ? analise.epiRecomendada.comCustos : analise.epiRecomendada.simplificado).pi, 2)} R$/MWh
+                </div>
+              ) : null}
               {piPeriodo !== null ? (
                 <div className="text-sm text-white/80 mt-1 num">
-                  no período ({n} {n === 1 ? 'mês' : 'meses'}): {numero(piPeriodo, 2)} R$/MWh
+                  no período ({n} {n === 1 ? 'mês' : 'meses'}, planejamento): {numero(piPeriodo, 2)} R$/MWh
                 </div>
               ) : null}
             </>
@@ -887,8 +892,13 @@ const MercadoLivre: React.FC<{
           ) : null}
         </div>
         <div className="rounded-xl bg-fundo p-4">
-          <h3 className="font-bold mb-3">Custos de migração</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <h3 className="font-bold mb-3">Encargos e custos de migração</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div>
+              <Rotulo htmlFor="epi-enc">Encargos do ACL</Rotulo>
+              <CampoNumero id="epi-enc" valor={edit.enc} aoMudar={(v) => setEdit({ ...edit, enc: v })} unidade="R$/MWh" />
+              <Dica>ESS/EER e CCEE. Vazio: fora do E-PI (premissa declarada).</Dica>
+            </div>
             <div>
               <Rotulo htmlFor="epi-opex">OPEX mensal (R$)</Rotulo>
               <CampoNumero id="epi-opex" valor={edit.opex} aoMudar={(v) => setEdit({ ...edit, opex: v })} unidade="R$/mês" />
@@ -914,6 +924,7 @@ const MercadoLivre: React.FC<{
                   capex: edit.capex ?? 0,
                   horizonteMeses: edit.horiz ?? 60,
                   precoMedioACL: edit.prop ?? 0,
+                  encargosAcl: edit.enc,
                 });
                 if ((edit.opex ?? 0) > 0 || (edit.capex ?? 0) > 0) setModo('custos');
               }}
@@ -969,7 +980,7 @@ const ConferenciaPremissas: React.FC<{ analise: Analise; series: ResultadoSeries
         <li>
           <strong>Conferência:</strong>{' '}
           {c
-            ? `fatura real ${brl(c.totalFatura)} × recalculada ${brl(c.totalCalculado)} · Δ ${c.diferenca >= 0 ? '+' : '−'}${brl(Math.abs(c.diferenca))}.`
+            ? `${c.retencoes !== null ? `recalculado ${brl(c.totalCalculado)} − retenções ${brl(c.retencoes)} = líquido ${brl(c.liquido)}` : `recalculada ${brl(c.totalCalculado)}`} × fatura real ${brl(c.totalFatura)} · Δ ${c.diferenca >= 0 ? '+' : '−'}${brl(Math.abs(c.diferenca))}.${c.reativoNaoCobrado ? ' O reativo informado não gerou excedente (art. 304): a diferença é o reativo da fatura real.' : ''}`
             : 'total da fatura não informado: sem conferência com a conta real.'}
         </li>
         <li>
@@ -988,13 +999,10 @@ const ConferenciaPremissas: React.FC<{ analise: Analise; series: ResultadoSeries
           </li>
         ))}
         {analise.modalidades
-          .filter((m) => m.hipotetica)
+          .filter((m) => m.selo)
           .map((m) => (
             <li key={`h-${m.modalidade}`}>
-              <strong>{nomeModalidade(m.modalidade)} hipotética:</strong>{' '}
-              {m.modalidade === 'Azul'
-                ? 'a unidade é Verde; a Azul usa a demanda medida única nos dois postos e a contratada única nas duas contratadas (premissa D6). Superestima a demanda de ponta.'
-                : 'a unidade é Azul; a Verde usa a maior demanda medida e a maior contratada.'}
+              <strong>{nomeModalidade(m.modalidade)}:</strong> {m.selo}.
             </li>
           ))}
         {analise.premissas

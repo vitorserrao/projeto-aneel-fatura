@@ -8,14 +8,13 @@ import type { InvoiceFormData } from './types/energy';
 import {
   BandeiraOpcao,
   listarBandeiras,
-  listarClasses,
   listarDistribuidoras,
   listarSubgrupos,
   mensagemErro,
 } from './lib/api';
 import { Analise, calcularEpiAnalise, executarAnalise } from './lib/analise';
 import { ResultadoSeries, calcularSeries } from './lib/series';
-import { validarFormulario } from './lib/validacao';
+import { premissasDeEntrada, validarFormulario } from './lib/validacao';
 import { DEFAULT_FORM, exemploCopel } from './lib/formPadrao';
 
 export default function App() {
@@ -36,16 +35,15 @@ export default function App() {
   // Listas dinâmicas da API (null = listas estáticas de apoio).
   const [distribuidorasApi, setDistribuidorasApi] = useState<string[] | null>(null);
   const [subgruposApi, setSubgruposApi] = useState<string[] | null>(null);
-  const [classesApi, setClassesApi] = useState<string[] | null>(null);
   const [bandeirasApi, setBandeirasApi] = useState<BandeiraOpcao[] | null>(null);
   const [bandeiraAtivaApi, setBandeiraAtivaApi] = useState<string | null>(null);
+  const [bandeiraCompetencia, setBandeiraCompetencia] = useState<string | null>(null);
 
   React.useEffect(() => {
     void listarDistribuidoras()
       .then((d) => setDistribuidorasApi(d.map((x) => x.sig_agente)))
       .catch(() => setDistribuidorasApi(null));
     void listarSubgrupos().then(setSubgruposApi).catch(() => setSubgruposApi(null));
-    void listarClasses().then(setClassesApi).catch(() => setClassesApi(null));
   }, []);
 
   // Bandeiras da competência informada.
@@ -55,8 +53,13 @@ export default function App() {
       .then((b) => {
         setBandeirasApi(b.opcoes);
         setBandeiraAtivaApi(b.ativa);
+        setBandeiraCompetencia(b.competencia);
       })
-      .catch(() => setBandeirasApi(null));
+      .catch(() => {
+        setBandeirasApi(null);
+        setBandeiraAtivaApi(null);
+        setBandeiraCompetencia(null);
+      });
   }, [form.dataReferencia]);
 
   const irPara = (e: Etapa) => {
@@ -103,8 +106,11 @@ export default function App() {
     const novoForm = { ...analise.form, ...mudancas };
     setForm((f) => ({ ...f, ...mudancas }));
     setAnalise({ ...analise, form: novoForm });
-    const epi = await calcularEpiAnalise(novoForm, analise.epi.modalidade);
-    setAnalise((a) => (a ? { ...a, form: novoForm, epi } : a));
+    const [epi, epiRecomendada] = await Promise.all([
+      calcularEpiAnalise(novoForm, analise.epi.modalidade),
+      analise.epiRecomendada ? calcularEpiAnalise(novoForm, analise.epiRecomendada.modalidade) : Promise.resolve(null),
+    ]);
+    setAnalise((a) => (a ? { ...a, form: novoForm, epi, epiRecomendada, premissas: premissasDeEntrada(novoForm) } : a));
   }
 
   const liberadas: Etapa[] = analise ? [1, 2, 3] : [1];
@@ -134,9 +140,9 @@ export default function App() {
             pendencias={pendencias}
             distribuidorasApi={distribuidorasApi}
             subgruposApi={subgruposApi}
-            classesApi={classesApi}
             bandeirasApi={bandeirasApi}
             bandeiraAtivaApi={bandeiraAtivaApi}
+            bandeiraCompetencia={bandeiraCompetencia}
           />
         ) : null}
 

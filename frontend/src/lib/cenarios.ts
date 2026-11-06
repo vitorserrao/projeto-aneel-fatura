@@ -15,6 +15,8 @@
 import { num } from './numeros';
 import {
   BandeiraOpcao,
+  dataReferenciaIso,
+  lerHistorico,
   FaturaApi,
   FaturaResponseApi,
   NotaApi,
@@ -51,19 +53,39 @@ export function modalidadesCandidatas(form: InvoiceFormData): ModApi[] {
 
 /** A modalidade é simulada sem contrato real (ex.: Azul para unidade Verde)? */
 export function ehHipotetica(form: InvoiceFormData, mod: ModApi): boolean {
-  if (mod === 'Azul') return form.modalidadeAtual === 'verde';
-  if (mod === 'Verde') return form.modalidadeAtual === 'azul';
-  return false;
+  const atual = modalidadeAtualApi(form);
+  return (mod === 'Verde' || mod === 'Azul') && mod !== atual;
 }
 
-export const SELO_HIPOTETICO: Partial<Record<ModApi, string>> = {
-  Azul: 'hipotético: a unidade não tem contrato Azul',
-  Verde: 'hipotético: a unidade não tem contrato Verde',
-};
+/**
+ * B2: demanda medida por posto do mês da fatura, se o histórico a trouxer
+ * (formato de 4 valores). Usada na Azul simulada de uma unidade Verde.
+ */
+export function demandaPorPostoDoMes(form: InvoiceFormData): { ponta: number; fora: number } | null {
+  const comp = dataReferenciaIso(form.dataReferencia).slice(0, 7);
+  const m = lerHistorico(form.historico12).meses.find((x) => x.data_referencia.slice(0, 7) === comp);
+  if (!m || m.d_med_ponta === undefined || m.d_med_fora_ponta === undefined) return null;
+  return { ponta: m.d_med_ponta, fora: m.d_med_fora_ponta };
+}
+
+/** Texto do selo da modalidade simulada (null = é a modalidade da unidade). */
+export function seloHipotetico(form: InvoiceFormData, mod: ModApi): string | null {
+  if (!ehHipotetica(form, mod)) return null;
+  const atual = modalidadeAtualApi(form);
+  if (mod === 'Azul') {
+    if (atual === 'Verde' && demandaPorPostoDoMes(form)) {
+      return 'hipotético: sem contrato Azul; demanda por posto do histórico e contratada única (D6)';
+    }
+    return 'hipotético: demanda única nos dois postos';
+  }
+  if (atual === 'Optante B') return 'hipotético: demanda informada só para comparar';
+  return 'hipotético: a unidade não tem contrato Verde';
+}
 
 /**
  * A modalidade pode ser calculada com o que o usuário informou?
- * Devolve o motivo quando não pode (ex.: Optante B sem kVA = "não avaliado").
+ * Devolve o motivo quando não pode. A modalidade atual sempre entra (B10):
+ * a fatura é dela.
  */
 export function motivoNaoAvaliada(form: InvoiceFormData, mod: ModApi): string | null {
   const atual = modalidadeAtualApi(form);
@@ -75,8 +97,11 @@ export function motivoNaoAvaliada(form: InvoiceFormData, mod: ModApi): string | 
       (form.cargaRefletoresKw > 0 && form.cargaInstaladaTotalKw > 0);
     return informou ? null : 'não avaliado: informe a potência dos transformadores (kVA) na etapa 1';
   }
+  // B11: Optante B não tem demanda na fatura; Verde/Azul só com medida e contratada informadas.
   if ((mod === 'Verde' || mod === 'Azul') && atual === 'Optante B') {
-    return 'não avaliado: a unidade Optante B não informou demanda medida/contratada';
+    return form.demandaMedida !== null && form.demandaContratada !== null
+      ? null
+      : 'não avaliado: informe a demanda para comparar com o Grupo A';
   }
   return null;
 }
@@ -95,12 +120,16 @@ export function pedidoFatura(
   params.aplicar_tributos = String(aplicarTributos);
   const atual = modalidadeAtualApi(form);
 
-  if (mod === 'Azul' && atual === 'Verde') {
-    // B2 / premissa D6: medida única nos dois postos; contratada única nas duas.
-    corpo.demanda_ponta_kw = num(form.demandaMedida);
-    corpo.demanda_fora_ponta_kw = num(form.demandaMedida);
+  if (mod === 'Azul' && (atual === 'Verde' || atual === 'Optante B')) {
+    // B2: com a demanda por posto do mês no histórico, usa-a; sem ela, a
+    // medida única nos dois postos. Contratada única nas duas (D6).
+    const postos = atual === 'Verde' ? demandaPorPostoDoMes(form) : null;
+    corpo.demanda_ponta_kw = postos ? postos.ponta : num(form.demandaMedida);
+    corpo.demanda_fora_ponta_kw = postos ? postos.fora : num(form.demandaMedida);
     corpo.demanda_contratada_ponta_kw = num(form.demandaContratada);
     corpo.demanda_contratada_fora_ponta_kw = num(form.demandaContratada);
+    delete corpo.demanda_medida_unica_kw;
+    delete corpo.demanda_contratada_unica_kw;
   }
   if (mod === 'Verde' && atual === 'Azul') {
     // Verde para unidade Azul: medida = maior entre os postos; contratada = maior contratada.
@@ -109,6 +138,7 @@ export function pedidoFatura(
       num(form.demandaContratadaPontaKw),
       num(form.demandaContratadaForaPontaKw),
     );
+    for (const k of ['demanda_ponta_kw', 'demanda_fora_ponta_kw', 'demanda_contratada_ponta_kw', 'demanda_contratada_fora_ponta_kw']) delete corpo[k];
   }
   if (contrato) {
     if ('unica' in contrato) corpo.demanda_contratada_unica_kw = contrato.unica;
@@ -118,7 +148,7 @@ export function pedidoFatura(
     }
   }
   // A quantidade isenta digitada vale só para a fatura real (modalidade e
-  // contrato atuais); nos demais cenários a API calcula contratada − medida.
+  // contrato atuais); nos demais cenários a API calcula faturada − medida.
   if (mod !== atual || contrato) delete params.demanda_isenta_icms_kw;
   return { corpo, params };
 }
@@ -242,6 +272,7 @@ export interface FaturaModalidade {
   linhas: LinhaDetalhada[];
   total: number;
   hipotetica: boolean;
+  selo: string | null;
 }
 
 export async function calcularFaturaModalidade(
@@ -268,6 +299,7 @@ export async function calcularFaturaModalidade(
     linhas: detalharLinhas(respCom.fatura, respSem ? respSem.fatura : null, form),
     total: respCom.fatura.custo_total,
     hipotetica: ehHipotetica(form, mod),
+    selo: seloHipotetico(form, mod),
   };
 }
 
@@ -288,13 +320,14 @@ export function textoContrato(c: Contrato, fmt: (n: number) => string): string {
 /** Contrato atual informado no formulário (para a modalidade pedida). */
 export function contratoAtualForm(form: InvoiceFormData, mod: ModApi): Contrato {
   const atual = modalidadeAtualApi(form);
+  if (mod === 'Optante B') return null;
   if (mod === 'Verde') {
     if (atual === 'Azul')
       return { unica: Math.max(num(form.demandaContratadaPontaKw), num(form.demandaContratadaForaPontaKw)) };
     return { unica: num(form.demandaContratada) };
   }
   if (mod === 'Azul') {
-    if (atual === 'Verde') return { ponta: num(form.demandaContratada), fora: num(form.demandaContratada) };
+    if (atual === 'Verde' || atual === 'Optante B') return { ponta: num(form.demandaContratada), fora: num(form.demandaContratada) };
     return { ponta: num(form.demandaContratadaPontaKw), fora: num(form.demandaContratadaForaPontaKw) };
   }
   return null;

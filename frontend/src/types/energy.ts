@@ -26,13 +26,12 @@ export interface InvoiceFormData {
   // Seção 1: Distribuidora e Modalidade
   distribuidora: string; // sig_agente (ex: COPEL-DIS, ENEL-SP, CEMIG-D, etc.)
   subgrupo: string; // A1..AS (Grupo A) ou B1..B4 (Grupo B)
-  classe: string; // filtra a tarifa do Grupo B (ex.: Residencial, Comercial)
-  subclasse: string; // filtra a tarifa do Grupo B (ex.: Residencial Baixa Renda)
-  detalhe: string; // detalhe tarifário do dataset (padrão "Não se aplica")
   dataReferencia: string; // exibido DD/MM/AAAA; API recebe AAAA-MM-DD
   modalidadeAtual: TariffModalidade;
   bandeiraAutomatica: boolean;
   bandeira: BandeiraTarifaria;
+  /** Bandeira manual em R$/kWh (B12: ex. proporcional aos dias). null = usa a bandeira escolhida. */
+  bandeiraManualRkwh: number | null;
 
   // Seção 2: Consumo Ativo e Demanda Registrada
   consumoPonta: number | null; // kWh
@@ -56,6 +55,8 @@ export interface InvoiceFormData {
   horizonteMeses: number; // meses de amortização do CAPEX
   encargosAcl: number | null; // R$/MWh (ESS/EER, CCEE) — vazio = 0, declarado no relatório
   totalFatura: number | null; // R$ impresso na fatura — conferência (opcional)
+  /** B13: retenções/créditos impressos na fatura (R$, positivo). Só para a conferência: nunca vai à API. */
+  retencoesCreditos: number | null;
 
   // Histórico de 12 meses para o planejamento anual (texto colado):
   // "MM/AAAA; demanda ponta; demanda fora ponta; consumo ponta; consumo fora ponta"
@@ -92,7 +93,4 @@ export interface InvoiceFormData {
   cargaRefletoresKw: number; // ≥ 2/3 da carga instalada (esportivo/parques)
   cargaInstaladaTotalKw: number;
 
-  // Metadados
-  ucCode: string;
-  unidadeNome: string;
 }

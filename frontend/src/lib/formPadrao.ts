@@ -25,13 +25,11 @@ export const DEFAULT_FORM: InvoiceFormData = {
   // Seção 1: Distribuidora e Modalidade
   distribuidora: '',
   subgrupo: '',
-  classe: 'Não se aplica',
-  subclasse: 'Não se aplica',
-  detalhe: 'Não se aplica',
   dataReferencia: '',
   modalidadeAtual: 'verde',
   bandeiraAutomatica: true,
   bandeira: 'verde',
+  bandeiraManualRkwh: null,
 
   // Seção 2: Consumo Ativo e Demanda Registrada
   consumoPonta: null,
@@ -55,6 +53,7 @@ export const DEFAULT_FORM: InvoiceFormData = {
   horizonteMeses: 60,
   encargosAcl: null,
   totalFatura: null,
+  retencoesCreditos: null,
   historico12: '',
 
   // Seção 3: Reativos
@@ -87,10 +86,6 @@ export const DEFAULT_FORM: InvoiceFormData = {
   hotelariaTurismo: false,
   cargaRefletoresKw: 0,
   cargaInstaladaTotalKw: 0,
-
-  // Metadados
-  ucCode: '',
-  unidadeNome: '',
 };
 
 export function exemploCopel(): InvoiceFormData {
@@ -120,8 +115,6 @@ export function exemploCopel(): InvoiceFormData {
     totalFatura: 9854.93,
     encargosAcl: null,
     potenciaTransformadoresKva: null,
-    ucCode: 'UC COPEL-1',
-    unidadeNome: 'Exemplo Copel A4 Verde',
     buscarReativoAuto: true,
     consumoReativoPonta: 0,
     consumoReativoForaPonta: 9,

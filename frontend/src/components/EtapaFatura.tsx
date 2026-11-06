@@ -4,7 +4,7 @@
  */
 import React from 'react';
 import type { Analise, ModalidadeAnalise } from '../lib/analise';
-import { Cenario, Composicao, FaturaModalidade, SELO_HIPOTETICO, composicaoDe, resumoTributos, textoContrato } from '../lib/cenarios';
+import { Cenario, Composicao, FaturaModalidade, composicaoDe, resumoTributos, textoContrato } from '../lib/cenarios';
 import { nomeModalidade } from '../lib/rotulos';
 import { COR, brl, corModalidade, numero, pct, tarifa } from '../lib/formato';
 import { num } from '../lib/numeros';
@@ -162,9 +162,9 @@ const AbaModalidade: React.FC<{ m: ModalidadeAnalise; cenario: Cenario; ativa: b
         <span className="text-sm text-texto2 num">{m.modalidade === 'Optante B' ? 'sem demanda' : textoContrato(contrato, (n) => numero(n, Number.isInteger(n) ? 0 : 2))}</span>
         <span className="num font-semibold text-lg">{brl(f.total)}</span>
       </div>
-      {m.hipotetica ? (
+      {m.selo ? (
         <Selo cor={COR.alerta} className="mt-1.5">
-          {SELO_HIPOTETICO[m.modalidade]}
+          {m.selo}
         </Selo>
       ) : null}
     </button>
@@ -173,18 +173,36 @@ const AbaModalidade: React.FC<{ m: ModalidadeAnalise; cenario: Cenario; ativa: b
 
 const FaixaConferencia: React.FC<{ c: NonNullable<Analise['conferencia']> }> = ({ c }) => {
   const ok = Math.abs(c.diferenca) <= 1;
+  const sinal = (v: number) => `${v >= 0 ? '+' : '−'}${brl(Math.abs(v))}`;
   return (
-    <div
-      className={`rounded-xl border px-4 py-3 flex flex-wrap items-center gap-x-4 gap-y-1 ${ok ? 'border-verde/40 bg-verde/5' : 'border-alerta/40 bg-alerta/5'}`}
-    >
-      <strong>Conferência</strong>
-      <span className="num text-sm">
-        Fatura real {brl(c.totalFatura)} × recalculada {brl(c.totalCalculado)} · Δ {c.diferenca >= 0 ? '+' : '−'}
-        {brl(Math.abs(c.diferenca))} ({pct(c.diferenca / c.totalFatura, 2)})
-      </span>
-      <span className="text-sm" style={{ color: ok ? COR.verde : COR.alerta }}>
-        {ok ? 'confere (|Δ| ≤ R$ 1,00)' : 'diferença acima de R$ 1,00: confira os itens opcionais (reativos, outros, CIP)'}
-      </span>
+    <div className={`rounded-xl border px-4 py-3 space-y-1 ${ok ? 'border-verde/40 bg-verde/5' : 'border-alerta/40 bg-alerta/5'}`}>
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+        <strong>Conferência</strong>
+        <span className="num text-sm">
+          {c.retencoes !== null
+            ? `Recalculado ${brl(c.totalCalculado)} − retenções/créditos ${brl(c.retencoes)} = líquido ${brl(c.liquido)} × fatura ${brl(c.totalFatura)}`
+            : `Fatura real ${brl(c.totalFatura)} × recalculada ${brl(c.totalCalculado)}`}{' '}
+          · Δ {sinal(c.diferenca)} ({pct(c.diferenca / c.totalFatura, 2)})
+        </span>
+        <span className="text-sm" style={{ color: ok ? COR.verde : COR.alerta }}>
+          {ok ? 'confere (|Δ| ≤ R$ 1,00)' : 'diferença acima de R$ 1,00'}
+        </span>
+      </div>
+      {c.reativoNaoCobrado ? (
+        <p className="text-sm">
+          O reativo informado não gerou excedente no recálculo: pelo art. 304, só há cobrança com fator de potência abaixo
+          de 0,92. Se a fatura real cobra reativo, essa parcela explica a diferença.
+        </p>
+      ) : null}
+      {c.retencoes !== null ? (
+        <p className="text-xs text-texto2">
+          Retenções não são desconto: o custo da unidade continua {brl(c.totalCalculado)} na fatura, na comparação, no
+          planejamento e no E-PI.
+        </p>
+      ) : null}
+      {!ok && !c.reativoNaoCobrado ? (
+        <p className="text-xs text-texto2">Confira os itens opcionais: reativos, bandeira (manual proporcional), CIP, outros e retenções.</p>
+      ) : null}
     </div>
   );
 };
@@ -224,9 +242,6 @@ const PapelFatura: React.FC<{ analise: Analise; fatura: FaturaModalidade; mesTxt
           <div className="min-w-0">
             <h2 className="text-2xl font-bold">{form.distribuidora}</h2>
             <p className="text-sm text-texto2">Fatura simulada de energia elétrica · {form.subgrupo.toUpperCase().startsWith('A') ? 'Grupo A' : 'Grupo B'}</p>
-            <span className="inline-block mt-2 -rotate-2 border-2 border-alerta text-alerta rounded-md px-2 py-0.5 text-[11px] font-bold tracking-wider">
-              SIMULAÇÃO · NÃO É DOCUMENTO DE COBRANÇA
-            </span>
           </div>
           <div className="flex gap-3 flex-wrap">
             <div className="border border-borda rounded-xl px-4 py-3 min-w-[140px]">
@@ -240,9 +255,8 @@ const PapelFatura: React.FC<{ analise: Analise; fatura: FaturaModalidade; mesTxt
           </div>
         </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-5">
-          <Info rotulo="Unidade consumidora" valor={[form.unidadeNome, form.ucCode].filter(Boolean).join(' · ') || '—'} />
-          <Info rotulo="Classificação" valor={`${form.subgrupo}${form.classe && form.classe !== 'Não se aplica' ? ` · ${form.classe}` : ''}`} />
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-5">
+          <Info rotulo="Classificação" valor={`${form.subgrupo}${fatura.modalidade === 'Optante B' ? ` · ${form.atividade}` : ''}`} />
           <Info
             rotulo="Modalidade tarifária"
             valor={

@@ -75,6 +75,9 @@ export function validarFormulario(form: InvoiceFormData): string[] {
     p.push('Optante B: informe a potência dos transformadores (kVA) ou o critério de hotelaria/refletores');
   }
 
+  // Bandeira manual (B12): o valor em R$/kWh é obrigatório quando a automática está desligada.
+  if (!form.bandeiraAutomatica && vazio(form.bandeiraManualRkwh)) p.push('Valor da bandeira (R$/kWh) — ou ligue a bandeira automática');
+
   // Tributos
   if (form.aplicarTributos) {
     if (vazio(form.pis)) p.push('PIS (%)');

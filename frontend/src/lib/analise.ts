@@ -22,6 +22,7 @@ import {
   contratoAtualForm,
   contratoDoPlanejamento,
   ehHipotetica,
+  seloHipotetico,
   modalidadeAtualApi,
   modalidadesCandidatas,
   motivoNaoAvaliada,
@@ -36,6 +37,8 @@ export interface ModalidadeAnalise {
   estado: EstadoModalidade;
   motivo: string | null;
   hipotetica: boolean;
+  /** Texto do selo "hipotético" (B2/B11); null = modalidade da unidade. */
+  selo: string | null;
   contratoAtual: Contrato;
   contratoOtimo: Contrato;
   atual: FaturaModalidade | null;
@@ -53,13 +56,62 @@ export interface EpiAnalise {
   corpo: Record<string, unknown> | null;
 }
 
+/**
+ * Conferência com a conta (B13). Retenções/créditos só entram aqui:
+ * líquido = recalculado − retenções; Δ = líquido − total impresso.
+ * O custo da unidade continua sendo o recalculado.
+ */
+export interface Conferencia {
+  totalFatura: number;
+  totalCalculado: number;
+  retencoes: number | null;
+  liquido: number;
+  diferenca: number;
+  /** Reativo informado, mas a API não gerou linha de excedente (art. 304). */
+  reativoNaoCobrado: boolean;
+}
+
+export function conferir(form: InvoiceFormData, fatura: FaturaModalidade): Conferencia | null {
+  const total = form.totalFatura;
+  if (total === null || !(total > 0)) return null;
+  const ret = form.retencoesCreditos !== null && form.retencoesCreditos > 0 ? form.retencoesCreditos : null;
+  const liquido = fatura.total - (ret ?? 0);
+  const reativoInformado =
+    form.consumoReativoPonta + form.consumoReativoForaPonta + form.demandaReativaPonta + form.demandaReativaForaPonta +
+      form.reativoEnergiaCapacitiva + form.reativoDemandaCapacitiva > 0;
+  return {
+    totalFatura: total,
+    totalCalculado: fatura.total,
+    retencoes: ret,
+    liquido,
+    diferenca: Number((liquido - total).toFixed(2)),
+    reativoNaoCobrado: reativoInformado && !fatura.com.linhas.some((l) => l.categoria === 'REATIVOS' && l.custo > 0.005),
+  };
+}
+
+/**
+ * B10: a recomendação do mês nunca custa mais do que a modalidade atual.
+ * Devolve a modalidade mais barata e a economia, ou null se a atual já é a
+ * mais barata (ou empata).
+ */
+export function recomendacaoMes(a: Pick<Analise, 'modalidades' | 'modalidadeAtual' | 'faturaAtual'>): { modalidade: ModApi; economia: number } | null {
+  const custoAtual = a.faturaAtual.total;
+  const melhor = a.modalidades
+    .filter((m) => m.estado === 'ok' && m.atual && m.modalidade !== a.modalidadeAtual)
+    .sort((x, y) => x.atual!.total - y.atual!.total)[0];
+  if (!melhor || melhor.atual!.total >= custoAtual - 0.005) return null;
+  return { modalidade: melhor.modalidade, economia: custoAtual - melhor.atual!.total };
+}
+
 export interface Analise {
   form: InvoiceFormData;
   modalidadeAtual: ModApi;
   modalidades: ModalidadeAnalise[];
   notas: NotaApi[];
   faturaAtual: FaturaModalidade;
-  conferencia: { totalFatura: number; totalCalculado: number; diferenca: number } | null;
+  conferencia: Conferencia | null;
+  /** B7: E-PI da modalidade recomendada, quando diferente da atual. */
+  epiRecomendada: EpiAnalise | null;
   planejamento: PlanejamentoApi | null;
   planejamentoErro: string | null;
   mesesPlanejamento: MesHistorico[];
@@ -82,7 +134,9 @@ export function modalidadeDoEpi(
   const ok = modalidades
     .filter((m) => m.estado === 'ok' && m.atual && EPI_SUPORTADAS.has(m.modalidade))
     .sort((a, b) => a.atual!.total - b.atual!.total);
-  if (ok.length) return ok[0].modalidade;
+  const custoAtual = modalidades.find((m) => m.modalidade === atual)?.atual?.total;
+  // B10: só troca de referência se for mais barata que a atual.
+  if (ok.length && custoAtual !== undefined && ok[0].atual!.total < custoAtual - 0.005) return ok[0].modalidade;
   return EPI_SUPORTADAS.has(atual) ? atual : null;
 }
 
@@ -148,6 +202,7 @@ export async function executarAnalise(
     const base = {
       modalidade: m,
       hipotetica: ehHipotetica(form, m),
+      selo: seloHipotetico(form, m),
       contratoAtual: contratoAtualForm(form, m),
       contratoOtimo: contratoDoPlanejamento(plano?.modalidades.find((x) => x.modalidade === m)?.dc_otima),
       otima: null,
@@ -180,29 +235,27 @@ export async function executarAnalise(
     );
   }
 
-  const epi = await calcularEpiAnalise(form, modalidadeDoEpi(modalidades, plano, atual));
+  // B7: E-PI sempre com a modalidade explícita — a atual; e a recomendada, se for outra.
+  const recomendada = modalidadeDoEpi(modalidades, plano, atual);
+  const [epi, epiRecomendada] = await Promise.all([
+    calcularEpiAnalise(form, EPI_SUPORTADAS.has(atual) ? atual : null),
+    recomendada && recomendada !== atual ? calcularEpiAnalise(form, recomendada) : Promise.resolve(null),
+  ]);
 
-  const totalFatura = form.totalFatura;
   return {
     form,
     modalidadeAtual: atual,
     modalidades,
     notas: [...faturaAtual.notas, ...(comparar?.notas ?? [])],
     faturaAtual,
-    conferencia:
-      totalFatura !== null && totalFatura > 0
-        ? {
-            totalFatura,
-            totalCalculado: faturaAtual.total,
-            diferenca: Number((faturaAtual.total - totalFatura).toFixed(2)),
-          }
-        : null,
+    conferencia: conferir(form, faturaAtual),
     planejamento: plano,
     planejamentoErro,
     mesesPlanejamento: meses,
     avisosPlanejamento: avisos,
     periodo,
     epi,
+    epiRecomendada,
     premissas: premissasDeEntrada(form),
     optanteBAvaliado: optanteBInformado(form) || form.modalidadeAtual === 'optante_b',
   };

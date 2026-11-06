@@ -64,18 +64,29 @@ describe('B1 — totais por modalidade vêm de /fatura, não de /comparar', () =
 });
 
 describe('B2 — Azul para unidade Verde', () => {
-  it('usa a medida única nos dois postos e a contratada única (D6) e marca hipotético', async () => {
+  it('usa a demanda por posto do mês no histórico (Copel 03/2023: 6,88 / 150,65 kW) e a contratada única (D6)', async () => {
     const { chamadas } = instalarApiFake({ planejamento: planejamentoFake() });
     const a = await executarAnalise(exemploCopel(), null);
     const azul = a.modalidades.find((m) => m.modalidade === 'Azul')!;
     expect(azul.hipotetica).toBe(true);
+    expect(azul.selo).toContain('demanda por posto do histórico');
     const c = chamadas.find((x) => x.path === '/api/calculo/fatura' && x.params.get('modalidade') === 'Azul')!;
-    expect(c.corpo.demanda_ponta_kw).toBe(150.65);
+    expect(c.corpo.demanda_ponta_kw).toBe(6.88);
     expect(c.corpo.demanda_fora_ponta_kw).toBe(150.65);
     expect(c.corpo.demanda_contratada_ponta_kw).toBe(260);
     expect(c.corpo.demanda_contratada_fora_ponta_kw).toBe(260);
     // A quantidade isenta digitada é da fatura Verde real: não vai para a Azul.
     expect(c.params.has('demanda_isenta_icms_kw')).toBe(false);
+  });
+
+  it('sem histórico por posto: demanda única nos dois postos, com o selo', async () => {
+    const { chamadas } = instalarApiFake({ planejamento: planejamentoFake() });
+    const a = await executarAnalise({ ...exemploCopel(), historico12: '' }, null);
+    const azul = a.modalidades.find((m) => m.modalidade === 'Azul')!;
+    expect(azul.selo).toBe('hipotético: demanda única nos dois postos');
+    const c = chamadas.find((x) => x.path === '/api/calculo/fatura' && x.params.get('modalidade') === 'Azul')!;
+    expect(c.corpo.demanda_ponta_kw).toBe(150.65);
+    expect(c.corpo.demanda_fora_ponta_kw).toBe(150.65);
   });
 });
 
