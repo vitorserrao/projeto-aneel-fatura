@@ -34,11 +34,21 @@ from core.planejamento import (
     comparar_planejamento,
     custo_demanda_mensal,
     demanda_ponta_equilibrio,
+    montar_demanda,
     montar_demandas,
     otimizar_contrato,
 )
 from services.calculo_service import BASE_PADRAO, CalculoService
 from services.epi_service import EPIService
+
+
+def _consumo_obrigatorio(mes: dict, campo: str) -> float:
+    """Lê o consumo do mês sem zero implícito (dado faltante é erro)."""
+    valor = mes.get(campo)
+    if valor is None:
+        ref = mes.get("data_referencia", "?")
+        raise ValueError(f"mês {ref}: falta consumo {campo}")
+    return float(valor)
 
 
 class PlanejamentoService:
@@ -298,8 +308,8 @@ class PlanejamentoService:
                             if m.get("data_referencia")
                             else perfil_base.data_referencia
                         ),
-                        consumo_ponta_kwh=float(m.get("e_ponta_kwh", 0.0)),
-                        consumo_fora_ponta_kwh=float(m.get("e_fora_ponta_kwh", 0.0)),
+                        consumo_ponta_kwh=_consumo_obrigatorio(m, "e_ponta_kwh"),
+                        consumo_fora_ponta_kwh=_consumo_obrigatorio(m, "e_fora_ponta_kwh"),
                     )
                     te_ponta, te_fora = self._epi._buscar_te(
                         perfil_m,
@@ -433,18 +443,28 @@ class PlanejamentoService:
         )
         kwargs: dict = {
             "data_referencia": data_ref,
-            "consumo_ponta_kwh": float(mes.get("e_ponta_kwh", 0.0)),
-            "consumo_fora_ponta_kwh": float(mes.get("e_fora_ponta_kwh", 0.0)),
+            "consumo_ponta_kwh": _consumo_obrigatorio(mes, "e_ponta_kwh"),
+            "consumo_fora_ponta_kwh": _consumo_obrigatorio(mes, "e_fora_ponta_kwh"),
         }
-        if modalidade.strip().title() == "Verde":
-            kwargs["demanda_medida_unica_kw"] = float(
-                mes.get("d_med_unica") or 0.0
+        # Demanda medida do mês pela MESMA regra do otimizador (item A,
+        # core.planejamento.montar_demanda): com histórico HP/HFP a Verde usa
+        # max(ponta, fora); só com a demanda única, a Azul usa a única nos
+        # dois postos. (Antes a Verde lia só d_med_unica e, com histórico por
+        # posto, faturava medida = 0 → DC ótima caía no mínimo de 30 kW.)
+        demanda, _ = montar_demanda(
+            MedicaoMensal(
+                d_med_ponta=mes.get("d_med_ponta"),
+                d_med_fora_ponta=mes.get("d_med_fora_ponta"),
+                d_med_unica=mes.get("d_med_unica"),
             )
+        )
+        if modalidade.strip().title() == "Verde":
+            kwargs["demanda_medida_unica_kw"] = float(demanda.verde)
             if dc_unica is not None:
                 kwargs["demanda_contratada_unica_kw"] = dc_unica
         else:
-            kwargs["demanda_ponta_kw"] = float(mes.get("d_med_ponta") or 0.0)
-            kwargs["demanda_fora_ponta_kw"] = float(mes.get("d_med_fora_ponta") or 0.0)
+            kwargs["demanda_ponta_kw"] = float(demanda.azul_ponta)
+            kwargs["demanda_fora_ponta_kw"] = float(demanda.azul_fora_ponta)
             if dc_ponta is not None:
                 kwargs["demanda_contratada_ponta_kw"] = dc_ponta
             if dc_fora is not None:
