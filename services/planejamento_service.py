@@ -42,6 +42,15 @@ from services.calculo_service import BASE_PADRAO, CalculoService
 from services.epi_service import EPIService
 
 
+def _consumo_obrigatorio(mes: dict, campo: str) -> float:
+    """Lê o consumo do mês sem zero implícito (dado faltante é erro)."""
+    valor = mes.get(campo)
+    if valor is None:
+        ref = mes.get("data_referencia", "?")
+        raise ValueError(f"mês {ref}: falta consumo {campo}")
+    return float(valor)
+
+
 class PlanejamentoService:
     """Caso de uso: comparar modalidades em 12 meses (contrato × otimizado)."""
 
@@ -299,8 +308,8 @@ class PlanejamentoService:
                             if m.get("data_referencia")
                             else perfil_base.data_referencia
                         ),
-                        consumo_ponta_kwh=float(m.get("e_ponta_kwh", 0.0)),
-                        consumo_fora_ponta_kwh=float(m.get("e_fora_ponta_kwh", 0.0)),
+                        consumo_ponta_kwh=_consumo_obrigatorio(m, "e_ponta_kwh"),
+                        consumo_fora_ponta_kwh=_consumo_obrigatorio(m, "e_fora_ponta_kwh"),
                     )
                     te_ponta, te_fora = self._epi._buscar_te(
                         perfil_m,
@@ -434,8 +443,8 @@ class PlanejamentoService:
         )
         kwargs: dict = {
             "data_referencia": data_ref,
-            "consumo_ponta_kwh": float(mes.get("e_ponta_kwh", 0.0)),
-            "consumo_fora_ponta_kwh": float(mes.get("e_fora_ponta_kwh", 0.0)),
+            "consumo_ponta_kwh": _consumo_obrigatorio(mes, "e_ponta_kwh"),
+            "consumo_fora_ponta_kwh": _consumo_obrigatorio(mes, "e_fora_ponta_kwh"),
         }
         # Demanda medida do mês pela MESMA regra do otimizador (item A,
         # core.planejamento.montar_demanda): com histórico HP/HFP a Verde usa

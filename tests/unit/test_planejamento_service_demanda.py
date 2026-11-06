@@ -118,3 +118,15 @@ def test_contrato_atual_reproduz_fatura_real_copel():
                                 dc_atual_azul_fora=260.0)
     v = next(m for m in plano.modalidades if m.modalidade == "Verde")
     assert abs(v.custo_contrato_atual - 9736.92) <= 1.00
+
+
+def test_mes_sem_consumo_levanta_value_error():
+    """Dado faltante nunca vira zero: mês sem consumo ponta/fora é erro."""
+    import pytest
+
+    servico = PlanejamentoService(_CalculoFake(), _EpiFake())
+    perfil = Consumidor(distribuidora="X", subgrupo="A4", classe="Não se aplica",
+                        detalhe="Não se aplica", data_referencia=date(2023, 12, 15))
+    mes = [{"data_referencia": "2023-01-15", "d_med_unica": 100.0}]  # sem consumo
+    with pytest.raises(ValueError):
+        servico.comparar(perfil, mes, pis=0.01, cofins=0.04, icms=0.18)

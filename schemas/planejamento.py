@@ -14,8 +14,8 @@ class MesPlanejamento(BaseModel):
     d_med_ponta: float | None = Field(default=None, ge=0, description="Demanda medida ponta (kW)")
     d_med_fora_ponta: float | None = Field(default=None, ge=0, description="Demanda medida fora de ponta (kW)")
     d_med_unica: float | None = Field(default=None, ge=0, description="Demanda medida única (kW, fatura Verde)")
-    e_ponta_kwh: float = Field(default=0.0, ge=0, description="Energia ponta (kWh)")
-    e_fora_ponta_kwh: float = Field(default=0.0, ge=0, description="Energia fora de ponta (kWh)")
+    e_ponta_kwh: float = Field(..., ge=0, description="Energia ponta (kWh)")
+    e_fora_ponta_kwh: float = Field(..., ge=0, description="Energia fora de ponta (kWh)")
 
     @field_validator("data_referencia")
     @classmethod
