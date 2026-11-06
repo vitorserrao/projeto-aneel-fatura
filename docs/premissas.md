@@ -146,6 +146,31 @@ Impacto: R$ 62,43 na fatura de 12/2024
 usuário informa** o excedente (comportamento atual, sem regra automática).
 Pergunta registrada para o orientador.
 
+### D4 — Escopo do custo anual no planejamento
+O custo anual do planejamento (`/api/planejamento/comparar`,
+`scripts/resultados_artigo.py`) é o **custo técnico**: energia (TE+TUSD),
+demanda (normal, isenta de ICMS e ultrapassagem), bandeira e tributos. Ficam
+fora CIP/COSIP, reativo excedente, multas, juros e retenções federais. O
+**ganho** (atual × otimizado, Verde × Azul) não muda, porque esses itens são
+iguais nos dois cenários; o **total** fica abaixo da soma das faturas.
+
+### D5 — PIS/COFINS constantes no horizonte
+O planejamento usa as alíquotas de PIS/COFINS do mês de referência para os 12
+meses (ex.: CEMIG dez/2023: 0,78% e 3,61%; Copel abr/2023: 0,95% e 4,38%). Nas
+faturas reais elas variam mês a mês; o efeito no ganho é de segunda ordem.
+
+### D6 — "Contrato atual" da Azul para cliente Verde é hipotético
+Para um cliente hoje na Verde, o cenário "Azul com contrato atual" usa a
+demanda contratada da Verde nos dois postos (ex.: 400/400 kW). É uma
+referência de comparação, não um contrato existente; a comparação que importa
+é entre os cenários com demanda otimizada.
+
+### D7 — Conferência obrigatória antes de publicar resultados
+Todo número que vai para o artigo é conferido contra a fatura real: o cenário
+"contrato atual" do último mês tem de reproduzir a soma técnica da fatura
+(sem CIP/reativo) e a DC ótima tem de ser coerente com a demanda medida
+(nunca o mínimo de 30 kW quando a unidade mede centenas de kW).
+
 ## O que o Sprint 1 NÃO implementa (permanece pendente)
 
 - ~~Fórmula do EPI (P2)~~ — ✅ implementada em `core/epi.py` (ver docs/epi.md).

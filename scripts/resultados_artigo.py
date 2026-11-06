@@ -167,8 +167,10 @@ def _grupo(descricao: str) -> str:
         return "TE ponta" if ponta else "TE fora ponta"
     if "usd" in d or "tusd" in d:
         return "TUSD ponta" if ponta else "TUSD fora ponta"
-    if "energia ativa" in d:
-        return "Energia ponta (TE+TUSD)" if ponta else "Energia fora ponta (TE+TUSD)"
+    if "energia ativa" in d or d.startswith(("consumo ponta", "consumo fora ponta")):
+        # CEMIG ("Energia Ativa HP") e Equatorial ("Consumo Ponta (kWh)")
+        # imprimem TE+TUSD numa linha só por posto.
+        return "Energia fora ponta (TE+TUSD)" if "fora" in d or "hfp" in d else "Energia ponta (TE+TUSD)"
     return descricao
 
 
@@ -187,7 +189,7 @@ def validar(caso_cfg: dict) -> dict:
         tributar_reativos=caso_cfg["flags"]["tributar_reativos"],
     )
     # CEMIG imprime TE+TUSD numa linha só por posto → agrupar o motor igual.
-    juntar_energia = any("energia ativa" in e["descricao"].lower() for e in caso["linhas_esperadas"])
+    juntar_energia = any(_grupo(e["descricao"]).endswith("(TE+TUSD)") for e in caso["linhas_esperadas"])
     motor: dict[str, float] = {}
     for l in fatura.linhas:
         g = _grupo(l.descricao)
@@ -216,6 +218,24 @@ def validar(caso_cfg: dict) -> dict:
         and abs(soma_motor - soma_real) <= TOLERANCIA_TOTAL,
         "total_fatura": caso["meta"]["total_fatura"], "notas": caso.get("notas", []),
     }
+
+
+def flags_padrao(caso: dict) -> dict:
+    """Flags validadas nas faturas reais: demanda isenta sempre; reativo
+    tributado em todas as distribuidoras validadas, exceto a Copel."""
+    dist = caso["meta"]["distribuidora"].upper()
+    return {
+        "demanda_isenta_icms": caso["meta"]["modalidade"] != "Optante B",
+        "tributar_reativos": not dist.startswith("COPEL"),
+    }
+
+
+def validar_arquivo(nome: str) -> dict:
+    """Valida qualquer caso de docs/validacao_faturas_reais/casos/ (camada 1)."""
+    caso = json.loads((CASOS / nome).read_text(encoding="utf-8"))
+    cfg = {"titulo": f"{caso['meta']['distribuidora']} · {caso['meta']['modalidade']} · {caso['meta']['competencia']}",
+           "validacao": nome, "flags": caso.get("flags") or flags_padrao(caso)}
+    return validar(cfg)
 
 
 def parte_a() -> list[dict]:

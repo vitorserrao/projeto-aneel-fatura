@@ -25,117 +25,17 @@ def _carregar_casos() -> dict[str, dict]:
     return casos
 
 
-def _parcelas(caso: dict):
-    from core.tarifas import ParcelaTarifaria
+def _rotina_validacao():
+    """Mesma rotina dos resultados do artigo (scripts/resultados_artigo.py)."""
+    import importlib.util
 
-    parcelas = []
-    for t in caso["tarifas_liquidas"]:
-        if t["componente"] == "REATIVO":
-            continue
-        unidade = t["unidade"]
-        valor = t["valor"]
-        if unidade == "R$/kWh":
-            unidade = "R$/MWh"
-            valor = valor * 1000
-        parcelas.append(
-            ParcelaTarifaria(t["componente"], t["grandeza"], t["posto"], unidade, valor)
-        )
-    return parcelas
-
-
-def _tarifa_reativo(caso: dict) -> float | None:
-    for t in caso["tarifas_liquidas"]:
-        if t["componente"] == "REATIVO":
-            return float(t["valor"])
-    return None
-
-
-def _consumidor(caso: dict):
-    from core.models import Consumidor
-
-    p = caso["perfil"]
-    return Consumidor(
-        distribuidora=caso["meta"]["distribuidora"],
-        subgrupo=caso["meta"]["subgrupo"],
-        classe="Não se aplica",
-        subclasse="Não se aplica",
-        detalhe="Não se aplica",
-        data_referencia=date.fromisoformat(p["data_referencia"]),
-        consumo_ponta_kwh=p.get("consumo_ponta_kwh", 0.0),
-        consumo_fora_ponta_kwh=p.get("consumo_fora_ponta_kwh", 0.0),
-        consumo_intermediario_kwh=p.get("consumo_intermediario_kwh", 0.0),
-        demanda_ponta_kw=p.get("demanda_ponta_kw", 0.0),
-        demanda_fora_ponta_kw=p.get("demanda_fora_ponta_kw", 0.0),
-        demanda_contratada_ponta_kw=p.get("demanda_contratada_ponta_kw", 0.0),
-        demanda_contratada_fora_ponta_kw=p.get("demanda_contratada_fora_ponta_kw", 0.0),
-        demanda_medida_unica_kw=p.get("demanda_medida_unica_kw", 0.0),
-        demanda_contratada_unica_kw=p.get("demanda_contratada_unica_kw", 0.0),
-        reativo_energia_ponta_kvArh=p.get("reativo_energia_ponta_kvArh", 0.0),
-        reativo_energia_fora_ponta_kvArh=p.get("reativo_energia_fora_ponta_kvArh", 0.0),
-        reativo_demanda_ponta_kvAr=p.get("reativo_demanda_ponta_kvAr", 0.0),
-        reativo_demanda_fora_ponta_kvAr=p.get("reativo_demanda_fora_ponta_kvAr", 0.0),
-        cip_cosip_rs=p.get("cip_cosip_rs", 0.0),
-        outros_rs=p.get("outros_rs", 0.0),
-        bandeira_adicional_r_kwh=p.get("bandeira_adicional_r_kwh", 0.0),
+    raiz = Path(__file__).resolve().parents[2]
+    spec = importlib.util.spec_from_file_location(
+        "resultados_artigo", raiz / "scripts" / "resultados_artigo.py"
     )
-
-
-def _camada1(caso: dict) -> dict[str, float]:
-    from core.motor_calculo import calcular_fatura
-
-    trib = caso["tributos"]
-    rt = _tarifa_reativo(caso)
-    fatura = calcular_fatura(
-        _consumidor(caso),
-        caso["meta"]["modalidade"],
-        _parcelas(caso),
-        demanda_unica=caso["meta"]["modalidade"] == "Verde",
-        aplicar_tributos=True,
-        pis=trib["pis"],
-        cofins=trib["cofins"],
-        icms=trib["icms"],
-        tipo_icms=trib["tipo_icms"],
-        reativos_direto=rt is not None,
-        tarifa_reativo_energia_r_kvarh=rt,
-        arredondar_centavos=True,
-        demanda_isenta_icms=True,
-        demanda_isenta_icms_kw=caso["perfil"].get("demanda_isenta_icms_kw"),
-        tributar_reativos=True,
-    )
-    return {l.descricao: round(l.custo, 2) for l in fatura.linhas}
-
-
-def _comparar_esperadas(linhas_motor: dict[str, float], caso: dict) -> list[dict]:
-    linhas = []
-    for e in caso["linhas_esperadas"]:
-        d = e["descricao"].lower()
-        alvo = None
-        if "te ponta" in d:
-            alvo = next((v for k, v in linhas_motor.items() if "TE ENERGIA PONTA" in k), None)
-        elif "te f ponta" in d or "te f. ponta" in d:
-            alvo = next((v for k, v in linhas_motor.items() if "TE ENERGIA FORA PONTA" in k), None)
-        elif "usd ponta" in d:
-            alvo = next((v for k, v in linhas_motor.items() if "TUSD ENERGIA PONTA" in k), None)
-        elif "usd f ponta" in d:
-            alvo = next((v for k, v in linhas_motor.items() if "TUSD ENERGIA FORA PONTA" in k), None)
-        elif "demanda" in d and "reativ" not in d:
-            alvo = sum(v for k, v in linhas_motor.items() if "TUSD DEMANDA" in k)
-        elif "reativ" in d and "demanda" not in d:
-            alvo = sum(v for k, v in linhas_motor.items() if "REATIVA" in k.upper() or "REATIVO" in k.upper())
-        elif "ilum" in d or "cip" in d or "cosip" in d:
-            alvo = sum(v for k, v in linhas_motor.items() if "CIP" in k.upper() or "ENCARGO" in k.upper())
-        valor = e["valor"]
-        delta = round(valor - alvo, 2) if alvo is not None else None
-        linhas.append(
-            {
-                "Linha": e["descricao"],
-                "Fatura (R$)": valor,
-                "Motor (R$)": alvo,
-                "Δ (R$)": delta,
-                "Status": "✅" if delta is not None and abs(delta) <= 0.05 else ("⚠️" if delta is not None else "—"),
-            }
-        )
-    return linhas
+    modulo = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(modulo)
+    return modulo
 
 
 st.title("Validação — Faturas Reais × Motor")
@@ -158,12 +58,21 @@ c4.metric("Total fatura", f"R$ {meta['total_fatura']:,.2f}")
 with st.expander("Entradas do caso (JSON)", expanded=False):
     st.json(caso["perfil"])
 
-linhas_motor = _camada1(caso)
-total_motor = sum(linhas_motor.values())
-st.metric("Total motor (camada 1)", f"R$ {total_motor:,.2f}",
-          delta=f"R$ {total_motor - meta['total_fatura']:,.2f} vs fatura")
+resultado = _rotina_validacao().validar_arquivo(f"{nome}.json")
+st.metric("Soma técnica (motor)", f"R$ {resultado['soma_tecnica_motor']:,.2f}",
+          delta=f"R$ {resultado['delta_total']:+,.2f} vs fatura (soma técnica)")
 
-linhas = _comparar_esperadas(linhas_motor, caso)
+linhas = [
+    {
+        "Linha": l["item"],
+        "Fatura (R$)": l["fatura"],
+        "Motor (R$)": l["motor"],
+        "Δ (R$)": l["delta"],
+        "Status": "✅" if l["delta"] is not None and abs(l["delta"]) <= 0.05
+        else ("⚠️" if l["delta"] is not None else "—"),
+    }
+    for l in resultado["linhas"]
+]
 df = pd.DataFrame(linhas)
 st.dataframe(df, use_container_width=True, hide_index=True)
 
