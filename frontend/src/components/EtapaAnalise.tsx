@@ -203,7 +203,7 @@ const Diagnostico: React.FC<{
     <section className="bg-tinta text-white rounded-2xl p-6 sm:p-8 grid grid-cols-1 lg:grid-cols-[1.1fr_1fr] gap-8">
       <div className="min-w-0">
         <div className="text-acento text-xs font-bold tracking-widest uppercase">
-          Diagnóstico · {[analise.form.unidadeNome, analise.form.distribuidora].filter(Boolean).join(' · ')} · {rotuloPeriodo}
+          Diagnóstico · {analise.form.distribuidora} · {analise.form.subgrupo} · {rotuloPeriodo}
         </div>
         <h1 className="text-2xl sm:text-3xl font-bold mt-3 leading-tight">{titulo}</h1>
         {frases.length ? <p className="text-white/80 mt-4 text-[15px]">{frases.join(' ')}</p> : null}
@@ -796,7 +796,7 @@ const MercadoLivre: React.FC<{
   const temCustos = (form.opexMensal || 0) > 0 || (form.capex || 0) > 0;
   const [modo, setModo] = React.useState<'simples' | 'custos'>(temCustos ? 'custos' : 'simples');
   const sel = modo === 'custos' && epi.comCustos ? epi.comCustos : epi.simplificado;
-  const [edit, setEdit] = React.useState({ opex: form.opexMensal || null, capex: form.capex || null, horiz: form.horizonteMeses || null, prop: form.precoMedioACL || null });
+  const [edit, setEdit] = React.useState({ opex: form.opexMensal || null, capex: form.capex || null, horiz: form.horizonteMeses || null, prop: form.precoMedioACL || null, enc: form.encargosAcl });
   const periodo = n >= 12 ? 'por ano' : `em ${n} ${n === 1 ? 'mês' : 'meses'}`;
 
   // Curva: período (E-PI do /planejamento) ou só o mês (E-PI do /epi/calcular).
@@ -887,8 +887,13 @@ const MercadoLivre: React.FC<{
           ) : null}
         </div>
         <div className="rounded-xl bg-fundo p-4">
-          <h3 className="font-bold mb-3">Custos de migração</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <h3 className="font-bold mb-3">Encargos e custos de migração</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div>
+              <Rotulo htmlFor="epi-enc">Encargos do ACL</Rotulo>
+              <CampoNumero id="epi-enc" valor={edit.enc} aoMudar={(v) => setEdit({ ...edit, enc: v })} unidade="R$/MWh" />
+              <Dica>ESS/EER e CCEE. Vazio: fora do E-PI (premissa declarada).</Dica>
+            </div>
             <div>
               <Rotulo htmlFor="epi-opex">OPEX mensal (R$)</Rotulo>
               <CampoNumero id="epi-opex" valor={edit.opex} aoMudar={(v) => setEdit({ ...edit, opex: v })} unidade="R$/mês" />
@@ -914,6 +919,7 @@ const MercadoLivre: React.FC<{
                   capex: edit.capex ?? 0,
                   horizonteMeses: edit.horiz ?? 60,
                   precoMedioACL: edit.prop ?? 0,
+                  encargosAcl: edit.enc,
                 });
                 if ((edit.opex ?? 0) > 0 || (edit.capex ?? 0) > 0) setModo('custos');
               }}

@@ -240,9 +240,8 @@ const PapelFatura: React.FC<{ analise: Analise; fatura: FaturaModalidade; mesTxt
           </div>
         </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-5">
-          <Info rotulo="Unidade consumidora" valor={[form.unidadeNome, form.ucCode].filter(Boolean).join(' · ') || '—'} />
-          <Info rotulo="Classificação" valor={`${form.subgrupo}${form.classe && form.classe !== 'Não se aplica' ? ` · ${form.classe}` : ''}`} />
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-5">
+          <Info rotulo="Classificação" valor={`${form.subgrupo}${fatura.modalidade === 'Optante B' ? ` · ${form.atividade}` : ''}`} />
           <Info
             rotulo="Modalidade tarifária"
             valor={

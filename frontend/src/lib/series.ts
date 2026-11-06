@@ -9,7 +9,7 @@
  * os totais do planejamento (±R$ 1) — se não bater, a tela mostra o aviso.
  */
 import { num } from './numeros';
-import { BASE_TARIFARIA, FaturaApi, MesHistorico, PlanejamentoApi, mensagemErro, postFatura } from './api';
+import { BASE_TARIFARIA, NAO_SE_APLICA, FaturaApi, MesHistorico, PlanejamentoApi, mensagemErro, postFatura } from './api';
 import { Contrato, contratoDoPlanejamento } from './cenarios';
 import { executarComLimite } from './pool';
 import type { InvoiceFormData } from '../types/energy';
@@ -68,8 +68,8 @@ export function pedidoMes(
   const corpo: Record<string, unknown> = {
     distribuidora: form.distribuidora,
     subgrupo: form.subgrupo,
-    classe: form.classe || 'Não se aplica',
-    detalhe: form.detalhe || 'Não se aplica',
+    classe: NAO_SE_APLICA,
+    detalhe: NAO_SE_APLICA,
     atividade: form.atividade,
     tipo_ligacao: form.tipoLigacao,
     data_referencia: mes.data,

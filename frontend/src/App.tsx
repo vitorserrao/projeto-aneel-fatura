@@ -8,7 +8,6 @@ import type { InvoiceFormData } from './types/energy';
 import {
   BandeiraOpcao,
   listarBandeiras,
-  listarClasses,
   listarDistribuidoras,
   listarSubgrupos,
   mensagemErro,
@@ -36,16 +35,15 @@ export default function App() {
   // Listas dinâmicas da API (null = listas estáticas de apoio).
   const [distribuidorasApi, setDistribuidorasApi] = useState<string[] | null>(null);
   const [subgruposApi, setSubgruposApi] = useState<string[] | null>(null);
-  const [classesApi, setClassesApi] = useState<string[] | null>(null);
   const [bandeirasApi, setBandeirasApi] = useState<BandeiraOpcao[] | null>(null);
   const [bandeiraAtivaApi, setBandeiraAtivaApi] = useState<string | null>(null);
+  const [bandeiraCompetencia, setBandeiraCompetencia] = useState<string | null>(null);
 
   React.useEffect(() => {
     void listarDistribuidoras()
       .then((d) => setDistribuidorasApi(d.map((x) => x.sig_agente)))
       .catch(() => setDistribuidorasApi(null));
     void listarSubgrupos().then(setSubgruposApi).catch(() => setSubgruposApi(null));
-    void listarClasses().then(setClassesApi).catch(() => setClassesApi(null));
   }, []);
 
   // Bandeiras da competência informada.
@@ -55,8 +53,13 @@ export default function App() {
       .then((b) => {
         setBandeirasApi(b.opcoes);
         setBandeiraAtivaApi(b.ativa);
+        setBandeiraCompetencia(b.competencia);
       })
-      .catch(() => setBandeirasApi(null));
+      .catch(() => {
+        setBandeirasApi(null);
+        setBandeiraAtivaApi(null);
+        setBandeiraCompetencia(null);
+      });
   }, [form.dataReferencia]);
 
   const irPara = (e: Etapa) => {
@@ -134,9 +137,9 @@ export default function App() {
             pendencias={pendencias}
             distribuidorasApi={distribuidorasApi}
             subgruposApi={subgruposApi}
-            classesApi={classesApi}
             bandeirasApi={bandeirasApi}
             bandeiraAtivaApi={bandeiraAtivaApi}
+            bandeiraCompetencia={bandeiraCompetencia}
           />
         ) : null}
 

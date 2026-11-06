@@ -13,6 +13,7 @@ const API_BASE: string =
   (import.meta.env.VITE_API_BASE as string | undefined) ?? 'http://127.0.0.1:8000';
 
 export const BASE_TARIFARIA = 'Tarifa de Aplicação';
+export const NAO_SE_APLICA = 'Não se aplica';
 
 /** Modalidade do formulário → valor aceito pelo back (query `modalidade`). */
 const MODALIDADE_QUERY: Record<TariffModalidade, string> = {
@@ -84,9 +85,11 @@ export function paraConsumidor(
   return {
     distribuidora: form.distribuidora,
     subgrupo: form.subgrupo,
-    classe: form.classe || 'Não se aplica',
-    subclasse: form.subclasse || 'Não se aplica',
-    detalhe: form.detalhe || 'Não se aplica',
+    // Classe/subclasse/detalhe saem da tela: a API recebe sempre "Não se aplica"
+    // (no Optante B a tarifa do Grupo B sai da atividade).
+    classe: NAO_SE_APLICA,
+    subclasse: NAO_SE_APLICA,
+    detalhe: NAO_SE_APLICA,
     data_referencia: dataReferenciaIso(form.dataReferencia),
     consumo_ponta_kwh: num(form.consumoPonta),
     consumo_fora_ponta_kwh: num(form.consumoForaPonta),
@@ -487,8 +490,8 @@ export async function compararPlanejamento(
   const corpo: Record<string, unknown> = {
     distribuidora: form.distribuidora,
     subgrupo: form.subgrupo,
-    classe: form.classe || 'Não se aplica',
-    detalhe: form.detalhe || 'Não se aplica',
+    classe: NAO_SE_APLICA,
+    detalhe: NAO_SE_APLICA,
     atividade: form.atividade,
     tipo_ligacao: form.tipoLigacao,
     data_referencia: dataReferenciaIso(form.dataReferencia),
