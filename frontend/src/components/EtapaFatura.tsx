@@ -224,9 +224,6 @@ const PapelFatura: React.FC<{ analise: Analise; fatura: FaturaModalidade; mesTxt
           <div className="min-w-0">
             <h2 className="text-2xl font-bold">{form.distribuidora}</h2>
             <p className="text-sm text-texto2">Fatura simulada de energia elétrica · {form.subgrupo.toUpperCase().startsWith('A') ? 'Grupo A' : 'Grupo B'}</p>
-            <span className="inline-block mt-2 -rotate-2 border-2 border-alerta text-alerta rounded-md px-2 py-0.5 text-[11px] font-bold tracking-wider">
-              SIMULAÇÃO · NÃO É DOCUMENTO DE COBRANÇA
-            </span>
           </div>
           <div className="flex gap-3 flex-wrap">
             <div className="border border-borda rounded-xl px-4 py-3 min-w-[140px]">
