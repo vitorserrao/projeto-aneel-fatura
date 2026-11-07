@@ -3,7 +3,7 @@
  * (viewBox) e nunca causam rolagem horizontal. Só desenham números recebidos.
  */
 import React from 'react';
-import { COR, compacto, numero } from '../lib/formato';
+import { COR, brl, compacto, numero } from '../lib/formato';
 
 /** Largura real do contêiner (px): o desenho usa essa escala e o texto fica legível no celular. */
 function useLargura(padrao = 800) {
@@ -282,6 +282,79 @@ export const Legenda: React.FC<{ itens: { nome: string; cor: string; tracejada?:
     ))}
   </div>
 );
+
+/* ------------------------------------------------------------------ */
+
+export interface LinhaComposicao {
+  /** Nome da modalidade/cenário. */
+  rotulo: string;
+  /** Custo total em R$ (valor absoluto à direita da barra). */
+  total: number;
+  /** R$/MWh do total (coluna secundária). */
+  porMwh?: number | null;
+  fatias: Fatia[];
+  /** Linha destacada (melhor opção). */
+  destaque?: boolean;
+}
+
+/**
+ * Comparação de composição por modalidade: uma barra 100% empilhada por
+ * linha, com o total em R$ à direita. Lê-se a fatia (TE, TUSD, demanda,
+ * tributos) de cada modalidade na mesma escala, sem precisar de dois gráficos.
+ */
+export const ComparacaoComposicao: React.FC<{
+  linhas: LinhaComposicao[];
+  titulo: string;
+  legenda?: { nome: string; cor: string }[];
+}> = ({ linhas, titulo, legenda = [] }) => {
+  const validas = linhas.filter((l) => l.total > 0);
+  if (validas.length === 0) return null;
+  return (
+    <div role="img" aria-label={titulo}>
+      <div className="space-y-2.5">
+        {validas.map((l) => {
+          const soma = l.fatias.reduce((a, f) => a + Math.max(0, f.valor), 0) || 1;
+          return (
+            <div key={l.rotulo} className="grid grid-cols-[minmax(64px,86px)_1fr_minmax(72px,auto)] items-center gap-3">
+              <div className={`text-[13px] truncate ${l.destaque ? 'font-bold' : ''}`}>
+                {l.rotulo}
+                {l.destaque ? <span className="ml-1 text-verde" aria-label="melhor opção">●</span> : null}
+              </div>
+              <div className="flex w-full overflow-hidden rounded-md h-7">
+                {l.fatias
+                  .filter((f) => f.valor > 0)
+                  .map((f) => {
+                    const p = f.valor / soma;
+                    return (
+                      <div
+                        key={f.nome}
+                        title={`${f.nome}: ${numero(f.valor, 2)} (${numero(p * 100)}%)`}
+                        className="flex items-center justify-center border-r border-white last:border-r-0 min-w-0"
+                        style={{ width: `${p * 100}%`, background: f.cor }}
+                      >
+                        {p >= 0.12 ? (
+                          <span className="num text-[10px] font-semibold text-tinta/85">{numero(p * 100)}%</span>
+                        ) : null}
+                      </div>
+                    );
+                  })}
+              </div>
+              <div className="text-right leading-tight">
+                <div className="num text-[13px] font-semibold">{brl(l.total, 0)}</div>
+                {l.porMwh ? <div className="num text-[11px] text-texto2">{brl(l.porMwh, 0)}/MWh</div> : null}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      {legenda.length ? (
+        <div className="mt-3 pt-3 border-t border-borda2">
+          <Legenda itens={legenda} />
+        </div>
+      ) : null}
+    </div>
+  );
+};
 
 /* ------------------------------------------------------------------ */
 
