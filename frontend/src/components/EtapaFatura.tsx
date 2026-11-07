@@ -50,11 +50,11 @@ export const EtapaFatura: React.FC<{ analise: Analise; aoEditar: () => void; aoA
     <div className="space-y-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
-          <h1 className="text-2xl sm:text-3xl font-bold">Fatura simulada</h1>
-          <p className="text-sm text-texto2 mt-1">
-            Como ficaria a sua fatura em cada modalidade
-            {analise.planejamento ? ', com o contrato atual ou com a demanda contratada ideal' : ''}. Compare com a fatura
-            real.
+          <h1 className="tela-titulo">Fatura simulada · {mesTxt}</h1>
+          <p className="tela-apoio mt-1">
+            {analise.planejamento
+              ? 'Contrato atual ou demanda ideal do planejamento, por modalidade.'
+              : 'Valores por modalidade para o mês da fatura.'}
           </p>
         </div>
         <div className="flex gap-2 no-print">
@@ -106,19 +106,16 @@ export const EtapaFatura: React.FC<{ analise: Analise; aoEditar: () => void; aoA
         <div className="space-y-2">
           {analise.notas.map((n, i) => (
             <Aviso key={i} tom="info">
-              <span className="num text-xs mr-2">{n.tipo}</span>
-              {n.mensagem}
+              <span title={`Código da API: ${n.tipo}`}>{n.mensagem}</span>
             </Aviso>
           ))}
         </div>
       ) : null}
 
       <div className="flex flex-wrap justify-between items-center gap-3 no-print">
-        <p className="text-sm text-texto2">
-          Tarifas da base ANEEL pela vigência do mês; valores calculados pela API.
-        </p>
+        <p className="tela-apoio">Tarifas ANEEL da vigência do mês, calculadas pela API.</p>
         <Botao variante="primario" onClick={aoAvancar}>
-          Ver análise completa e E-PI →
+          Ver análise e E-PI →
         </Botao>
       </div>
     </div>

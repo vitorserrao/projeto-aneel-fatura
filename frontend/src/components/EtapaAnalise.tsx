@@ -243,12 +243,21 @@ const Kpis: React.FC<{ plano: PlanejamentoApi; pAtual: ModPlano; pMelhor: ModPla
   const fc = media(base.map(fatorCarga));
   return (
     <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
-      <Kpi rotulo={`Custo ${rot} hoje`} valor={brlCurto(hoje)} sub={`${nomeModalidade(pAtual.modalidade)} ${fmtContrato(contratoDe(pAtual.dc_atual))}`} />
+      <Kpi
+        rotulo="Custo hoje"
+        valor={brlCurto(hoje)}
+        sub={`${rot} · ${nomeModalidade(pAtual.modalidade)} ${fmtContrato(contratoDe(pAtual.dc_atual))}`}
+      />
+      <Kpi
+        rotulo="Economia potencial"
+        valor={brlCurto(Math.max(hoje - otim, 0))}
+        cor={COR.verde}
+        sub={hoje > 0 ? `${pct((otim - hoje) / hoje)} sobre o custo atual` : undefined}
+      />
       <Kpi
         rotulo="Custo otimizado"
         valor={brlCurto(otim)}
-        cor={COR.verde}
-        sub={hoje > 0 ? `${pct((otim - hoje) / hoje)} no período` : undefined}
+        sub={`${rot} · ${nomeModalidade(pMelhor.modalidade)}`}
       />
       <Kpi
         rotulo="Custo médio"
@@ -256,11 +265,14 @@ const Kpis: React.FC<{ plano: PlanejamentoApi; pAtual: ModPlano; pMelhor: ModPla
         sub={eTotalMwh > 0 ? `hoje ${brl(hoje / eTotalMwh, 0)}/MWh` : undefined}
       />
       <Kpi
-        rotulo="Uso da ponta"
-        valor={uso === null ? '—' : `${numero(uso, 0)} h/mês`}
-        sub={eTotalMwh > 0 ? `${pct(ePonta / eTotalMwh)} da energia${uso === null ? ' · sem demanda de ponta medida' : ''}` : undefined}
+        rotulo="Fator de carga"
+        valor={fc === null ? '—' : numero(fc, 2)}
+        sub={
+          uso === null
+            ? 'sem demanda de ponta medida'
+            : `ponta ${numero(uso, 0)} h/mês · ${pct(ePonta / Math.max(eTotalMwh, 0.001))} da energia`
+        }
       />
-      <Kpi rotulo="Fator de carga" valor={fc === null ? '—' : numero(fc, 2)} sub="energia ÷ (demanda máx. × horas do mês)" />
     </div>
   );
 };
