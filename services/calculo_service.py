@@ -110,6 +110,10 @@ class CalculoService:
         reativos_direto: bool = False,
         tarifa_reativo_energia_r_kvarh: float | None = None,
         tarifa_reativo_demanda_r_kvar: float | None = None,
+        arredondar_centavos: bool = False,
+        demanda_isenta_icms: bool = False,
+        demanda_isenta_icms_kw: float | None = None,
+        tributar_reativos: bool = False,
     ) -> ResultadoComparacao:
         """Compara Azul × Verde (Grupo A) e devolve ranking + indisponíveis.
 
@@ -117,6 +121,11 @@ class CalculoService:
         elegíveis de ``core.motor_calculo.modalidades_elegiveis``. As demais
         modalidades do Grupo A entram em ``indisponiveis`` com o motivo da
         regra de elegibilidade. Tributos são propagados igualmente a todas.
+
+        As flags ``arredondar_centavos``, ``demanda_isenta_icms``,
+        ``demanda_isenta_icms_kw`` e ``tributar_reativos`` são repassadas a
+        cada fatura: sem elas os totais daqui divergiriam de
+        ``POST /calculo/fatura`` para o mesmo perfil (antes eram ignoradas).
 
         Retorna ``ResultadoComparacao`` com ``disponiveis`` ordenadas por
         menor ``custo_total`` e ``indisponiveis`` com ``(modalidade, motivo)``.
@@ -148,6 +157,10 @@ class CalculoService:
                         reativos_direto=reativos_direto,
                         tarifa_reativo_energia_r_kvarh=tarifa_reativo_energia_r_kvarh,
                         tarifa_reativo_demanda_r_kvar=tarifa_reativo_demanda_r_kvar,
+                        arredondar_centavos=arredondar_centavos,
+                        demanda_isenta_icms=demanda_isenta_icms,
+                        demanda_isenta_icms_kw=demanda_isenta_icms_kw,
+                        tributar_reativos=tributar_reativos,
                     )
                 except ValueError:
                     # Sem tarifa vigente para a modalidade nesta distribuidora.

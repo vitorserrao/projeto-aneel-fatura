@@ -25,6 +25,11 @@ class EPISolicitacao(BaseModel):
         default=None,
         description="Modalidade ACR a usar (ex.: Azul). None = modalidade de menor custo no ACR.",
     )
+    atividade: str = Field(
+        default="Comercial ou Industrial",
+        description="Atividade econômica — só o Optante B usa: define o subgrupo B "
+        "(B1 residencial, B2 rural, B3 demais) e a classe da tarifa (art. 292).",
+    )
 
     consumo_ponta_kwh: float = Field(default=0.0, ge=0)
     consumo_fora_ponta_kwh: float = Field(default=0.0, ge=0)

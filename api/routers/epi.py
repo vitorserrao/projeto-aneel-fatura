@@ -12,7 +12,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException
 
 from core.models import Consumidor as CoreConsumidor
-from infra.database import create_session_factory
+from infra.database import get_session_factory
 from infra.repositories.tarifa_repository import TarifaRepository
 from schemas.epi import EPIResultado, EPISolicitacao
 from services.calculo_service import CalculoService
@@ -23,7 +23,7 @@ router = APIRouter()
 
 
 def _epi_service() -> EPIService:
-    repo = TarifaRepository(create_session_factory())
+    repo = TarifaRepository(get_session_factory())
     return EPIService(repo, OtimizacaoService(CalculoService(repo)))
 
 
@@ -47,6 +47,7 @@ def calcular_epi(solicitacao: EPISolicitacao, service: _Epi) -> EPIResultado:
             else None
         ),
         detalhe="Não se aplica",
+        atividade=solicitacao.atividade,
         consumo_ponta_kwh=solicitacao.consumo_ponta_kwh,
         consumo_fora_ponta_kwh=solicitacao.consumo_fora_ponta_kwh,
     )
