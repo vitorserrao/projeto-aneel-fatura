@@ -27,6 +27,7 @@ import {
   CampoSelecao,
   CampoTexto,
   Cartao,
+  Ajuda,
   Dica,
   Marcador,
   Rotulo,
@@ -342,19 +343,21 @@ const PassoUnidade: React.FC<Props> = ({ form, aoMudar, distribuidorasApi, subgr
               <div>
                 <Rotulo htmlFor="inp-kva" obrigatorio>
                   Potência dos transformadores
+                  <Ajuda texto="Optante B (art. 292): até 112,5 kVA, ou 1.125 kVA em cooperativa de eletrificação rural." />
                 </Rotulo>
                 <CampoNumero id="inp-kva" valor={form.potenciaTransformadoresKva} aoMudar={(v) => set('potenciaTransformadoresKva', v)} unidade="kVA" invalido={falta('Optante B')} />
-                <Dica>Obrigatório no Optante B: até 112,5 kVA (ou 1.125 kVA em cooperativa de eletrificação rural), art. 292.</Dica>
               </div>
               <div>
-                <Rotulo htmlFor="inp-atividade">Atividade</Rotulo>
+                <Rotulo htmlFor="inp-atividade">
+                  Atividade
+                  <Ajuda texto="Define a tarifa do Grupo B: Residencial → B1; Rural → B2; demais → B3." />
+                </Rotulo>
                 <CampoSelecao
                   id="inp-atividade"
                   valor={form.atividade}
                   aoMudar={(v) => set('atividade', v as InvoiceFormData['atividade'])}
                   opcoes={['Comercial ou Industrial', 'Rural', 'Residencial', 'Esportivo ou Parque Agropecuário'].map((x) => ({ valor: x, rotulo: x }))}
                 />
-                <Dica>Define a tarifa do Grupo B: Residencial → B1; Rural → B2; demais → B3.</Dica>
               </div>
             </div>
             <details>
@@ -391,14 +394,16 @@ const PassoUnidade: React.FC<Props> = ({ form, aoMudar, distribuidorasApi, subgr
         ) : grupo === 'B' ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-borda2 pt-4">
             <div>
-              <Rotulo htmlFor="inp-tipoLigacao">Tipo de ligação</Rotulo>
+              <Rotulo htmlFor="inp-tipoLigacao">
+                Tipo de ligação
+                <Ajuda texto="Define o custo de disponibilidade do Grupo B (art. 291): 30, 50 ou 100 kWh por mês." />
+              </Rotulo>
               <CampoSelecao
                 id="inp-tipoLigacao"
                 valor={form.tipoLigacao}
                 aoMudar={(v) => set('tipoLigacao', v as InvoiceFormData['tipoLigacao'])}
                 opcoes={['Trifásico', 'Bifásico', 'Monofásico'].map((x) => ({ valor: x, rotulo: x }))}
               />
-              <Dica>Define o custo de disponibilidade (30/50/100 kWh).</Dica>
             </div>
           </div>
         ) : null}
