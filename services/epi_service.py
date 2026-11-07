@@ -19,6 +19,7 @@ from dataclasses import dataclass
 from datetime import date
 
 from core.epi import calcular_pi
+from core.motor_calculo import tarifa_b_do_optante
 from core.models import (
     POSTO_FORA_PONTA,
     POSTO_PONTA,
@@ -132,15 +133,32 @@ class EPIService:
     def _buscar_te(
         self, perfil: Consumidor, modalidade_db: str, data_ref: date
     ) -> tuple[float, float]:
+        # O dataset ANEEL não publica a modalidade "Optante B": a unidade do
+        # Grupo A enquadrada no art. 292 é faturada pela Convencional do
+        # subgrupo B derivado da atividade (mesma regra da fatura — ver
+        # core.motor_calculo.tarifa_b_do_optante).
+        subgrupo_busca = perfil.subgrupo
+        classe_filtro = None
+        subclasse_filtro = None
+        caminho_b = modalidade_db.strip().casefold() == "optante b"
+        if caminho_b:
+            contexto = tarifa_b_do_optante(perfil.atividade)
+            subgrupo_busca = contexto.subgrupo
+            modalidade_db = contexto.modalidade
+            classe_filtro = contexto.classe
+            subclasse_filtro = contexto.subclasse
+
         tarifas = self._repo.buscar_tarifas(
             data=data_ref,
             sig_agente=perfil.distribuidora,
-            subgrupo=perfil.subgrupo,
+            subgrupo=subgrupo_busca,
             modalidade=modalidade_db,
             componente="TE",
             unidade="MWh",
             detalhe="Não se aplica",
             base_tarifaria=BASE_PADRAO,
+            classe=classe_filtro,
+            subclasse=subclasse_filtro,
         )
 
         valores_por_posto: dict[str, set[float]] = {
@@ -157,13 +175,30 @@ class EPIService:
                 valores_por_posto[POSTO_PONTA].add(float(t.valor))
                 valores_por_posto[POSTO_FORA_PONTA].add(float(t.valor))
 
+        # Só no caminho B: no Grupo A somar TE distintas do mesmo posto é a
+        # regra documentada (TE total = soma das linhas). No Optante B a TE é
+        # uma tarifa única por chave: mais de um valor distinto no mesmo posto
+        # significa classe ambígua (ex.: B1 Residencial × Baixa Renda) e somar
+        # inflaria o PI (A5/P6) — recusamos dizendo o que informar.
+        if caminho_b and classe_filtro is None:
+            for posto, valores in valores_por_posto.items():
+                if len(valores) > 1:
+                    raise ValueError(
+                        "TE ambígua para "
+                        f"{perfil.distribuidora} {subgrupo_busca} "
+                        f"{modalidade_db} ({posto}) na data "
+                        f"{data_ref.isoformat()}: {len(valores)} valores "
+                        "vigentes distintos. Informe a atividade econômica "
+                        "do optante para desambiguar a classe (art. 292)."
+                    )
+
         te_por_posto = {
             posto: sum(valores) for posto, valores in valores_por_posto.items()
         }
         if te_por_posto[POSTO_PONTA] <= 0 or te_por_posto[POSTO_FORA_PONTA] <= 0:
             raise ValueError(
                 "TE indisponível para "
-                f"{perfil.distribuidora} {perfil.subgrupo} {modalidade_db} "
+                f"{perfil.distribuidora} {subgrupo_busca} {modalidade_db} "
                 f"na data {data_ref.isoformat()} (detalhe 'Não se aplica', "
                 "base Tarifa de Aplicação). Verifique distribuidora/subgrupo/"
                 "modalidade/data."

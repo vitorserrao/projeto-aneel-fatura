@@ -24,10 +24,10 @@ router = APIRouter()
 
 
 def repo_dependency() -> TarifaRepository:
-    """Fornece o TarifaRepository (usa a session factory padrão do .env)."""
-    from infra.database import create_session_factory
+    """Fornece o TarifaRepository (usa a session factory compartilhada)."""
+    from infra.database import get_session_factory
 
-    return TarifaRepository(create_session_factory())
+    return TarifaRepository(get_session_factory())
 
 
 _Repo = Annotated[TarifaRepository, Depends(repo_dependency)]

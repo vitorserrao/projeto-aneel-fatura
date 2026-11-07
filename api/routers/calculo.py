@@ -13,7 +13,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 from core.models import Consumidor as CoreConsumidor
-from infra.database import create_session_factory
+from infra.database import get_session_factory
 from infra.repositories.tarifa_repository import TarifaRepository
 from schemas.consumidor import Consumidor
 from schemas.fatura import (
@@ -33,14 +33,17 @@ router = APIRouter()
 
 
 def _calculo_service() -> CalculoService:
-    return CalculoService(TarifaRepository(create_session_factory()))
+    # get_session_factory() é compartilhada: uma engine (um pool) por processo.
+    # create_session_factory() abriria uma engine nova por request e esgotaria
+    # o max_connections do PostgreSQL (ver tests/integration/test_api_conexoes.py).
+    return CalculoService(TarifaRepository(get_session_factory()))
 
 
 _Calculo = Annotated[CalculoService, Depends(_calculo_service)]
 
 
 def _epi_service() -> EPIService:
-    repo = TarifaRepository(create_session_factory())
+    repo = TarifaRepository(get_session_factory())
     return EPIService(repo, OtimizacaoService(CalculoService(repo)))
 
 
@@ -282,6 +285,24 @@ def comparar_modalidades(
     k: float = Query(
         default=0.03, ge=0, description="Perdas na migração ao ACL (fração)"
     ),
+    arredondar_centavos: bool = Query(
+        default=False,
+        description="Arredondar o custo de cada linha a centavos (2 casas)",
+    ),
+    demanda_isenta_icms: bool = Query(
+        default=False,
+        description="Dividir a demanda em parcela normal e parcela isenta de ICMS",
+    ),
+    demanda_isenta_icms_kw: float | None = Query(
+        default=None,
+        ge=0,
+        description="Quantidade (kW) da parcela isenta de ICMS; se omitido, "
+        "o motor usa faturada − medida",
+    ),
+    tributar_reativos: bool = Query(
+        default=False,
+        description="Aplicar PIS/COFINS/ICMS também às linhas de reativos",
+    ),
     encargos: float = Query(
         default=0.0, ge=0, description="Encargos do ACL por energia (R$/MWh, ex.: ESS)"
     ),
@@ -305,6 +326,10 @@ def comparar_modalidades(
             reativos_direto=reativos_direto,
             tarifa_reativo_energia_r_kvarh=tarifa_reativo_energia_r_kvarh,
             tarifa_reativo_demanda_r_kvar=tarifa_reativo_demanda_r_kvar,
+            arredondar_centavos=arredondar_centavos,
+            demanda_isenta_icms=demanda_isenta_icms,
+            demanda_isenta_icms_kw=demanda_isenta_icms_kw,
+            tributar_reativos=tributar_reativos,
         )
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc))

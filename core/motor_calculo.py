@@ -15,6 +15,7 @@ TUSD, faturamento de demanda e tributação continuam pendentes
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from typing import Iterable
 
 from .models import (
@@ -216,6 +217,44 @@ def _subclasse_b_por_atividade(atividade: str) -> str | None:
     if "rural" in a or "agropecu" in a:
         return "Não se aplica"
     return None
+
+
+@dataclass(frozen=True)
+class TarifaBDoOptante:
+    """Contexto tarifário do Grupo B para o Optante B (REN 1.000/2021, art. 292).
+
+    O dataset ANEEL **não publica** a modalidade "Optante B": a unidade do
+    Grupo A enquadrada no art. 292 é faturada pela tarifa **Convencional** do
+    subgrupo B correspondente à sua atividade econômica. Este é o único lugar
+    que traduz atividade → subgrupo/modalidade/classe/subclasse, para que a
+    fatura (``calculo_service``) e o E-PI (``epi_service``) usem a mesma regra.
+    """
+
+    subgrupo: str
+    modalidade: str = "Convencional"
+    classe: str | None = None
+    subclasse: str | None = None
+
+
+def tarifa_b_do_optante(atividade: str) -> TarifaBDoOptante:
+    """Atividade econômica → contexto tarifário do Grupo B (art. 292).
+
+    Args:
+        atividade: atividade econômica do perfil (ex.: ``"Residencial"``,
+            ``"Rural"``, ``"Comercial ou Industrial"``).
+
+    Returns:
+        ``TarifaBDoOptante`` com o subgrupo (B1/B2/B3), a modalidade do
+        dataset (sempre ``"Convencional"``) e a classe/subclasse derivadas
+        (``None`` quando a atividade é ambígua — a guarda de ambiguidade A5
+        decide, nunca somando valores distintos).
+    """
+    return TarifaBDoOptante(
+        subgrupo=_subgrupo_b_por_atividade(atividade),
+        modalidade="Convencional",
+        classe=_classe_b_por_atividade(atividade),
+        subclasse=_subclasse_b_por_atividade(atividade),
+    )
 
 
 # Palavras-chave do critério de iluminação esportiva do art. 292: o benefício

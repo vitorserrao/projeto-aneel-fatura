@@ -24,8 +24,8 @@ export const TituloSecao: React.FC<{
   return (
     <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
       <div className="min-w-0">
-        <H className={nivel === 'h2' ? 'text-xl sm:text-2xl font-bold' : 'text-lg font-bold'}>{titulo}</H>
-        {sub ? <p className="text-sm text-texto2 mt-1 max-w-3xl">{sub}</p> : null}
+        <H className="tela-secao">{titulo}</H>
+        {sub ? <p className="tela-apoio mt-1 max-w-3xl">{sub}</p> : null}
       </div>
       {acao}
     </div>
@@ -92,6 +92,23 @@ export const Rotulo: React.FC<{ htmlFor?: string; obrigatorio?: boolean; extra?:
 
 export const Dica: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <p className="text-xs text-texto2 mt-1.5">{children}</p>
+);
+
+/**
+ * Ajuda em tooltip: para a regra que o usuário consulta só quando tem dúvida.
+ * Substitui a `Dica` quando o texto é longo e não muda a cada digitação — o
+ * formulário deixa de ter 19 parágrafos de explicação abertos.
+ */
+export const Ajuda: React.FC<{ texto: string; rotulo?: string }> = ({ texto, rotulo = 'Ajuda' }) => (
+  <span
+    role="note"
+    tabIndex={0}
+    title={texto}
+    aria-label={`${rotulo}: ${texto}`}
+    className="inline-flex items-center justify-center w-4 h-4 ml-1 align-middle rounded-full border border-borda text-[10px] font-bold text-texto2 cursor-help select-none"
+  >
+    ?
+  </span>
 );
 
 const baseInput =
@@ -299,12 +316,12 @@ export const Kpi: React.FC<{ rotulo: string; valor: React.ReactNode; sub?: React
   sub,
   cor,
 }) => (
-  <div className="bg-white border border-borda rounded-2xl p-4 min-w-0">
-    <div className="text-sm text-texto2">{rotulo}</div>
-    <div className="num text-lg sm:text-2xl font-semibold mt-1 break-words leading-tight" style={cor ? { color: cor } : undefined}>
+  <div className="bg-white border border-borda rounded-xl px-4 py-3 min-w-0">
+    <div className="tela-rotulo">{rotulo}</div>
+    <div className="num text-xl sm:text-2xl font-semibold mt-1.5 break-words leading-none" style={cor ? { color: cor } : undefined}>
       {valor}
     </div>
-    {sub ? <div className="text-xs text-texto2 mt-1">{sub}</div> : null}
+    {sub ? <div className="tela-apoio mt-1.5">{sub}</div> : null}
   </div>
 );
 

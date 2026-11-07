@@ -13,12 +13,13 @@
   --color-acento: #F2A900;
   --color-verde: #1F8A4C;
   --color-azul: #2B59C3;
-  --color-acl: #D99A00;
+  --color-acl: #51607A;
   --color-alerta: #C2410C;
-  --color-te: #D99A00;
+  --color-te: #B47600;
   --color-demanda: #8A5CC2;
   --color-fio: #2A9DB0;
   --color-tributos: #9AA5AE;
+  --color-outros: #C9D2D8;
 }
 
 @layer base {
@@ -36,6 +37,96 @@
   textarea,
   button {
     font-family: inherit;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Escala tipográfica única — os componentes usam estas classes, não    */
+/* tamanhos soltos (text-[15px], text-4xl…).                            */
+/* ------------------------------------------------------------------ */
+@layer components {
+  .tela-titulo {
+    font-size: 28px;
+    line-height: 1.15;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .tela-secao {
+    font-size: 16px;
+    line-height: 1.3;
+    font-weight: 600;
+  }
+  .tela-bloco {
+    font-size: 14px;
+    line-height: 1.35;
+    font-weight: 600;
+  }
+  .tela-rotulo {
+    font-size: 11px;
+    line-height: 1.2;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-texto2);
+  }
+  .tela-apoio {
+    font-size: 12px;
+    line-height: 1.45;
+    color: var(--color-texto2);
+  }
+  .tela-destaque {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    font-size: 40px;
+    line-height: 1;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+
+  /* Tabela de dados: números alinhados à direita, sem grade vertical. */
+  .tela-tabela {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .tela-tabela thead th {
+    padding: 0 0 8px 12px;
+    border-bottom: 1px solid var(--color-borda);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-texto2);
+    text-align: right;
+    white-space: nowrap;
+  }
+  .tela-tabela thead th:first-child {
+    padding-left: 0;
+    text-align: left;
+  }
+  .tela-tabela tbody td {
+    padding: 9px 0 9px 12px;
+    border-bottom: 1px solid var(--color-borda2);
+    text-align: right;
+    white-space: nowrap;
+  }
+  .tela-tabela tbody td:first-child {
+    padding-left: 0;
+    text-align: left;
+    white-space: normal;
+  }
+  .tela-tabela tbody tr:last-child td {
+    border-bottom: 0;
+  }
+  .tela-tabela tbody tr.melhor td {
+    background: color-mix(in srgb, var(--color-verde) 7%, transparent);
+  }
+  .tela-tabela tbody tr.melhor td:first-child {
+    font-weight: 700;
+  }
+  .tela-tabela .celula-num {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
   }
 }
 

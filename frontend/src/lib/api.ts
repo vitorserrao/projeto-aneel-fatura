@@ -57,7 +57,9 @@ export function bandeiraValorKwh(
   if (opcoes && opcoes.length > 0) {
     const alvo = BANDEIRA_API[bandeira];
     const encontrada = opcoes.find((o) => o.bandeira === alvo);
-    if (encontrada) return encontrada.valor_kwh;
+    // A API devolve 0 quando a competência não está na tabela de bandeiras:
+    // 0 só é valor legítimo da Verde — nas demais, cai no valor oficial.
+    if (encontrada && (bandeira === 'verde' || encontrada.valor_kwh > 0)) return encontrada.valor_kwh;
   }
   return BANDEIRA_VALOR[bandeira];
 }
@@ -70,11 +72,6 @@ export function dataReferenciaIso(dataReferencia: string): string {
   const iso = /^\d{4}-\d{2}-\d{2}$/.exec(d);
   if (iso) return d;
   return d;
-}
-
-/** Competência AAAA-MM a partir da data de referência (exibição). */
-export function competenciaIso(dataReferencia: string): string {
-  return dataReferenciaIso(dataReferencia).slice(0, 7);
 }
 
 /** Adicional de bandeira (R$/kWh): 0 = automática (a API busca a da competência). */
@@ -364,7 +361,8 @@ export function listarClasses(): Promise<string[]> {
 }
 
 export function listarBandeiras(dataReferencia: string): Promise<BandeirasApi> {
-  return getJson(`/api/bandeiras?competencia=${competenciaIso(dataReferencia)}`) as Promise<BandeirasApi>;
+  // A API exige a data completa (AAAA-MM-DD), não só a competência (AAAA-MM).
+  return getJson(`/api/bandeiras?competencia=${dataReferenciaIso(dataReferencia)}`) as Promise<BandeirasApi>;
 }
 
 /* ------------------------------------------------------------------ */
@@ -403,6 +401,8 @@ export function corpoEpi(form: InvoiceFormData, o: OpcoesEpi): Record<string, un
     subgrupo: form.subgrupo,
     data_referencia: o.dataReferenciaIso ?? dataReferenciaIso(form.dataReferencia),
     modalidade: o.modalidade,
+    // O Optante B usa a atividade para achar a tarifa do Grupo B (art. 292).
+    atividade: form.atividade,
     consumo_ponta_kwh: o.consumoPontaKwh ?? num(form.consumoPonta),
     consumo_fora_ponta_kwh: o.consumoForaPontaKwh ?? num(form.consumoForaPonta),
     pis: num(form.pis) / 100,

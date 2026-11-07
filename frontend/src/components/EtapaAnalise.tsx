@@ -25,7 +25,7 @@ import { nomeModalidade } from '../lib/rotulos';
 import { COR, brl, brlCurto, compacto, corModalidade, numero, pct } from '../lib/formato';
 import { num } from '../lib/numeros';
 import { Aviso, Botao, Cartao, CampoNumero, Dica, Kpi, Leitura, Progresso, Rotulo, Segmentos, Selo, TituloSecao } from './ui';
-import { BarraEmpilhada, GraficoBarras, GraficoCascata, GraficoCurva, GraficoEconomiaPreco, GraficoLinhas, Legenda } from './graficos';
+import { ComparacaoComposicao, GraficoBarras, GraficoCascata, GraficoCurva, GraficoEconomiaPreco, GraficoLinhas, Legenda } from './graficos';
 import { FATIAS_COMPOSICAO } from './EtapaFatura';
 
 interface Props {
@@ -75,6 +75,10 @@ export const EtapaAnalise: React.FC<Props> = ({ analise, series, progressoSeries
         <Kpis plano={plano} pAtual={pAtual} pMelhor={pMelhor} base={base} n={n} eTotalMwh={eTotalMwh} />
       ) : null}
 
+      {series ? (
+        <CompararModalidades series={series} form={form} eTotalMwh={eTotalMwh} atual={analise.modalidadeAtual} />
+      ) : null}
+
       {plano && pAtual && pMelhor ? (
         <Cascata
           plano={plano}
@@ -99,7 +103,6 @@ export const EtapaAnalise: React.FC<Props> = ({ analise, series, progressoSeries
               <PorQueVence analise={analise} series={series} plano={plano} />
               <DemandaMedida analise={analise} series={series} pAtual={pAtual} />
             </div>
-            <ParaOndeVai series={series} form={form} />
           </>
         ) : progressoSeries ? (
           <Progresso
@@ -149,85 +152,44 @@ const Diagnostico: React.FC<{
   const troca = melhor !== atual && g.modalidade > 1;
   const dcAtual = pAtual.dc_atual;
   const dcOtima = pAtual.dc_otima;
-  const base = mesesBase(analise.mesesPlanejamento);
-  const maxMedida = Math.max(...base.map((m) => (atual === 'Verde' ? m.dVerde : m.dFora)), 0);
-
-  let titulo: string;
-  if (g.total <= 1) titulo = `A modalidade e a demanda contratada atuais já são as mais baratas`;
-  else if (!troca) titulo = `Dá para pagar ${brlCurto(g.total)} a menos ${periodoTxt} sem trocar de modalidade`;
-  else
-    titulo = `Dá para pagar ${brlCurto(g.total)} a menos ${periodoTxt} ${g.demanda > 1 ? 'ajustando a demanda e ' : ''}trocando para a ${nomeModalidade(melhor)}`;
-
-  const dcA = typeof dcAtual === 'number' ? dcAtual : Array.isArray(dcAtual) ? dcAtual[1] : null;
-  const dcO = typeof dcOtima === 'number' ? dcOtima : dcOtima[1];
-  const frases: string[] = [];
-  if (dcA !== null && g.demanda > 1) {
-    frases.push(
-      dcA > dcO
-        ? `A demanda contratada de ${fmtContrato(contratoDe(dcAtual))} está acima do que a unidade usa (maior medida ${kw(maxMedida)}).`
-        : `A demanda contratada de ${fmtContrato(contratoDe(dcAtual))} está abaixo do ideal: as ultrapassagens custam mais do que contratar ${fmtContrato(contratoDe(dcOtima))}.`,
-    );
-  }
-  if (pi !== null && pi > 0) {
-    frases.push(`No mercado livre, o ganho depende da proposta: qualquer preço abaixo de ${brl(pi)}/MWh compensa.`);
-  }
-
-  const outra = plano.modalidades.find((m) => m.modalidade !== atual && (m.modalidade === 'Verde' || m.modalidade === 'Azul'));
-  const difOutra = outra ? outra.custo_demanda_otimizada - pAtual.custo_demanda_otimizada : null;
-
-  const acoes: { t: string; sub: string; v: string }[] = [
-    g.demanda > 1
-      ? {
-          t: `Ajustar a demanda contratada para ${fmtContrato(contratoDe(dcOtima))}`,
-          sub: `hoje ${fmtContrato(contratoDe(dcAtual))}; pedido à distribuidora`,
-          v: `−${brl(g.demanda, 0)}`,
-        }
-      : { t: `Manter a demanda contratada`, sub: `${fmtContrato(contratoDe(dcAtual))} já é a de menor custo`, v: brl(0, 0) },
-    troca
-      ? { t: `Trocar para a ${nomeModalidade(melhor)}`, sub: `com ${fmtContrato(contratoDe(pMelhor.dc_otima))}`, v: `−${brl(g.modalidade, 0)}` }
-      : {
-          t: `Manter a ${nomeModalidade(atual)}`,
-          sub:
-            outra && difOutra !== null && difOutra > 0
-              ? `a ${nomeModalidade(outra.modalidade)} custaria ${brl(difOutra, 0)} a mais ${periodoTxt}`
-              : 'é a modalidade de menor custo',
-          v: brl(0, 0),
-        },
-    {
-      t: 'Cotar energia no mercado livre',
-      sub: 'usar o E-PI como teto nas propostas',
-      v: pi !== null ? `< ${brl(pi, 0)}/MWh` : 'E-PI indisponível',
-    },
-  ];
 
   return (
-    <section className="bg-tinta text-white rounded-2xl p-6 sm:p-8 grid grid-cols-1 lg:grid-cols-[1.1fr_1fr] gap-8">
-      <div className="min-w-0">
-        <div className="text-acento text-xs font-bold tracking-widest uppercase">
-          Diagnóstico · {analise.form.distribuidora} · {analise.form.subgrupo} · {rotuloPeriodo}
+    <section className="bg-tinta text-white rounded-2xl px-6 py-5">
+      <div className="flex flex-wrap items-end gap-x-10 gap-y-5">
+        <div className="min-w-0">
+          <div className="tela-rotulo" style={{ color: COR.acento }}>
+            Economia potencial · {analise.form.distribuidora} · {analise.form.subgrupo} · {rotuloPeriodo}
+          </div>
+          <div className="num tela-destaque mt-2" style={{ color: g.total > 1 ? COR.acento : '#FFFFFF' }}>
+            {brlCurto(Math.max(g.total, 0))}
+          </div>
+          <div className="tela-apoio text-white/70">
+            {g.total > 1 ? periodoTxt : 'a configuração atual já é a de menor custo'}
+          </div>
         </div>
-        <h1 className="text-2xl sm:text-3xl font-bold mt-3 leading-tight">{titulo}</h1>
-        {frases.length ? <p className="text-white/80 mt-4 text-[15px]">{frases.join(' ')}</p> : null}
-        {n12(analise) ? null : (
-          <p className="text-acento/90 mt-3 text-sm">
-            Resultado parcial: {analise.mesesPlanejamento.length} {analise.mesesPlanejamento.length === 1 ? 'mês' : 'meses'}, sem anualizar.
-          </p>
-        )}
-      </div>
-      <div className="min-w-0">
-        <div className="text-xs font-bold tracking-widest uppercase text-white/70">O que fazer</div>
-        <ol className="mt-2">
-          {acoes.map((a, i) => (
-            <li key={a.t} className="flex gap-3 py-3 border-t border-white/15">
-              <span className="w-7 h-7 shrink-0 rounded-full bg-acento text-tinta flex items-center justify-center text-sm font-bold">{i + 1}</span>
-              <div className="min-w-0 flex-1">
-                <div className="font-bold">{a.t}</div>
-                <div className="text-sm text-white/70">{a.sub}</div>
-              </div>
-              <div className="num text-acento font-semibold text-right shrink-0">{a.v}</div>
-            </li>
-          ))}
-        </ol>
+        <dl className="grid grid-cols-2 sm:grid-cols-3 gap-x-8 gap-y-4 min-w-0">
+          <div>
+            <dt className="tela-rotulo text-white/60">Demanda contratada</dt>
+            <dd className="num tela-bloco mt-1">{fmtContrato(contratoDe(dcOtima))}</dd>
+            <dd className="tela-apoio text-white/60">hoje {fmtContrato(contratoDe(dcAtual))}</dd>
+          </div>
+          <div>
+            <dt className="tela-rotulo text-white/60">Modalidade</dt>
+            <dd className="tela-bloco mt-1">
+              {troca ? `${nomeModalidade(atual)} → ${nomeModalidade(melhor)}` : nomeModalidade(atual)}
+            </dd>
+            <dd className="tela-apoio text-white/60">
+              {troca ? `${brl(g.modalidade, 0)} ${periodoTxt}` : 'menor custo do período'}
+            </dd>
+          </div>
+          <div>
+            <dt className="tela-rotulo text-white/60">E-PI · teto no ACL</dt>
+            <dd className="num tela-bloco mt-1">{pi !== null && pi > 0 ? `${brl(pi, 0)}/MWh` : '—'}</dd>
+            <dd className="tela-apoio text-white/60">
+              {n12(analise) ? '12 meses' : `${analise.mesesPlanejamento.length} de 12 meses`}
+            </dd>
+          </div>
+        </dl>
       </div>
     </section>
   );
@@ -281,12 +243,21 @@ const Kpis: React.FC<{ plano: PlanejamentoApi; pAtual: ModPlano; pMelhor: ModPla
   const fc = media(base.map(fatorCarga));
   return (
     <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
-      <Kpi rotulo={`Custo ${rot} hoje`} valor={brlCurto(hoje)} sub={`${nomeModalidade(pAtual.modalidade)} ${fmtContrato(contratoDe(pAtual.dc_atual))}`} />
+      <Kpi
+        rotulo="Custo hoje"
+        valor={brlCurto(hoje)}
+        sub={`${rot} · ${nomeModalidade(pAtual.modalidade)} ${fmtContrato(contratoDe(pAtual.dc_atual))}`}
+      />
+      <Kpi
+        rotulo="Economia potencial"
+        valor={brlCurto(Math.max(hoje - otim, 0))}
+        cor={COR.verde}
+        sub={hoje > 0 ? `${pct((otim - hoje) / hoje)} sobre o custo atual` : undefined}
+      />
       <Kpi
         rotulo="Custo otimizado"
         valor={brlCurto(otim)}
-        cor={COR.verde}
-        sub={hoje > 0 ? `${pct((otim - hoje) / hoje)} no período` : undefined}
+        sub={`${rot} · ${nomeModalidade(pMelhor.modalidade)}`}
       />
       <Kpi
         rotulo="Custo médio"
@@ -294,11 +265,14 @@ const Kpis: React.FC<{ plano: PlanejamentoApi; pAtual: ModPlano; pMelhor: ModPla
         sub={eTotalMwh > 0 ? `hoje ${brl(hoje / eTotalMwh, 0)}/MWh` : undefined}
       />
       <Kpi
-        rotulo="Uso da ponta"
-        valor={uso === null ? '—' : `${numero(uso, 0)} h/mês`}
-        sub={eTotalMwh > 0 ? `${pct(ePonta / eTotalMwh)} da energia${uso === null ? ' · sem demanda de ponta medida' : ''}` : undefined}
+        rotulo="Fator de carga"
+        valor={fc === null ? '—' : numero(fc, 2)}
+        sub={
+          uso === null
+            ? 'sem demanda de ponta medida'
+            : `ponta ${numero(uso, 0)} h/mês · ${pct(ePonta / Math.max(eTotalMwh, 0.001))} da energia`
+        }
       />
-      <Kpi rotulo="Fator de carga" valor={fc === null ? '—' : numero(fc, 2)} sub="energia ÷ (demanda máx. × horas do mês)" />
     </div>
   );
 };
@@ -739,43 +713,94 @@ const DemandaMedida: React.FC<{ analise: Analise; series: ResultadoSeries; pAtua
 /* 8. Para onde vai o dinheiro                                         */
 /* ------------------------------------------------------------------ */
 
-const ParaOndeVai: React.FC<{ series: ResultadoSeries; form: InvoiceFormData }> = ({ series, form }) => {
-  const comps = series.series.map((s) => ({ s, c: composicaoAnual(series, s.modalidade, form) }));
-  const v = comps.find((x) => x.s.modalidade === 'Verde')?.c;
-  const a = comps.find((x) => x.s.modalidade === 'Azul')?.c;
-  const leitura =
-    v && a
-      ? (() => {
-          const dif = (k: keyof Composicao) => a[k] - v[k];
-          const ks: (keyof Composicao)[] = ['TE', 'Demanda', 'Fio', 'Tributos'];
-          const maior = ks.reduce((x, y) => (Math.abs(dif(y)) > Math.abs(dif(x)) ? y : x));
-          const nomeK = FATIAS_COMPOSICAO.find((f) => f.chave === maior)!.nome;
-          return `A maior diferença entre Azul e Verde está em ${nomeK}: ${brl(Math.abs(dif(maior)), 0)} a ${dif(maior) > 0 ? 'mais na Azul' : 'mais na Verde'}.`;
-        })()
-      : null;
+const CompararModalidades: React.FC<{
+  series: ResultadoSeries;
+  form: InvoiceFormData;
+  eTotalMwh: number;
+  atual: string;
+}> = ({ series, form, eTotalMwh, atual }) => {
+  const linhas = series.series.map((s) => ({
+    s,
+    c: composicaoAnual(series, s.modalidade, form),
+    total: s.otima.reduce<number>((a, v) => a + (v ?? 0), 0),
+  }));
+  const validas = linhas.filter((l) => l.c !== null && l.total > 0);
+  if (validas.length === 0) {
+    return (
+      <Cartao>
+        <TituloSecao titulo="Comparação de modalidades" />
+        <Aviso tom="info">Sem faturas mensais suficientes para comparar as modalidades no período.</Aviso>
+      </Cartao>
+    );
+  }
+  const menor = Math.min(...validas.map((l) => l.total));
+  const totalAtual = linhas.find((l) => l.s.modalidade === atual)?.total ?? 0;
+  const semComposicao = linhas.filter((l) => l.c === null).map((l) => nomeModalidade(l.s.modalidade));
+
   return (
     <Cartao>
-      <TituloSecao titulo="Para onde vai o dinheiro" sub="Composição do custo no período com a demanda ideal de cada modalidade (faturas mensais da API)." />
-      <Legenda itens={FATIAS_COMPOSICAO.map((f) => ({ nome: f.nome, cor: f.cor }))} />
-      <div className="space-y-5 mt-4">
-        {comps.map(({ s, c }) =>
-          c ? (
-            <div key={s.modalidade}>
-              <div className="flex justify-between items-baseline gap-2 mb-2">
-                <span className="font-bold flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full" style={{ background: corModalidade(s.modalidade) }} />
-                  {nomeModalidade(s.modalidade)} <span className="num text-sm text-texto2 font-normal">{fmtContrato(s.contratoOtimo)}</span>
-                </span>
-                <span className="num font-semibold">{brl(Object.values(c).reduce((x, y) => x + y, 0), 0)}</span>
-              </div>
-              <BarraEmpilhada titulo={`Composição ${s.modalidade}`} fatias={FATIAS_COMPOSICAO.map((f) => ({ nome: f.nome, valor: c[f.chave], cor: f.cor }))} />
-            </div>
-          ) : (
-            <Aviso key={s.modalidade}>Composição da {nomeModalidade(s.modalidade)} indisponível: faltam faturas mensais.</Aviso>
-          ),
-        )}
+      <TituloSecao
+        titulo="Comparação de modalidades"
+        sub="Período completo, com a demanda ideal de cada modalidade."
+      />
+      <div className="overflow-x-auto -mx-1 px-1">
+        <table className="tela-tabela">
+          <thead>
+            <tr>
+              <th>Modalidade</th>
+              <th>Contrato</th>
+              <th>Custo</th>
+              <th>R$/MWh</th>
+              <th>TE</th>
+              <th>TUSD energia</th>
+              <th>Demanda</th>
+              <th>Tributos</th>
+              <th>Outros</th>
+              <th>Δ vs atual</th>
+            </tr>
+          </thead>
+          <tbody>
+            {validas.map(({ s, c, total }) => {
+              const melhor = total === menor;
+              const delta = total - totalAtual;
+              return (
+                <tr key={s.modalidade} className={melhor ? 'melhor' : undefined}>
+                  <td>{nomeModalidade(s.modalidade)}</td>
+                  <td className="celula-num">{fmtContrato(s.contratoOtimo)}</td>
+                  <td className="celula-num font-semibold">{brl(total, 0)}</td>
+                  <td className="celula-num">{eTotalMwh > 0 ? brl(total / eTotalMwh, 0) : '—'}</td>
+                  <td className="celula-num">{brl(c!.TE, 0)}</td>
+                  <td className="celula-num">{brl(c!.Fio, 0)}</td>
+                  <td className="celula-num">{brl(c!.Demanda, 0)}</td>
+                  <td className="celula-num">{brl(c!.Tributos, 0)}</td>
+                  <td className="celula-num">{brl(c!.Outros, 0)}</td>
+                  <td className="celula-num">
+                    {Math.abs(delta) < 1 ? '—' : `${delta > 0 ? '+' : '−'}${brl(Math.abs(delta), 0)}`}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
-      {leitura ? <Leitura>{leitura}</Leitura> : null}
+      <div className="mt-6">
+        <ComparacaoComposicao
+          titulo="Composição do custo por modalidade"
+          linhas={validas.map(({ s, c, total }) => ({
+            rotulo: nomeModalidade(s.modalidade),
+            total,
+            porMwh: eTotalMwh > 0 ? total / eTotalMwh : null,
+            destaque: total === menor,
+            fatias: FATIAS_COMPOSICAO.map((f) => ({ nome: f.nome, valor: c![f.chave], cor: f.cor })),
+          }))}
+          legenda={FATIAS_COMPOSICAO.map((f) => ({ nome: f.nome, cor: f.cor }))}
+        />
+      </div>
+      {semComposicao.length ? (
+        <p className="tela-apoio mt-3">
+          Sem faturas mensais para compor: {semComposicao.join(', ')}.
+        </p>
+      ) : null}
     </Cartao>
   );
 };
@@ -808,35 +833,35 @@ const MercadoLivre: React.FC<{
     <section className="rounded-2xl overflow-hidden border border-borda bg-white">
       <div className="bg-tinta text-white p-6 sm:p-8 flex flex-wrap justify-between gap-6">
         <div className="min-w-0 max-w-xl">
-          <div className="text-acento text-xs font-bold tracking-widest uppercase">Mercado livre</div>
-          <h2 className="text-2xl font-bold mt-2">Até quanto vale pagar pela energia?</h2>
-          <p className="text-white/80 mt-2 text-sm">
-            O E-PI é o preço da energia no livre que empata com o custo no cativo
-            {epi.modalidade ? ` na modalidade atual (${nomeModalidade(epi.modalidade)})` : ''}. Use como teto ao negociar.
+          <div className="tela-rotulo" style={{ color: COR.acento }}>Mercado livre</div>
+          <h2 className="tela-titulo mt-2">Preço de indiferença (E-PI)</h2>
+          <p className="tela-apoio text-white/70 mt-1">
+            Teto para negociar a energia no ACL
+            {epi.modalidade ? ` · modalidade ${nomeModalidade(epi.modalidade)}` : ''}
           </p>
         </div>
         <div className="text-right min-w-0">
           {sel ? (
             <>
-              <div className="num text-4xl sm:text-5xl font-semibold text-acento">
+              <div className="num text-4xl sm:text-5xl font-semibold" style={{ color: COR.acento }}>
                 {numero(sel.pi, 2)} <span className="text-base text-white/70">R$/MWh</span>
               </div>
-              <div className="text-xs text-white/70 mt-1">no mês da fatura · {modo === 'custos' ? 'com custos de migração' : 'simplificado'}</div>
+              <div className="tela-apoio text-white/60 mt-1">mês da fatura · {modo === 'custos' ? 'com custos de migração' : 'simplificado'}</div>
               {analise.epiRecomendada?.simplificado && analise.epiRecomendada.modalidade ? (
-                <div className="text-sm text-white/80 mt-1 num">
-                  na {nomeModalidade(analise.epiRecomendada.modalidade)} (recomendada): {numero((modo === 'custos' && analise.epiRecomendada.comCustos ? analise.epiRecomendada.comCustos : analise.epiRecomendada.simplificado).pi, 2)} R$/MWh
+                <div className="num tela-apoio text-white/80 mt-1">
+                  {nomeModalidade(analise.epiRecomendada.modalidade)}: {numero((modo === 'custos' && analise.epiRecomendada.comCustos ? analise.epiRecomendada.comCustos : analise.epiRecomendada.simplificado).pi, 2)} R$/MWh
                 </div>
               ) : null}
               {piPeriodo !== null ? (
-                <div className="text-sm text-white/80 mt-1 num">
-                  no período ({n} {n === 1 ? 'mês' : 'meses'}, planejamento): {numero(piPeriodo, 2)} R$/MWh
+                <div className="num tela-apoio text-white/80 mt-1">
+                  período ({n} {n === 1 ? 'mês' : 'meses'}): {numero(piPeriodo, 2)} R$/MWh
                 </div>
               ) : null}
             </>
           ) : (
             <div className="max-w-sm text-left">
-              <div className="font-bold text-acento">O E-PI não pôde ser calculado</div>
-              <div className="text-sm text-white/80 mt-1 break-words">{epi.erro}</div>
+              <div className="tela-bloco" style={{ color: COR.acento }}>E-PI indisponível</div>
+              <div className="tela-apoio text-white/70 mt-1 break-words">{epi.erro}</div>
             </div>
           )}
           {temCustos ? (
@@ -860,11 +885,7 @@ const MercadoLivre: React.FC<{
         {sel?.aviso ? <Aviso>{sel.aviso}</Aviso> : null}
         {piCurva !== null && baseCurva !== null && piCurva > 0 ? (
           <div>
-            <h3 className="font-bold">Economia {curvaPeriodo ? periodo : 'por mês'} conforme o preço ofertado</h3>
-            <p className="text-sm text-texto2">
-              Cada R$ 10/MWh a menos na proposta vale cerca de {brl(10 * baseCurva, 0)} {curvaPeriodo ? periodo : 'por mês'}.
-              {curvaPeriodo ? ' Usa o E-PI do período (planejamento) e a energia-base do ACL de cada mês.' : ' Usa o E-PI e a energia-base do mês da fatura.'}
-            </p>
+            <h3 className="tela-bloco mb-3">Economia conforme o preço ofertado</h3>
             <GraficoEconomiaPreco
               titulo="Economia por preço ofertado"
               epi={piCurva}
@@ -872,6 +893,9 @@ const MercadoLivre: React.FC<{
               proposta={form.precoMedioACL || null}
               rotuloEpi={`E-PI ${numero(piCurva, 2)}`}
             />
+            <p className="tela-apoio mt-2">
+              R$ 10/MWh abaixo do E-PI = {brl(10 * baseCurva, 0)} {curvaPeriodo ? periodo : 'por mês'}
+            </p>
           </div>
         ) : null}
 
@@ -974,9 +998,12 @@ const ConferenciaPremissas: React.FC<{ analise: Analise; series: ResultadoSeries
   const outrasIndisp = analise.modalidades.filter((m) => m.modalidade !== 'Optante B' && m.estado !== 'ok');
   const c = analise.conferencia;
   return (
-    <Cartao>
-      <TituloSecao titulo="Conferência e premissas" nivel="h3" />
-      <ul className="text-sm space-y-2">
+    <details className="bg-white border border-borda rounded-2xl px-5 sm:px-6 py-4 scroll-mt-24">
+      <summary className="cursor-pointer tela-secao">
+        Detalhes técnicos
+        <span className="tela-apoio ml-2 font-normal">conferência com a fatura, premissas e notas da API</span>
+      </summary>
+      <ul className="text-sm space-y-2 mt-4">
         <li>
           <strong>Conferência:</strong>{' '}
           {c
@@ -1027,11 +1054,11 @@ const ConferenciaPremissas: React.FC<{ analise: Analise; series: ResultadoSeries
       </ul>
       {analise.epi.erro && analise.epi.corpo ? (
         <details className="mt-4">
-          <summary className="text-sm font-semibold cursor-pointer">Diagnóstico do E-PI (corpo enviado à API)</summary>
+          <summary className="tela-bloco cursor-pointer">Corpo enviado ao E-PI</summary>
           <pre className="num text-xs bg-fundo rounded-lg p-3 mt-2 overflow-x-auto">{JSON.stringify(analise.epi.corpo, null, 2)}</pre>
-          <p className="text-xs text-texto2 mt-1">Resposta: {analise.epi.erro}</p>
+          <p className="tela-apoio mt-1">Resposta: {analise.epi.erro}</p>
         </details>
       ) : null}
-    </Cartao>
+    </details>
   );
 };

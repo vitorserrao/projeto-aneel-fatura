@@ -8,7 +8,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException
 
 from core.models import Consumidor as CoreConsumidor
-from infra.database import create_session_factory
+from infra.database import get_session_factory
 from infra.repositories.tarifa_repository import TarifaRepository
 from schemas.planejamento import PlanejamentoSolicitacao
 from services.calculo_service import CalculoService
@@ -20,7 +20,7 @@ router = APIRouter()
 
 
 def _planejamento_service() -> PlanejamentoService:
-    repo = TarifaRepository(create_session_factory())
+    repo = TarifaRepository(get_session_factory())
     calculo = CalculoService(repo)
     return PlanejamentoService(
         calculo,

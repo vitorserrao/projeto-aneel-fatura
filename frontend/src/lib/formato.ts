@@ -1,22 +1,42 @@
 /** Formatação pt-BR e cores fixas (mesma cor = mesma modalidade em todos os gráficos). */
 
+/**
+ * Paleta em dois grupos, para não competirem:
+ * - MARCA: tinta/texto2/fundo/borda/acento (interface, não significa dado);
+ * - DADO: te/fio/demanda/tributos/outros (composição do custo) e
+ *   verde/azul (modalidade), acl (mercado livre), alerta (erro/ultrapassagem).
+ *
+ * Nenhuma cor de dado repete a da marca: antes `acl` e `te` eram o mesmo
+ * `#D99A00` do `acento`, e TE/ACL ficavam indistinguíveis no gráfico.
+ */
 export const COR = {
+  // marca / interface
   tinta: '#13232E',
   texto2: '#5B6B76',
   fundo: '#F3F5F7',
   borda: '#DCE3E8',
   borda2: '#EDF1F4',
   acento: '#F2A900',
+  // dado
   verde: '#1F8A4C',
   azul: '#2B59C3',
-  acl: '#D99A00',
+  acl: '#51607A',
   alerta: '#C2410C',
-  te: '#D99A00',
+  te: '#B47600',
   demanda: '#8A5CC2',
   fio: '#2A9DB0',
   tributos: '#9AA5AE',
   outros: '#C9D2D8',
 } as const;
+
+/** Cores da composição do custo, na ordem em que aparecem nos gráficos. */
+export const FATIAS_CUSTO = [
+  { chave: 'TE', nome: 'Energia (TE)', cor: COR.te },
+  { chave: 'Fio', nome: 'Fio (TUSD energia)', cor: COR.fio },
+  { chave: 'Demanda', nome: 'Demanda (TUSD)', cor: COR.demanda },
+  { chave: 'Tributos', nome: 'Tributos', cor: COR.tributos },
+  { chave: 'Outros', nome: 'Outros', cor: COR.outros },
+] as const;
 
 /** Cor por modalidade (nome da API). */
 export const COR_MODALIDADE: Record<string, string> = {

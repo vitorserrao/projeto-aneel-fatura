@@ -25,6 +25,22 @@
   aparece quando há proposta: `custo ACR − (E-PI − preço) × base ACL`.
 - CORS configurado em `api/main.py` (`FRONTEND_ORIGINS`).
 
+### Atualização 06/11/2026 — simulação front × API real
+
+Achados ao rodar o código do front contra a API + PostgreSQL reais (7 cenários
+seguidos). O que mudou:
+
+| Ponto | Antes | Agora |
+|---|---|---|
+| `GET /api/bandeiras` | front enviava `competencia=AAAA-MM`; a API exige **AAAA-MM-DD** (`date.fromisoformat`) → **400 em toda consulta** | front envia a data completa (`dataReferenciaIso`) |
+| `bandeira_valor` (tabela) | **vazia**: a API devolvia `valor_kwh: 0` em todas as bandeiras (a bandeira manual cairia em R$ 0) | carregar com `scripts/cargar_bandeira_valores.py` (30 registros). `bandeira_tarifaria` só cobre até 06/2025 |
+| `POST /api/calculo/comparar` | ignorava em silêncio `demanda_isenta_icms`, `demanda_isenta_icms_kw`, `arredondar_centavos`, `tributar_reativos` (totais divergiam do `/fatura`: 10.297,70 × 9.851,96) | flags aceitas e repassadas; totais iguais aos do `/fatura` |
+| `POST /api/epi/calcular` `modalidade="Optante B"` | **400 "TE indisponível"**: o E-PI buscava a modalidade "Optante B", que não existe no dataset (art. 292 manda usar a Convencional do Grupo B) | `core.motor_calculo.tarifa_b_do_optante()` é a fonte única; o E-PI aceita também `atividade` (B1/B2/B3) |
+| Conexões | cada request criava uma `Engine` nova → `FATAL: sorry, too many clients already` após ~7 análises | `get_session_factory()` compartilhada (`infra/database.py`) |
+
+Contrato do E-PI (`EPISolicitacao`) ganhou **`atividade`** (default
+`"Comercial ou Industrial"`); o front envia `form.atividade`.
+
 ## Parâmetros do formulário (front) → Consumidor/query (back)
 
 | Front (`InvoiceFormData`) | Back | Observação |
