@@ -284,7 +284,6 @@ const PassoUnidade: React.FC<Props> = ({ form, aoMudar, distribuidorasApi, subgr
               opcoes={(distribuidorasApi ?? DISTRIBUIDORAS_APOIO).map((s) => ({ valor: s, rotulo: s }))}
               vazio="Selecione…"
             />
-            <Dica>Lista da ANEEL.</Dica>
           </div>
           <div>
             <Rotulo htmlFor="inp-grupo" obrigatorio>
@@ -299,7 +298,6 @@ const PassoUnidade: React.FC<Props> = ({ form, aoMudar, distribuidorasApi, subgr
                 { valor: 'B', rotulo: 'B · baixa tensão' },
               ]}
             />
-            <Dica>Na fatura, junto da classificação.</Dica>
           </div>
           <div>
             <Rotulo htmlFor="inp-subgrupo" obrigatorio>
@@ -313,7 +311,6 @@ const PassoUnidade: React.FC<Props> = ({ form, aoMudar, distribuidorasApi, subgr
               Data de referência
             </Rotulo>
             <CampoTexto id="inp-dataReferencia" valor={form.dataReferencia} aoMudar={(v) => set('dataReferencia', v)} mono placeholder="DD/MM/AAAA" />
-            <Dica>Define a vigência das tarifas.</Dica>
           </div>
         </div>
 
@@ -387,10 +384,7 @@ const PassoUnidade: React.FC<Props> = ({ form, aoMudar, distribuidorasApi, subgr
                   <Marcador id="inp-hotel" marcado={form.hotelariaTurismo} aoMudar={(v) => set('hotelariaTurismo', v)} rotulo="Hotelaria/pousada em área de veraneio ou turismo" />
                   <Marcador id="inp-prepag" marcado={form.prePagamento} aoMudar={(v) => set('prePagamento', v)} rotulo="Pré-pagamento (exceção do custo de disponibilidade)" />
                 </div>
-                <Dica>
-                  Faturamento: tarifa Convencional do subgrupo B derivado da atividade; monômia sem demanda/ultrapassagem;
-                  custo de disponibilidade (30/50/100 kWh) quando o consumo for menor.
-                </Dica>
+                <Dica>Tarifa Convencional do Grupo B da atividade, monômia (sem demanda).</Dica>
               </div>
             </details>
           </div>
@@ -661,10 +655,7 @@ const PassoTarifas: React.FC<Props> = ({ form, aoMudar, bandeirasApi, bandeiraAt
                     Valor da bandeira
                   </Rotulo>
                   <CampoNumero id="inp-bandeiraManual" valor={form.bandeiraManualRkwh} aoMudar={(v) => set('bandeiraManualRkwh', v)} unidade="R$/kWh" invalido={falta('Valor da bandeira')} />
-                  <Dica>
-                    Para bandeira proporcional aos dias, como imprime a fatura (ex.: amarela de 22/11 a 30/11: 0,01885 × 9/32 =
-                    0,0053016).
-                  </Dica>
+                  <Dica>Proporcional aos dias, como na fatura: 0,01885 × 9/32 = 0,0053016.</Dica>
                 </div>
               </div>
             </div>
@@ -711,10 +702,6 @@ const PassoTarifas: React.FC<Props> = ({ form, aoMudar, bandeirasApi, bandeiraAt
                 <p className="num text-xs text-texto2 mt-2">
                   {form.tipoIcms === 'fora' ? 'preço = tarifa ÷ [(1 − PIS − COFINS) × (1 − ICMS)]' : 'preço = tarifa ÷ (1 − PIS − COFINS − ICMS)'}
                 </p>
-                <Dica>
-                  {form.tipoIcms === 'fora' ? 'Multiplicativa (reproduz a fatura Copel validada).' : 'Aditiva (forma da fonte oficial).'} Na parcela de
-                  demanda isenta: preço = tarifa ÷ (1 − PIS − COFINS).
-                </Dica>
               </div>
               <Marcador
                 id="inp-tributarReativos"
@@ -777,10 +764,7 @@ const PassoTarifas: React.FC<Props> = ({ form, aoMudar, bandeirasApi, bandeiraAt
             <div>
               <Rotulo htmlFor="inp-retencoes">Retenções e créditos na fatura</Rotulo>
               <CampoNumero id="inp-retencoes" valor={form.retencoesCreditos} aoMudar={(v) => set('retencoesCreditos', v)} unidade="R$" />
-              <Dica>
-                Opcional, só para conferência (ex.: IRPJ, CSLL, PIS e COFINS retidos de órgão público). Retenção não é
-                desconto: não reduz o custo da unidade nem entra em nenhum outro número.
-              </Dica>
+              <Dica>Opcional, só para conferência. Retenção não é desconto: não entra em nenhum outro número.</Dica>
             </div>
           </div>
         </Sanfona>
