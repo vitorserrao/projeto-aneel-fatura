@@ -59,9 +59,22 @@ Mais detalhes em [`docs/arquitetura.md`](docs/arquitetura.md).
 
 ## Estado atual
 
-**Etapa 1 (bootstrap)** — estrutura de diretórios, ambiente, dependências,
-PostgreSQL local, FastAPI com `/health`, Streamlit mínimo, estrutura de testes
-e documentação inicial. **Nenhum cálculo tarifário foi inventado ou implementado.**
+O MVP está **implementado e validado contra contas reais**:
+
+| Camada | Situação |
+|---|---|
+| `core/` | motor de fatura ACR (Azul, Verde, Optante B, Branca, Convencional), reativos (art. 304), tributos, ultrapassagem, E-PI e planejamento anual |
+| `infra/` | PostgreSQL com o dataset ANEEL (≈504 mil linhas de tarifa), ingestão e consultas por vigência |
+| `api/` | FastAPI com cálculo, comparação, E-PI, planejamento e consulta tarifária; uma engine por processo |
+| `frontend/` | React + Vite: 5 passos de entrada, fatura simulada e dashboard de análise (tabela comparativa, TE × TUSD, mês a mês, E-PI) |
+| `tests/` | 206 testes (pytest) + 28 testes de contrato no front (vitest) |
+
+Validação: a fatura da Copel A4 Verde de 03/2023 fecha em **R$ 9.851,96**
+contra **R$ 9.854,93** da conta (Δ −2,97, o reativo sem excedente — ver
+`docs/validacao_faturas_reais/divergencias.md`).
+
+Pendências conhecidas ficam registradas em [`docs/premissas.md`](docs/premissas.md)
+(regras) e `docs/validacao_faturas_reais/divergencias.md` (casos ENEL).
 
 ## Como executar
 
