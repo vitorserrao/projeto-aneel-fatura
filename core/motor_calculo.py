@@ -29,6 +29,7 @@ from .models import (
     UNIDADE_R_KWH,
     UNIDADE_R_MWH,
     Consumidor,
+    FaturaMensal,
     LinhaFatura,
     ParcelaCusto,
     ResultadoCalculo,
@@ -897,4 +898,276 @@ def _linhas_reativos_diretos(consumidor, *, tarifa_energia_r_kvarh, tarifa_deman
                     )
                 )
     return linhas
+
+
+# ---------------------------------------------------------------------------
+# Fatura mensal por componente (sprint Verde × Azul)
+# ---------------------------------------------------------------------------
+# Funções mensais e PURAS: recebem demandas, consumos e tarifas (sempre
+# buscadas pelo TarifaRepository na camada de serviço) e devolvem a fatura por
+# componente, com tributos por dentro. Reativos excedentes e bandeira entram
+# como valores finais (R$) — são iguais nas duas modalidades.
+
+
+def _fator_tributario(
+    pis: float,
+    cofins: float,
+    icms: float,
+    tipo_icms: str,
+) -> float:
+    """Fator de gross-up dos tributos por dentro.
+
+    ``"fora"`` (padrão, validado nas faturas reais):
+    ``1 / ((1 − PIS − COFINS) × (1 − ICMS))``.
+    ``"dentro"`` (aditiva): ``1 / (1 − PIS − COFINS − ICMS)``.
+    """
+    if tipo_icms not in ("dentro", "fora"):
+        raise ValueError("tipo_icms deve ser 'dentro' ou 'fora'")
+    if tipo_icms == "fora":
+        denominador = (1.0 - pis - cofins) * (1.0 - icms)
+    else:
+        denominador = 1.0 - pis - cofins - icms
+    if denominador <= 0:
+        raise ValueError("tributos inválidos: denominador deve ser maior que 0")
+    return 1.0 / denominador
+
+
+def _fator_pis_cofins(pis: float, cofins: float) -> float:
+    """Fator de gross-up só de PIS/COFINS (parcela isenta de ICMS).
+
+    Súmula 391 do STJ: a demanda contratada e não utilizada incide apenas
+    PIS/COFINS — sem ICMS.
+    """
+    denominador = 1.0 - pis - cofins
+    if denominador <= 0:
+        raise ValueError("tributos inválidos: PIS + COFINS deve ser menor que 1")
+    return 1.0 / denominador
+
+
+def _componente_com_tributo(valor: float, fator: float) -> float:
+    return valor * fator
+
+
+def demanda_faturada_separada(
+    medida: float,
+    contratada: float,
+) -> tuple[float, float, float]:
+    """Separa a demanda faturada para a Súmula 391 do STJ.
+
+    Returns:
+        ``(faturada, utilizada, nao_utilizada)``:
+        - ``faturada = max(medida, contratada)``;
+        - ``utilizada = medida`` limitada à faturada (como ``faturada ≥
+          medida``, é a própria medida) → PIS/COFINS + ICMS;
+        - ``não utilizada = faturada − medida`` (só existe quando
+          ``medida < contratada``) → só PIS/COFINS, sem ICMS.
+    """
+    faturada = max(medida, contratada)
+    utilizada = min(medida, faturada)
+    nao_utilizada = max(faturada - medida, 0.0)
+    return faturada, utilizada, nao_utilizada
+
+
+def _demanda_com_tributo(
+    medida: float,
+    contratada: float,
+    tarifa: float,
+    fator: float,
+    fator_isento: float,
+    icms_demanda_nao_utilizada: bool,
+) -> float:
+    """Valor (R$) da demanda faturada com separação Súmula 391.
+
+    - utilizada = ``medida`` (limitada à faturada) → PIS/COFINS + ICMS
+      (``fator``);
+    - não utilizada = ``faturada − medida`` (só existe se
+      ``medida < contratada``) → só PIS/COFINS (``fator_isento``), exceto se
+      ``icms_demanda_nao_utilizada=True``.
+
+    A ultrapassagem NÃO entra aqui — é uma parcela separada.
+    """
+    _faturada, utilizada, nao_utilizada = demanda_faturada_separada(
+        medida, contratada
+    )
+    fator_nao_utilizada = fator if icms_demanda_nao_utilizada else fator_isento
+    return (utilizada * fator + nao_utilizada * fator_nao_utilizada) * tarifa
+
+
+def _ultrapassagem_demanda(
+    medida: float,
+    contratada: float,
+    tarifa_demanda: float,
+    tolerancia: float,
+    fator_ultrapassagem: float,
+) -> float:
+    """Valor (R$) da ultrapassagem de demanda de um posto/mês.
+
+    Mesma regra do ``calcular_fatura``: gatilho de 5% e base = excedente
+    total ``(medida − contratada)`` com tarifa ``fator × tarifa de demanda``.
+    """
+    if contratada <= 0 or tarifa_demanda <= 0:
+        return 0.0
+    if medida <= contratada * (1.0 + tolerancia):
+        return 0.0
+    return (medida - contratada) * fator_ultrapassagem * tarifa_demanda
+
+
+def fatura_verde(
+    *,
+    demanda_medida_unica_kw: float,
+    demanda_contratada_unica_kw: float,
+    consumo_ponta_kwh: float,
+    consumo_fora_ponta_kwh: float,
+    tarifa_tusd_demanda_r_kw: float,
+    tarifa_tusd_energia_ponta_r_mwh: float,
+    tarifa_tusd_energia_fora_ponta_r_mwh: float,
+    tarifa_te_energia_ponta_r_mwh: float,
+    tarifa_te_energia_fora_ponta_r_mwh: float,
+    tolerancia: float,
+    fator_ultrapassagem: float,
+    pis: float = 0.0,
+    cofins: float = 0.0,
+    icms: float = 0.0,
+    aplicar_tributos: bool = True,
+    tipo_icms: str = "fora",
+    icms_demanda_nao_utilizada: bool = False,
+    reativos_rs: float = 0.0,
+    bandeira_rs: float = 0.0,
+) -> FaturaMensal:
+    """Fatura Verde mensal por componente (com tributos por dentro).
+
+    Tarifas em R$/kW (demanda) e R$/MWh (energia); energia recebida em kWh.
+    TUSD Energia ponta e fora ponta são informadas SEPARADAMENTE (nunca
+    presumidas iguais); a TE também é diferenciada por posto.
+
+    Demanda faturada (Súmula 391 do STJ): a parcela utilizada
+    ``min(medida, contratada)`` recebe PIS/COFINS + ICMS e a parcela não
+    utilizada ``max(contratada − medida, 0)`` recebe só PIS/COFINS, exceto se
+    ``icms_demanda_nao_utilizada=True`` (comportamento antigo).
+    """
+    fator = _fator_tributario(pis, cofins, icms, tipo_icms) if aplicar_tributos else 1.0
+    fator_isento = _fator_pis_cofins(pis, cofins) if aplicar_tributos else 1.0
+
+    tusd_demanda = _demanda_com_tributo(
+        demanda_medida_unica_kw,
+        demanda_contratada_unica_kw,
+        tarifa_tusd_demanda_r_kw,
+        fator,
+        fator_isento,
+        icms_demanda_nao_utilizada,
+    )
+    ultrapassagem = _ultrapassagem_demanda(
+        demanda_medida_unica_kw,
+        demanda_contratada_unica_kw,
+        tarifa_tusd_demanda_r_kw,
+        tolerancia,
+        fator_ultrapassagem,
+    )
+    tusd_energia_ponta = consumo_ponta_kwh * 0.001 * tarifa_tusd_energia_ponta_r_mwh
+    tusd_energia_fora_ponta = (
+        consumo_fora_ponta_kwh * 0.001 * tarifa_tusd_energia_fora_ponta_r_mwh
+    )
+    te_energia_ponta = consumo_ponta_kwh * 0.001 * tarifa_te_energia_ponta_r_mwh
+    te_energia_fora_ponta = consumo_fora_ponta_kwh * 0.001 * tarifa_te_energia_fora_ponta_r_mwh
+
+    return FaturaMensal(
+        modalidade="VERDE",
+        tusd_demanda=tusd_demanda,
+        tusd_energia_ponta=_componente_com_tributo(tusd_energia_ponta, fator),
+        tusd_energia_fora_ponta=_componente_com_tributo(tusd_energia_fora_ponta, fator),
+        te_energia_ponta=_componente_com_tributo(te_energia_ponta, fator),
+        te_energia_fora_ponta=_componente_com_tributo(te_energia_fora_ponta, fator),
+        ultrapassagem=_componente_com_tributo(ultrapassagem, fator),
+        reativos=reativos_rs,
+        bandeira=bandeira_rs,
+    )
+
+
+def fatura_azul(
+    *,
+    demanda_ponta_kw: float,
+    demanda_fora_ponta_kw: float,
+    demanda_contratada_ponta_kw: float,
+    demanda_contratada_fora_ponta_kw: float,
+    consumo_ponta_kwh: float,
+    consumo_fora_ponta_kwh: float,
+    tarifa_tusd_demanda_ponta_r_kw: float,
+    tarifa_tusd_demanda_fora_ponta_r_kw: float,
+    tarifa_tusd_energia_ponta_r_mwh: float,
+    tarifa_tusd_energia_fora_ponta_r_mwh: float,
+    tarifa_te_energia_ponta_r_mwh: float,
+    tarifa_te_energia_fora_ponta_r_mwh: float,
+    tolerancia: float,
+    fator_ultrapassagem: float,
+    pis: float = 0.0,
+    cofins: float = 0.0,
+    icms: float = 0.0,
+    aplicar_tributos: bool = True,
+    tipo_icms: str = "fora",
+    icms_demanda_nao_utilizada: bool = False,
+    reativos_rs: float = 0.0,
+    bandeira_rs: float = 0.0,
+) -> FaturaMensal:
+    """Fatura Azul mensal por componente (com tributos por dentro).
+
+    Demanda ponta e fora ponta têm contratada e ultrapassagem próprias.
+    TUSD Energia ponta e fora ponta são informadas SEPARADAMENTE, inclusive
+    na Azul (onde costumam ser iguais — mas o código não presume).
+
+    Demanda faturada (Súmula 391 do STJ), aplicada POR POSTO: a parcela
+    utilizada ``min(medida, contratada)`` recebe PIS/COFINS + ICMS e a
+    parcela não utilizada ``max(contratada − medida, 0)`` recebe só
+    PIS/COFINS, exceto se ``icms_demanda_nao_utilizada=True``.
+    """
+    fator = _fator_tributario(pis, cofins, icms, tipo_icms) if aplicar_tributos else 1.0
+    fator_isento = _fator_pis_cofins(pis, cofins) if aplicar_tributos else 1.0
+
+    tusd_demanda_ponta = _demanda_com_tributo(
+        demanda_ponta_kw,
+        demanda_contratada_ponta_kw,
+        tarifa_tusd_demanda_ponta_r_kw,
+        fator,
+        fator_isento,
+        icms_demanda_nao_utilizada,
+    )
+    tusd_demanda_fora = _demanda_com_tributo(
+        demanda_fora_ponta_kw,
+        demanda_contratada_fora_ponta_kw,
+        tarifa_tusd_demanda_fora_ponta_r_kw,
+        fator,
+        fator_isento,
+        icms_demanda_nao_utilizada,
+    )
+    ultrapassagem = _ultrapassagem_demanda(
+        demanda_ponta_kw,
+        demanda_contratada_ponta_kw,
+        tarifa_tusd_demanda_ponta_r_kw,
+        tolerancia,
+        fator_ultrapassagem,
+    ) + _ultrapassagem_demanda(
+        demanda_fora_ponta_kw,
+        demanda_contratada_fora_ponta_kw,
+        tarifa_tusd_demanda_fora_ponta_r_kw,
+        tolerancia,
+        fator_ultrapassagem,
+    )
+    tusd_energia_ponta = consumo_ponta_kwh * 0.001 * tarifa_tusd_energia_ponta_r_mwh
+    tusd_energia_fora_ponta = (
+        consumo_fora_ponta_kwh * 0.001 * tarifa_tusd_energia_fora_ponta_r_mwh
+    )
+    te_energia_ponta = consumo_ponta_kwh * 0.001 * tarifa_te_energia_ponta_r_mwh
+    te_energia_fora_ponta = consumo_fora_ponta_kwh * 0.001 * tarifa_te_energia_fora_ponta_r_mwh
+
+    return FaturaMensal(
+        modalidade="AZUL",
+        tusd_demanda_ponta=tusd_demanda_ponta,
+        tusd_demanda_fora_ponta=tusd_demanda_fora,
+        tusd_energia_ponta=_componente_com_tributo(tusd_energia_ponta, fator),
+        tusd_energia_fora_ponta=_componente_com_tributo(tusd_energia_fora_ponta, fator),
+        te_energia_ponta=_componente_com_tributo(te_energia_ponta, fator),
+        te_energia_fora_ponta=_componente_com_tributo(te_energia_fora_ponta, fator),
+        ultrapassagem=_componente_com_tributo(ultrapassagem, fator),
+        reativos=reativos_rs,
+        bandeira=bandeira_rs,
+    )
 

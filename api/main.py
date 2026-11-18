@@ -13,6 +13,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from api.routers.calculo import router as calculo_router
+from api.routers.comparacao import router as comparacao_router
 from api.routers.epi import router as epi_router
 from api.routers.planejamento import router as planejamento_router
 from api.routers.tarifas import router as consulta_router
@@ -58,3 +59,6 @@ app.include_router(epi_router, prefix="/api", tags=["epi"])
 
 # Camada de planejamento anual (contrato atual × demanda otimizada)
 app.include_router(planejamento_router, prefix="/api", tags=["planejamento"])
+
+# Camada de comparação Verde × Azul a partir da fatura Verde
+app.include_router(comparacao_router, prefix="/api", tags=["comparacao"])

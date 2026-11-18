@@ -1,0 +1,36 @@
+{
+  "id": "copel_a4_verde_2023_04",
+  "meta": {
+    "fonte": "docs/validacao_faturas_reais/casos/copel_2023_04.json (COPEL - grupo A.pdf)",
+    "distribuidora": "COPEL-DIS",
+    "subgrupo": "A4",
+    "modalidade": "Verde",
+    "competencia": "04/2023",
+    "data_referencia": "2023-03-15",
+    "total_fatura": 9854.93,
+    "notas": [
+      "CIP/COSIP R$ 115,01 não é componente do fatura_verde; fica fora da comparação (total técnico = R$ 9.739,92).",
+      "A fatura divide a demanda em parcela COM ICMS (150,65 kW) e parcela ISENTA de ICMS (109,35 kW) — pendência não implementada em fatura_verde."
+    ]
+  },
+  "entrada": {
+    "consumo_ponta_kwh": 55,
+    "consumo_fora_ponta_kwh": 9094,
+    "demanda_medida_unica_kw": 150.65,
+    "demanda_contratada_unica_kw": 260.0,
+    "reativos_rs": 3.00,
+    "bandeira_rs": 0.0
+  },
+  "tributos": {"pis": 0.0095, "cofins": 0.0438, "icms": 0.18, "tipo_icms": "fora"},
+  "comparar": [
+    {"componente": "TUSD demanda", "sim": ["tusd_demanda"], "real": 5442.23},
+    {"componente": "TUSD energia ponta", "sim": ["tusd_energia_ponta"], "real": 72.79},
+    {"componente": "TUSD energia fora ponta", "sim": ["tusd_energia_fora_ponta"], "real": 1298.56},
+    {"componente": "TE energia ponta", "sim": ["te_energia_ponta"], "real": 27.49},
+    {"componente": "TE energia fora ponta", "sim": ["te_energia_fora_ponta"], "real": 2895.85},
+    {"componente": "Ultrapassagem", "sim": ["ultrapassagem"], "real": 0.0},
+    {"componente": "Reativo excedente", "sim": ["reativos"], "real": 3.00},
+    {"componente": "Bandeira", "sim": ["bandeira"], "real": 0.0}
+  ],
+  "total_tecnico": 9739.92
+}
