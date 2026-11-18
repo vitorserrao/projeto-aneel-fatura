@@ -57,8 +57,10 @@ penalizando a Azul (em um teste a diferença passou de R$ 10 mil).
 
 - `demanda_verde_mensal(dp, dfp)` — `max(Dp, Dfp)` quando o histórico traz
   os dois postos; com um só posto, usa o existente; sem nenhum, recusa.
-- `faixa_demanda_ponta(Ep_kwh, horas_ponta, D_verde, piso) -> (min, max)` —
-  `min = max(Ep/horas_ponta, piso)`; `max = D_verde`.
+- `faixa_demanda_ponta(Ep_kwh, horas_ponta, D_verde) -> (min, max)` —
+  faixa da demanda MEDIDA de ponta: `min = Ep/horas_ponta` (a média é piso
+  físico do pico) e `max = D_verde`. O piso regulatório de 30 kW é da
+  demanda CONTRATADA e entra em `otimizar_contratada`, não na faixa.
 - `horas_ponta(data_leitura_anterior, data_leitura_atual, feriados,
   horas_por_dia)` — dias úteis no intervalo `(anterior, atual]` (os dias
   efetivamente faturados no ciclo), sem sábados/domingos e feriados

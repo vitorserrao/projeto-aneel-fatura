@@ -121,7 +121,8 @@ def test_nivel2_inconclusivo_com_dp_equilibrio_na_faixa(servico):
     assert resultado.veredito == "INCONCLUSIVO"
     assert resultado.azul["min"] <= resultado.verde_atual <= resultado.azul["max"]
     assert resultado.dp_equilibrio is not None
-    # Faixa do mês: mínimo = max(1260/63, 30) = 30; máximo = 60.
+    # Faixa do mês: mínimo = 1260/63 = 20; máximo = 60. O piso de 30 kW entra
+    # na CONTRATADA (otimizar_contratada), não na faixa medida.
     assert 30.0 <= resultado.dp_equilibrio <= 60.0
     # Com as tarifas fictícias, o equilíbrio fica em ~50 kW.
     assert resultado.dp_equilibrio == pytest.approx(50.0, abs=0.5)

@@ -104,12 +104,14 @@ def faixa_demanda_ponta(
     ep_kwh: float,
     horas_ponta: float,
     d_verde: float,
-    piso: float,
 ) -> tuple[float, float]:
-    """Faixa possível para a demanda de ponta da Azul a partir da fatura Verde.
+    """Faixa possível para a demanda de ponta MEDIDA da Azul.
 
-    - ``min = max(Ep / horas_ponta, piso)``: a demanda média na ponta é um
-      piso físico — o pico nunca é menor que a média.
+    A faixa é da demanda MEDIDA — o piso regulatório de 30 kW vale para a
+    demanda CONTRATADA e entra em ``otimizar_contratada``, não aqui:
+
+    - ``min = Ep / horas_ponta``: a demanda média na ponta é um piso físico —
+      o pico nunca é menor que a média;
     - ``max = D_verde``: a demanda medida da Verde é o pico do mês inteiro.
 
     ``None``/valores inconsistentes geram ``ValueError`` (nunca viram zero).
@@ -118,7 +120,7 @@ def faixa_demanda_ponta(
         raise ValueError("ep_kwh, horas_ponta e d_verde são obrigatórios")
     if horas_ponta <= 0:
         raise ValueError("horas_ponta deve ser maior que 0")
-    minimo = max(float(ep_kwh) / float(horas_ponta), float(piso))
+    minimo = float(ep_kwh) / float(horas_ponta)
     maximo = float(d_verde)
     if maximo < minimo:
         raise ValueError(
