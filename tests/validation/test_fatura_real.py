@@ -9,11 +9,9 @@ Para cada fatura em ``tests/fixtures/faturas/*.json``:
 
 Tolerância do total: ``config.TOLERANCIA_VALIDACAO`` (padrão 1%).
 
-Os dois casos conhecidos falham o total por uma regra ainda não implementada
-em ``fatura_verde``: a parcela da demanda CONTRATADA NÃO UTILIZADA é isenta
-de ICMS nas faturas reais (Copel e CEMIG). A falha é esperada e está
-documentada em ``docs/validacao_faturas.md`` — o motor NÃO é ajustado para
-forçar o resultado.
+A separação da demanda da Súmula 391 do STJ (parcela não utilizada isenta de
+ICMS) está implementada em ``fatura_verde``/``fatura_azul`` e é ativada por
+``config.ICMS_DEMANDA_NAO_UTILIZADA = False``.
 """
 
 from __future__ import annotations
@@ -120,6 +118,7 @@ def _simular(caso, tarifas):
         cofins=trib["cofins"],
         icms=trib["icms"],
         tipo_icms=trib.get("tipo_icms", "fora"),
+        icms_demanda_nao_utilizada=config.ICMS_DEMANDA_NAO_UTILIZADA,
         reativos_rs=entrada["reativos_rs"],
         bandeira_rs=entrada["bandeira_rs"],
     )
@@ -184,13 +183,6 @@ def _executar(caso, repo):
     }
 
 
-@pytest.mark.xfail(
-    strict=False,
-    reason=(
-        "demanda contratada não utilizada é isenta de ICMS nas faturas reais; "
-        "fatura_verde ainda não implementa a parcela isenta (docs/validacao_faturas.md)"
-    ),
-)
 @pytest.mark.parametrize("caso", CASES, ids=lambda c: c["id"])
 def test_fatura_real_dentro_da_tolerancia(caso, repo):
     resultado = _executar(caso, repo)
@@ -232,12 +224,12 @@ def test_gerar_relatorio_validacao(repo):
     secoes.append(
         "## Diferenças acima de 0,5% — causas\n\n"
         "1. **Demanda contratada não utilizada isenta de ICMS** (Copel e CEMIG): "
-        "a fatura divide a demanda em parcela com ICMS e parcela isenta "
-        "(só PIS/COFINS). O `fatura_verde` aplica o fator cheio em toda a "
-        "demanda faturável — regra ainda não implementada nesta função "
-        "(o `calcular_fatura` já tem `demanda_isenta_icms`).\n"
+        "implementada em `fatura_verde`/`fatura_azul` via Súmula 391 do STJ "
+        "(`config.ICMS_DEMANDA_NAO_UTILIZADA = False`). Após a implementação, "
+        "a diferença da demanda cai para centavos.\n"
         "2. **Arredondamento por linha** (Copel, centavos): a fatura arredonda "
-        "cada linha; o `fatura_verde` devolve valores sem arredondar.\n"
+        "cada linha; o `fatura_verde` devolve valores sem arredondar — "
+        "diferença residual de centavos, dentro da tolerância de 1%.\n"
         "3. **CIP/COSIP**: não é componente do `fatura_verde`; fica fora da "
         "comparação técnica.\n"
     )

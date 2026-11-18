@@ -323,6 +323,7 @@ class ComparacaoVerdeAzulService:
                 cofins=cofins,
                 icms=icms,
                 tipo_icms=tipo_icms,
+                icms_demanda_nao_utilizada=config.ICMS_DEMANDA_NAO_UTILIZADA,
                 reativos_rs=reativos_rs,
                 bandeira_rs=bandeira_rs,
             )
@@ -354,6 +355,7 @@ class ComparacaoVerdeAzulService:
                 cofins=cofins,
                 icms=icms,
                 tipo_icms=tipo_icms,
+                icms_demanda_nao_utilizada=config.ICMS_DEMANDA_NAO_UTILIZADA,
                 reativos_rs=reativos_rs,
                 bandeira_rs=bandeira_rs,
             )

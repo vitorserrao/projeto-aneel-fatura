@@ -75,9 +75,24 @@ penalizando a Azul (em um teste a diferença passou de R$ 10 mil).
   + ultrapassagem; TUSD energia P/FP × kWh P/FP; TE P/FP × kWh P/FP.
 - Azul: TUSD demanda ponta e fora ponta, cada uma com sua contratada e
   ultrapassagem; TUSD energia P/FP; TE P/FP.
+- **Demanda faturada — Súmula 391 do STJ** (implementada em
+  `fatura_verde`/`fatura_azul`, ativada por
+  `config.ICMS_DEMANDA_NAO_UTILIZADA = False`):
+  - faturada = `max(medida, contratada)`;
+  - utilizada = `medida` (limitada à faturada) → PIS/COFINS + ICMS;
+  - não utilizada = `faturada − medida` (só existe se
+    `medida < contratada`) → só PIS/COFINS, sem ICMS.
+  Na Azul a regra é aplicada **por posto** (ponta e fora ponta). A
+  **ultrapassagem é uma parcela separada** e não entra nessa divisão.
 - Ultrapassagem: gatilho `medida > contratada × (1+tol)`; base = excedente
   total `(medida − contratada)`; tarifa = `fator × tarifa de demanda`
   (mesma interpretação do `calcular_fatura`).
+- **Ultrapassagem × ICMS:** as faturas reais validadas até aqui (Copel 04/2023
+  e CEMIG CII_112 12/2023) **não trazem ultrapassagem**; a única referência
+  validada no projeto (artigo ERIAC/CPFL) tributa a ultrapassagem com
+  PIS/COFINS/ICMS cheio. `fatura_verde`/`fatura_azul` mantêm esse tratamento
+  (fator cheio) e a pendência de validar contra uma fatura real com
+  ultrapassagem fica registrada.
 - Tributos por dentro (valor bruto): `1/((1−PIS−COFINS)×(1−ICMS))` no
   padrão `tipo_icms="fora"`; `1/(1−PIS−COFINS−ICMS)` no `"dentro"`.
 - Reativo excedente e bandeira entram como valores finais (R$) e são

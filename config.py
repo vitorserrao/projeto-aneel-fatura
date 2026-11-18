@@ -41,3 +41,9 @@ INCLUIR_CONSCIENCIA_NEGRA = False
 # Tolerância da contraprova com faturas reais: diferença aceitável no total
 # da fatura simulada em relação à fatura real (fração; 0.01 = 1%).
 TOLERANCIA_VALIDACAO = 0.01
+
+# Súmula 391 do STJ: a demanda contratada e NÃO utilizada é isenta de ICMS
+# (incide apenas PIS/COFINS). False = aplica a isenção (regra das faturas
+# reais Copel/CEMIG); True = reproduz o comportamento antigo, com ICMS sobre
+# toda a demanda faturada.
+ICMS_DEMANDA_NAO_UTILIZADA = False
