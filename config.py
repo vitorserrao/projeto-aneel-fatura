@@ -23,16 +23,21 @@ FATOR_ULTRAPASSAGEM = 2.0
 # distribuidora não publica as horas de ponta.
 HORAS_PONTA_POR_DIA = 3.0
 
-# Feriados nacionais fixos (mês, dia) usados para contar dias úteis no ciclo
-# de leitura. Feriados móveis, estaduais e municipais ficam fora por ora
-# (pendência registrada em docs/regras.md).
-FERIADOS_NACIONAIS = (
-    (1, 1),   # Confraternização Universal
-    (4, 21),  # Tiradentes
-    (5, 1),   # Dia do Trabalho
-    (9, 7),   # Independência
-    (10, 12), # Nossa Senhora Aparecida
-    (11, 2),  # Finados
-    (11, 15), # Proclamação da República
-    (12, 25), # Natal
+# TODO: confirmar lista na REN 1000/2021
+# Quais feriados valem para a contagem de dias úteis dos postos tarifários.
+# "fixos" cobre os feriados nacionais de data fixa; os demais são móveis
+# (derivados da Páscoa) calculados em core/calendario.py.
+FERIADOS_POSTO_TARIFARIO = (
+    "fixos",
+    "carnaval",
+    "paixao_de_cristo",
+    "corpus_christi",
 )
+
+# TODO: confirmar se a REN 1000/ANEEL considera para posto tarifário
+# 20/11 (Consciência Negra) é item configurável e fica DESLIGADO por padrão.
+INCLUIR_CONSCIENCIA_NEGRA = False
+
+# Tolerância da contraprova com faturas reais: diferença aceitável no total
+# da fatura simulada em relação à fatura real (fração; 0.01 = 1%).
+TOLERANCIA_VALIDACAO = 0.01

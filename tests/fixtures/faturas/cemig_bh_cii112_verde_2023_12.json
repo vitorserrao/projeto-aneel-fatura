@@ -1,0 +1,35 @@
+{
+  "id": "cemig_bh_cii112_verde_2023_12",
+  "meta": {
+    "fonte": "docs/validacao_faturas_reais/casos/cemig_bh_cii112_2023_12.json (fwdfaturagrupoa/23-12 BH-CII_112.pdf)",
+    "distribuidora": "CEMIG-D",
+    "subgrupo": "A4",
+    "modalidade": "Verde",
+    "competencia": "12/2023",
+    "data_referencia": "2023-12-15",
+    "total_fatura": 52234.40,
+    "notas": [
+      "A CEMIG imprime TE+TUSD de energia em uma linha única por posto; a comparação agrupa os componentes do fatura_verde da mesma forma.",
+      "CIP/COSIP R$ 40,45 não é componente do fatura_verde; fica fora da comparação.",
+      "Multa/serviços/retenções e GD estão fora do motor (comparar por linha técnica).",
+      "A fatura divide a demanda em parcela COM ICMS (200 kW) e parcela ISENTA de ICMS (200 kW) — pendência não implementada em fatura_verde."
+    ]
+  },
+  "entrada": {
+    "consumo_ponta_kwh": 7000,
+    "consumo_fora_ponta_kwh": 54950,
+    "demanda_medida_unica_kw": 200.0,
+    "demanda_contratada_unica_kw": 400.0,
+    "reativos_rs": 0.0,
+    "bandeira_rs": 0.0
+  },
+  "tributos": {"pis": 0.0078, "cofins": 0.0361, "icms": 0.18, "tipo_icms": "fora"},
+  "comparar": [
+    {"componente": "Demanda ativa (com + sem ICMS)", "sim": ["tusd_demanda"], "real": 8909.61},
+    {"componente": "Energia ativa ponta (TE+TUSD)", "sim": ["te_energia_ponta", "tusd_energia_ponta"], "real": 17873.59},
+    {"componente": "Energia ativa fora ponta (TE+TUSD)", "sim": ["te_energia_fora_ponta", "tusd_energia_fora_ponta"], "real": 28994.44},
+    {"componente": "Reativo excedente", "sim": ["reativos"], "real": 0.0},
+    {"componente": "Bandeira", "sim": ["bandeira"], "real": 0.0}
+  ],
+  "total_tecnico": 55777.64
+}

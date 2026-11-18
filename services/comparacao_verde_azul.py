@@ -23,6 +23,7 @@ from datetime import date
 from typing import Sequence
 
 import config
+from core.calendario import feriados_postos_tarifarios
 from core.motor_calculo import fatura_azul, fatura_verde
 from core.models import (
     GRANDEZA_DEMANDA,
@@ -556,8 +557,15 @@ class ComparacaoVerdeAzulService:
         return dias_uteis * float(config.HORAS_PONTA_POR_DIA)
 
     def _feriados(self, ano_inicio: int, ano_fim: int) -> set[date]:
-        return {
-            date(ano, mes, dia)
-            for ano in range(ano_inicio, ano_fim + 1)
-            for mes, dia in config.FERIADOS_NACIONAIS
-        }
+        """Feriados de posto tarifário para cada ano coberto pelo ciclo.
+
+        Usa a lista de ``config.py`` (fixos + móveis derivados da Páscoa).
+        O 20/11 (Consciência Negra) só entra quando habilitado na config.
+        """
+        lista = list(config.FERIADOS_POSTO_TARIFARIO)
+        if config.INCLUIR_CONSCIENCIA_NEGRA:
+            lista.append("consciencia_negra")
+        datas: set[date] = set()
+        for ano in range(ano_inicio, ano_fim + 1):
+            datas.update(feriados_postos_tarifarios(ano, lista))
+        return datas

@@ -133,13 +133,18 @@ Todos em `config.py` com `# TODO: confirmar artigo REN 1000/2021`:
 
 Pendências acessórias registradas:
 
-- Feriados nacionais fixos em `config.FERIADOS_NACIONAIS`; feriados móveis
-  (Carnaval, Corpus Christi, Sexta-feira Santa), estaduais e municipais não
-  são considerados nesta sprint.
-- Horas de ponta por distribuidora: usa-se o padrão de 3 h/dia até o dado
-  por distribuidora existir.
+- Feriados de posto tarifário em `config.FERIADOS_POSTO_TARIFARIO`
+  (`fixos`, `carnaval`, `paixao_de_cristo`, `corpus_christi`), calculados por
+  `core/calendario.py` (Páscoa por Meeus/Jones/Butcher). O 20/11 (Consciência
+  Negra) é item configurável desligado por padrão
+  (`config.INCLUIR_CONSCIENCIA_NEGRA = False`).
+- Feriados estaduais e municipais continuam fora da contagem de dias úteis.
+- Horas de ponta por distribuidora: usa-se o padrão de 3 h/dia
+  (`HORAS_PONTA_POR_DIA`) até o dado por distribuidora existir.
 - No nível 2 sem datas de leitura, usa-se como fallback o mês-calendário da
   data de referência (com aviso).
+- O ciclo de leitura pode atravessar a virada do ano: os feriados são
+  calculados para cada ano coberto pelo ciclo.
 
 ## Fora do escopo
 
