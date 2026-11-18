@@ -13,9 +13,156 @@ menor custo é determinística.
 
 from __future__ import annotations
 
+from datetime import date, timedelta
 from typing import Iterable
 
 from .models import ResultadoCalculo, ResultadoOtimizacao
+
+
+# ---------------------------------------------------------------------------
+# Otimização da demanda contratada e estimativas de ponta (sprint Verde × Azul)
+# ---------------------------------------------------------------------------
+# Funções puras: recebem todos os parâmetros regulatórios por argumento e não
+# importam configuração nem infraestrutura.
+
+
+def otimizar_contratada(
+    demandas_medidas: list[float],
+    piso: float,
+    tolerancia: float,
+    fator: float,
+) -> tuple[float, float]:
+    """Otimiza a demanda contratada que minimiza o custo em kW·mês.
+
+    O custo independe da tarifa (que é um fator multiplicativo):
+
+        C(Dc) = Σ_m [ max(D_m, Dc) + fator·(D_m − Dc)
+                      se D_m > (1 + tolerancia)·Dc ]
+
+    Candidatos: ``{piso} ∪ {D_m} ∪ {D_m/(1+tolerancia)}``, filtrando valores
+    ``≥ piso``. Em caso de empate, vence a MENOR demanda contratada
+    (determinístico).
+
+    Returns:
+        ``(dc_otima, custo_em_kw_mes)``.
+    """
+    demandas = [float(d) for d in demandas_medidas]
+    if not demandas:
+        raise ValueError("demandas_medidas não pode ser vazio")
+    if piso < 0:
+        raise ValueError("piso não pode ser negativo")
+    if tolerancia < 0:
+        raise ValueError("tolerancia não pode ser negativa")
+    if fator < 0:
+        raise ValueError("fator não pode ser negativo")
+
+    candidatos: set[float] = {float(piso)}
+    for d in demandas:
+        candidatos.add(d)
+        candidatos.add(d / (1.0 + tolerancia))
+    ordenados = sorted(c for c in candidatos if c >= piso - 1e-12)
+    if not ordenados:
+        ordenados = [float(piso)]
+
+    def custo(dc: float) -> float:
+        total = 0.0
+        for d in demandas:
+            total += max(d, dc)
+            if d > (1.0 + tolerancia) * dc:
+                total += fator * (d - dc)
+        return total
+
+    melhor_dc = ordenados[0]
+    melhor_custo = custo(melhor_dc)
+    for dc in ordenados[1:]:
+        custo_dc = custo(dc)
+        if custo_dc < melhor_custo - 1e-9 or (
+            abs(custo_dc - melhor_custo) <= 1e-9 and dc < melhor_dc
+        ):
+            melhor_dc = dc
+            melhor_custo = custo_dc
+    return melhor_dc, melhor_custo
+
+
+def demanda_verde_mensal(dp: float | None, dfp: float | None) -> float:
+    """Demanda da Verde no mês: ``max(Dp, Dfp)`` quando os dois postos existem.
+
+    ``None`` = dado ausente e NUNCA vira zero. Se apenas um posto existir, ele
+    é usado; se nenhum existir, a função recusa (a camada de serviço decide
+    excluir o mês ou emitir aviso).
+    """
+    if dp is None and dfp is None:
+        raise ValueError("demanda da Verde exige ao menos um dos postos (dp, dfp)")
+    if dp is None:
+        return float(dfp)
+    if dfp is None:
+        return float(dp)
+    return max(float(dp), float(dfp))
+
+
+def faixa_demanda_ponta(
+    ep_kwh: float,
+    horas_ponta: float,
+    d_verde: float,
+    piso: float,
+) -> tuple[float, float]:
+    """Faixa possível para a demanda de ponta da Azul a partir da fatura Verde.
+
+    - ``min = max(Ep / horas_ponta, piso)``: a demanda média na ponta é um
+      piso físico — o pico nunca é menor que a média.
+    - ``max = D_verde``: a demanda medida da Verde é o pico do mês inteiro.
+
+    ``None``/valores inconsistentes geram ``ValueError`` (nunca viram zero).
+    """
+    if ep_kwh is None or horas_ponta is None or d_verde is None:
+        raise ValueError("ep_kwh, horas_ponta e d_verde são obrigatórios")
+    if horas_ponta <= 0:
+        raise ValueError("horas_ponta deve ser maior que 0")
+    minimo = max(float(ep_kwh) / float(horas_ponta), float(piso))
+    maximo = float(d_verde)
+    if maximo < minimo:
+        raise ValueError(
+            f"faixa de demanda de ponta inconsistente: D_verde ({maximo}) "
+            f"menor que o mínimo ({minimo})"
+        )
+    return minimo, maximo
+
+
+def horas_ponta(
+    data_leitura_anterior: date,
+    data_leitura_atual: date,
+    feriados: Iterable[date],
+    horas_por_dia: float,
+) -> float:
+    """Horas de ponta no ciclo de leitura.
+
+    Conta os dias úteis (sem sábados, domingos e feriados nacionais) no
+    intervalo ``(anterior, atual]`` — os dias efetivamente faturados no ciclo
+    — e multiplica por ``horas_por_dia``. A lista de feriados é recebida por
+    parâmetro para o core continuar puro.
+    """
+    if not isinstance(data_leitura_anterior, date) or not isinstance(
+        data_leitura_atual, date
+    ):
+        raise ValueError("datas de leitura devem ser objetos date")
+    if data_leitura_atual <= data_leitura_anterior:
+        raise ValueError(
+            "data_leitura_atual deve ser posterior a data_leitura_anterior"
+        )
+    if horas_por_dia <= 0:
+        raise ValueError("horas_por_dia deve ser maior que 0")
+
+    feriados_set = {
+        f if isinstance(f, date) else date.fromisoformat(str(f)) for f in feriados
+    }
+    dias_uteis = 0
+    dia = data_leitura_anterior + timedelta(days=1)
+    while dia <= data_leitura_atual:
+        if dia.weekday() < 5 and dia not in feriados_set:
+            dias_uteis += 1
+        dia += timedelta(days=1)
+    return float(dias_uteis) * float(horas_por_dia)
+
 
 
 def otimizar_modalidade(

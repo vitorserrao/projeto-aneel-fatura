@@ -288,6 +288,48 @@ class ResultadoComparacao:
 
 
 @dataclass(frozen=True)
+class FaturaMensal:
+    """Fatura mensal por componente (sprint Verde × Azul).
+
+    A fatura é devolvida por componente para a tela "com cara de fatura" e
+    para validação. Os componentes tarifários já vêm com tributos (valor
+    bruto da fatura); ``reativos`` e ``bandeira`` entram como valores finais
+    (R$) informados pelo chamador — são iguais nas duas modalidades.
+    """
+
+    modalidade: str
+    tusd_demanda: float = 0.0            # Verde: demanda única (R$)
+    tusd_demanda_ponta: float = 0.0      # Azul: demanda ponta (R$)
+    tusd_demanda_fora_ponta: float = 0.0 # Azul: demanda fora ponta (R$)
+    tusd_energia_ponta: float = 0.0
+    tusd_energia_fora_ponta: float = 0.0
+    te_energia_ponta: float = 0.0
+    te_energia_fora_ponta: float = 0.0
+    ultrapassagem: float = 0.0
+    reativos: float = 0.0
+    bandeira: float = 0.0
+
+    def __post_init__(self) -> None:
+        _exigir_texto(self.modalidade, "modalidade")
+
+    @property
+    def custo_total(self) -> float:
+        """Total bruto da fatura mensal."""
+        return (
+            self.tusd_demanda
+            + self.tusd_demanda_ponta
+            + self.tusd_demanda_fora_ponta
+            + self.tusd_energia_ponta
+            + self.tusd_energia_fora_ponta
+            + self.te_energia_ponta
+            + self.te_energia_fora_ponta
+            + self.ultrapassagem
+            + self.reativos
+            + self.bandeira
+        )
+
+
+@dataclass(frozen=True)
 class ResultadoOtimizacao:
     """Resultado da comparação entre modalidades tarifárias."""
 
