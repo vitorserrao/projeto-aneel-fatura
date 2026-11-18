@@ -1,9 +1,18 @@
 """Teste de integração do endpoint /api/epi/calcular.
 
 Valida o serviço de PI de ponta a ponta (repo → EPIService → core) usando o
-caso CELESC A4 Azul do TCC:
-- data 2025-12-01 (ciclo tarifário 2025-08-22..2025-12-31) → PI ≈ 318,20;
-- data 2025-08-01 (ciclo 2024-08-22..2025-08-21, o usado pelo TCC) → 302,20.
+caso CELESC A4 Azul do TCC.
+
+Atenção à bandeira: quando estes testes foram escritos, a tabela
+``bandeira_tarifaria`` ia só até 06/2025, então o PI de 2025 saía **sem
+bandeira**. Com o histórico oficial da ANEEL carregado
+(``scripts/cargar_bandeiras_aneel.py``), as competências passaram a ter:
+
+- 2025-12-01 → Amarela R$ 18,85/MWh  → PI ≈ 337,21 (era 318,20 sem bandeira);
+- 2025-08-01 → Vermelha P2 R$ 78,77/MWh → PI ≈ 381,65 (era 302,20).
+
+O ``bandeira_r_mwh`` é conferido junto para deixar explícito de onde vem a
+diferença em relação ao número publicado no TCC (que não considerou bandeira).
 """
 
 import pytest
@@ -51,7 +60,10 @@ def test_epi_celesc_dez2025(banco):
 
     assert resposta.status_code == 200
     corpo = resposta.json()
-    assert corpo["pi"] == pytest.approx(318.20, abs=0.01)
+    # Bandeira Amarela de 12/2025 (ANEEL, REH 3.306/2024): R$ 18,85/MWh.
+    assert corpo["bandeira_r_mwh"] == pytest.approx(18.85, abs=0.01)
+    # PI do TCC (318,20) + bandeira: o TCC não considerava bandeira.
+    assert corpo["pi"] == pytest.approx(337.21, abs=0.01)
     assert corpo["modalidade"] == "AZUL"
     assert corpo["e_mwh"] == pytest.approx(1425.83 + 14125.16, abs=0.01)
 
@@ -62,7 +74,20 @@ def test_epi_celesc_vigencia_anterior_reproduz_tcc(banco):
     )
 
     assert resposta.status_code == 200
-    assert resposta.json()["pi"] == pytest.approx(302.20, abs=0.01)
+    corpo = resposta.json()
+    # Bandeira Vermelha P2 de 08/2025 (ANEEL, REH 3.306/2024): R$ 78,77/MWh.
+    assert corpo["bandeira_r_mwh"] == pytest.approx(78.77, abs=0.01)
+    assert corpo["pi"] == pytest.approx(381.65, abs=0.01)
+
+
+def test_epi_sem_bandeira_usa_zero(banco):
+    """Competência anterior a jan/2015: sem bandeira, adicional 0 (não é erro)."""
+    resposta = client.post(
+        "/api/epi/calcular", json=_payload(data_referencia="2014-06-01")
+    )
+
+    assert resposta.status_code == 200
+    assert resposta.json()["bandeira_r_mwh"] == 0.0
 
 
 def test_epi_modalidade_invalida_retorna_400(banco):
@@ -100,5 +125,6 @@ def test_comparar_modalidades_inclui_pi_por_modalidade(banco):
 
     assert "Azul" in por_modalidade
     assert "Verde" in por_modalidade
-    assert por_modalidade["Azul"]["pi"] == pytest.approx(318.20, abs=0.01)
+    # Mesmo perfil/data do teste do E-PI: PI com a bandeira Amarela de 12/2025.
+    assert por_modalidade["Azul"]["pi"] == pytest.approx(337.21, abs=0.01)
     assert por_modalidade["Verde"]["pi"] is not None
