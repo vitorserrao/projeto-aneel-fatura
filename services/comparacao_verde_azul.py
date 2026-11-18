@@ -225,7 +225,7 @@ class ComparacaoVerdeAzulService:
             ep = float(mes["ep_kwh"])
             hp = self._horas_ponta_mes(mes, perfil_base, avisos)
             faixas.append(
-                faixa_demanda_ponta(ep, hp, d_verde, config.DEMANDA_MINIMA_KW)
+                faixa_demanda_ponta(ep, hp, d_verde)
             )
 
         dps_min = [f[0] for f in faixas]

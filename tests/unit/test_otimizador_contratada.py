@@ -53,20 +53,29 @@ def test_fatura_real_12_meses_verde_segue_fora_ponta():
 
 
 def test_faixa_dez_isolado_horas_ponta_63():
-    assert faixa_demanda_ponta(441.0, 63.0, 41.44, 30.0) == pytest.approx(
-        (30.0, 41.44)
+    # min = Ep/hp = 441/63 = 7,0 (o piso de 30 kW é da CONTRATADA, não entra
+    # na faixa da demanda medida).
+    assert faixa_demanda_ponta(441.0, 63.0, 41.44) == pytest.approx(
+        (7.0, 41.44)
     )
 
 
 def test_faixa_minimo_e_media_da_ponta_quando_acima_do_piso():
-    minimo, maximo = faixa_demanda_ponta(2000.0, 63.0, 41.44, 30.0)
+    minimo, maximo = faixa_demanda_ponta(2000.0, 63.0, 41.44)
     assert minimo == pytest.approx(2000.0 / 63.0)
     assert maximo == pytest.approx(41.44)
 
 
+def test_faixa_demanda_abaixo_de_30_nao_quebra():
+    # Mês com D_verde < 30 kW: a faixa é [Ep/hp, D_verde] e não inverte.
+    minimo, maximo = faixa_demanda_ponta(200.0, 63.0, 17.08)
+    assert minimo == pytest.approx(200.0 / 63.0)
+    assert maximo == pytest.approx(17.08)
+
+
 def test_faixa_exige_horas_positivas():
     with pytest.raises(ValueError):
-        faixa_demanda_ponta(441.0, 0.0, 41.44, 30.0)
+        faixa_demanda_ponta(441.0, 0.0, 41.44)
 
 
 def test_demanda_verde_mensal_max_dos_postos():
